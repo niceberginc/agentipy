@@ -34,7 +34,8 @@ class DeployCollectionManager:
             encrypted_private_key = encrypt_private_key(agent.private_key)
 
             payload: Dict[str, Any] = {
-                "encrypted_private_key": encrypted_private_key,
+                "requestId": encrypted_private_key["requestId"],
+                "encrypted_private_key": encrypted_private_key["encryptedPrivateKey"],
                 "rpc_url": agent.rpc_url,
                 "open_api_key": agent.openai_api_key,
                 "name": name,
@@ -44,7 +45,7 @@ class DeployCollectionManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/deploy-collection",
+                f"{agent.base_proxy_url}/{agent.api_version}/nft/deploy-collection",
                 json=payload,
                 headers={"Content-Type": "application/json"}
             )
@@ -89,14 +90,15 @@ class DeployCollectionManager:
             encrypted_private_key = encrypt_private_key(agent.private_key)
 
             payload: Dict[str, Any] = {
-                "encrypted_private_key": encrypted_private_key,
+                "requestId": encrypted_private_key["requestId"],
+                "encrypted_private_key": encrypted_private_key["encryptedPrivateKey"],
                 "rpc_url": agent.rpc_url,
                 "open_api_key": agent.openai_api_key,
                 "assetId": assetId,
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/get-asset",
+                f"{agent.base_proxy_url}/{agent.api_version}/nft/get-asset",
                 json=payload,
                 headers={"Content-Type": "application/json"}
             )
@@ -155,7 +157,8 @@ class DeployCollectionManager:
             encrypted_private_key = encrypt_private_key(agent.private_key)
 
             payload: Dict[str, Any] = {
-                "encrypted_private_key": encrypted_private_key,
+                "requestId": encrypted_private_key["requestId"],
+                "encrypted_private_key": encrypted_private_key["encryptedPrivateKey"],
                 "rpc_url": agent.rpc_url,
                 "open_api_key": agent.openai_api_key,
                 "creator": creator,
@@ -169,7 +172,7 @@ class DeployCollectionManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/get-assets-by-creator",
+                f"{agent.base_proxy_url}/{agent.api_version}/nft/get-assets-by-creator",
                 json=payload,
                 headers={"Content-Type": "application/json"}
             )
@@ -226,7 +229,8 @@ class DeployCollectionManager:
             encrypted_private_key = encrypt_private_key(agent.private_key)
 
             payload: Dict[str, Any] = {
-                "encrypted_private_key": encrypted_private_key,
+                "requestId": encrypted_private_key["requestId"],
+                "encrypted_private_key": encrypted_private_key["encryptedPrivateKey"],
                 "rpc_url": agent.rpc_url,
                 "open_api_key": agent.openai_api_key,
                 "authority": authority,
@@ -239,7 +243,7 @@ class DeployCollectionManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/get-assets-by-authority",
+                f"{agent.base_proxy_url}/{agent.api_version}/nft/get-assets-by-authority",
                 json=payload,
                 headers={"Content-Type": "application/json"}
             )
@@ -296,7 +300,8 @@ class DeployCollectionManager:
             encrypted_private_key = encrypt_private_key(agent.private_key)
 
             payload: Dict[str, Any] = {
-                "encrypted_private_key": encrypted_private_key,
+                "requestId": encrypted_private_key["requestId"],
+                "encrypted_private_key": encrypted_private_key["encryptedPrivateKey"],
                 "rpc_url": agent.rpc_url,
                 "open_api_key": agent.openai_api_key,
                 "collectionMint": collectionMint,
@@ -309,7 +314,7 @@ class DeployCollectionManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/mint",
+                f"{agent.base_proxy_url}/{agent.api_version}/nft/mint",
                 json=payload,
                 headers={"Content-Type": "application/json"}
             )

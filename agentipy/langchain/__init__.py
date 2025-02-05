@@ -3930,6 +3930,1364 @@ class BackpackGetInterestHistoryTool(BaseTool):
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
+class ClosePerpTradeShortTool(BaseTool):
+    name: str = "close_perp_trade_short"
+    description: str = """
+    Closes a perpetual short trade.
+
+    Input: A JSON string with:
+    {
+        "price": "float, execution price for closing the trade",
+        "trade_mint": "string, token mint address for the trade"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.close_perp_trade_short(
+                price=data["price"],
+                trade_mint=data["trade_mint"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error closing perp short trade: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class ClosePerpTradeLongTool(BaseTool):
+    name: str = "close_perp_trade_long"
+    description: str = """
+    Closes a perpetual long trade.
+
+    Input: A JSON string with:
+    {
+        "price": "float, execution price for closing the trade",
+        "trade_mint": "string, token mint address for the trade"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.close_perp_trade_long(
+                price=data["price"],
+                trade_mint=data["trade_mint"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error closing perp long trade: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class OpenPerpTradeLongTool(BaseTool):
+    name: str = "open_perp_trade_long"
+    description: str = """
+    Opens a perpetual long trade.
+
+    Input: A JSON string with:
+    {
+        "price": "float, entry price for the trade",
+        "collateral_amount": "float, amount of collateral",
+        "collateral_mint": "string, optional, mint address of the collateral",
+        "leverage": "float, optional, leverage factor",
+        "trade_mint": "string, optional, token mint address",
+        "slippage": "float, optional, slippage tolerance"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.open_perp_trade_long(
+                price=data["price"],
+                collateral_amount=data["collateral_amount"],
+                collateral_mint=data.get("collateral_mint"),
+                leverage=data.get("leverage"),
+                trade_mint=data.get("trade_mint"),
+                slippage=data.get("slippage")
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error opening perp long trade: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class OpenPerpTradeShortTool(BaseTool):
+    name: str = "open_perp_trade_short"
+    description: str = """
+    Opens a perpetual short trade.
+
+    Input: A JSON string with:
+    {
+        "price": "float, entry price for the trade",
+        "collateral_amount": "float, amount of collateral",
+        "collateral_mint": "string, optional, mint address of the collateral",
+        "leverage": "float, optional, leverage factor",
+        "trade_mint": "string, optional, token mint address",
+        "slippage": "float, optional, slippage tolerance"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.open_perp_trade_short(
+                price=data["price"],
+                collateral_amount=data["collateral_amount"],
+                collateral_mint=data.get("collateral_mint"),
+                leverage=data.get("leverage"),
+                trade_mint=data.get("trade_mint"),
+                slippage=data.get("slippage")
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error opening perp short trade: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+    
+class Create3LandCollectionTool(BaseTool):
+    name: str = "create_3land_collection"
+    description: str = """
+    Creates a 3Land NFT collection.
+
+    Input: A JSON string with:
+    {
+        "collection_symbol": "string, symbol of the collection",
+        "collection_name": "string, name of the collection",
+        "collection_description": "string, description of the collection",
+        "main_image_url": "string, optional, URL of the main image",
+        "cover_image_url": "string, optional, URL of the cover image",
+        "is_devnet": "bool, optional, whether to use devnet"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.create_3land_collection(
+                collection_symbol=data["collection_symbol"],
+                collection_name=data["collection_name"],
+                collection_description=data["collection_description"],
+                main_image_url=data.get("main_image_url"),
+                cover_image_url=data.get("cover_image_url"),
+                is_devnet=data.get("is_devnet", False),
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error creating 3land collection: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class Create3LandNFTTool(BaseTool):
+    name: str = "create_3land_nft"
+    description: str = """
+    Creates a 3Land NFT.
+
+    Input: A JSON string with:
+    {
+        "item_name": "string, name of the NFT",
+        "seller_fee": "float, seller fee percentage",
+        "item_amount": "int, number of NFTs to mint",
+        "item_symbol": "string, symbol of the NFT",
+        "item_description": "string, description of the NFT",
+        "traits": "Any, NFT traits",
+        "price": "float, optional, price of the NFT",
+        "main_image_url": "string, optional, URL of the main image",
+        "cover_image_url": "string, optional, URL of the cover image",
+        "spl_hash": "string, optional, SPL hash identifier",
+        "pool_name": "string, optional, pool name",
+        "is_devnet": "bool, optional, whether to use devnet",
+        "with_pool": "bool, optional, whether to include a pool"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.create_3land_nft(
+                item_name=data["item_name"],
+                seller_fee=data["seller_fee"],
+                item_amount=data["item_amount"],
+                item_symbol=data["item_symbol"],
+                item_description=data["item_description"],
+                traits=data["traits"],
+                price=data.get("price"),
+                main_image_url=data.get("main_image_url"),
+                cover_image_url=data.get("cover_image_url"),
+                spl_hash=data.get("spl_hash"),
+                pool_name=data.get("pool_name"),
+                is_devnet=data.get("is_devnet", False),
+                with_pool=data.get("with_pool", False),
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error creating 3land NFT: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class CreateDriftUserAccountTool(BaseTool):
+    name: str = "create_drift_user_account"
+    description: str = """
+    Creates a Drift user account with an initial deposit.
+
+    Input: A JSON string with:
+    {
+        "deposit_amount": "float, amount to deposit",
+        "deposit_symbol": "string, symbol of the asset to deposit"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.create_drift_user_account(
+                deposit_amount=data["deposit_amount"],
+                deposit_symbol=data["deposit_symbol"],
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error creating Drift user account: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class DepositToDriftUserAccountTool(BaseTool):
+    name: str = "deposit_to_drift_user_account"
+    description: str = """
+    Deposits funds into a Drift user account.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, amount to deposit",
+        "symbol": "string, symbol of the asset",
+        "is_repayment": "bool, optional, whether the deposit is a loan repayment"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.deposit_to_drift_user_account(
+                amount=data["amount"],
+                symbol=data["symbol"],
+                is_repayment=data.get("is_repayment"),
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error depositing to Drift user account: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+    
+class WithdrawFromDriftUserAccountTool(BaseTool):
+    name: str = "withdraw_from_drift_user_account"
+    description: str = """
+    Withdraws funds from a Drift user account.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, amount to withdraw",
+        "symbol": "string, symbol of the asset",
+        "is_borrow": "bool, optional, whether the withdrawal is a borrow request"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.withdraw_from_drift_user_account(
+                amount=data["amount"],
+                symbol=data["symbol"],
+                is_borrow=data.get("is_borrow"),
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error withdrawing from Drift user account: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class TradeUsingDriftPerpAccountTool(BaseTool):
+    name: str = "trade_using_drift_perp_account"
+    description: str = """
+    Executes a trade using a Drift perpetual account.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, trade amount",
+        "symbol": "string, market symbol",
+        "action": "string, 'long' or 'short'",
+        "trade_type": "string, 'market' or 'limit'",
+        "price": "float, optional, trade execution price"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.trade_using_drift_perp_account(
+                amount=data["amount"],
+                symbol=data["symbol"],
+                action=data["action"],
+                trade_type=data["trade_type"],
+                price=data.get("price"),
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error trading using Drift perp account: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class CheckIfDriftAccountExistsTool(BaseTool):
+    name: str = "check_if_drift_account_exists"
+    description: str = """
+    Checks if a Drift user account exists.
+
+    Input: None.
+    Output:
+    {
+        "exists": "bool, whether the Drift user account exists",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            exists = await self.solana_kit.check_if_drift_account_exists()
+            return {
+                "exists": exists,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "exists": None,
+                "message": f"Error checking Drift account existence: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class DriftUserAccountInfoTool(BaseTool):
+    name: str = "drift_user_account_info"
+    description: str = """
+    Retrieves Drift user account information.
+
+    Input: None.
+    Output:
+    {
+        "account_info": "dict, account details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            account_info = await self.solana_kit.drift_user_account_info()
+            return {
+                "account_info": account_info,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "account_info": None,
+                "message": f"Error fetching Drift user account info: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class GetAvailableDriftMarketsTool(BaseTool):
+    name: str = "get_available_drift_markets"
+    description: str = """
+    Retrieves available markets on Drift.
+
+    Input: None.
+    Output:
+    {
+        "markets": "dict, list of available Drift markets",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            markets = await self.solana_kit.get_available_drift_markets()
+            return {
+                "markets": markets,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "markets": None,
+                "message": f"Error fetching available Drift markets: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class StakeToDriftInsuranceFundTool(BaseTool):
+    name: str = "stake_to_drift_insurance_fund"
+    description: str = """
+    Stakes funds into the Drift insurance fund.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, amount to stake",
+        "symbol": "string, token symbol"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.stake_to_drift_insurance_fund(
+                amount=data["amount"],
+                symbol=data["symbol"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error staking to Drift insurance fund: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
+    name: str = "request_unstake_from_drift_insurance_fund"
+    description: str = """
+    Requests unstaking from the Drift insurance fund.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, amount to unstake",
+        "symbol": "string, token symbol"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.request_unstake_from_drift_insurance_fund(
+                amount=data["amount"],
+                symbol=data["symbol"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error requesting unstake from Drift insurance fund: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class UnstakeFromDriftInsuranceFundTool(BaseTool):
+    name: str = "unstake_from_drift_insurance_fund"
+    description: str = """
+    Completes an unstaking request from the Drift insurance fund.
+
+    Input: A JSON string with:
+    {
+        "symbol": "string, token symbol"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.unstake_from_drift_insurance_fund(
+                symbol=data["symbol"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error unstaking from Drift insurance fund: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class DriftSwapSpotTokenTool(BaseTool):
+    name: str = "drift_swap_spot_token"
+    description: str = """
+    Swaps spot tokens on Drift.
+
+    Input: A JSON string with:
+    {
+        "from_symbol": "string, token to swap from",
+        "to_symbol": "string, token to swap to",
+        "slippage": "float, optional, allowed slippage",
+        "to_amount": "float, optional, desired amount of the output token",
+        "from_amount": "float, optional, amount of the input token"
+    }
+    Output:
+    {
+        "transaction": "dict, swap transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.drift_swap_spot_token(
+                from_symbol=data["from_symbol"],
+                to_symbol=data["to_symbol"],
+                slippage=data.get("slippage"),
+                to_amount=data.get("to_amount"),
+                from_amount=data.get("from_amount"),
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error swapping spot token on Drift: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class GetDriftPerpMarketFundingRateTool(BaseTool):
+    name: str = "get_drift_perp_market_funding_rate"
+    description: str = """
+    Retrieves the funding rate for a Drift perpetual market.
+
+    Input: A JSON string with:
+    {
+        "symbol": "string, market symbol (must end in '-PERP')",
+        "period": "string, optional, funding rate period, either 'year' or 'hour' (default: 'year')"
+    }
+    Output:
+    {
+        "funding_rate": "dict, funding rate details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            funding_rate = await self.solana_kit.get_drift_perp_market_funding_rate(
+                symbol=data["symbol"],
+                period=data.get("period", "year"),
+            )
+            return {
+                "funding_rate": funding_rate,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "funding_rate": None,
+                "message": f"Error getting Drift perp market funding rate: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
+    name: str = "get_drift_entry_quote_of_perp_trade"
+    description: str = """
+    Retrieves the entry quote for a perpetual trade on Drift.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, trade amount",
+        "symbol": "string, market symbol (must end in '-PERP')",
+        "action": "string, 'long' or 'short'"
+    }
+    Output:
+    {
+        "entry_quote": "dict, entry quote details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            entry_quote = await self.solana_kit.get_drift_entry_quote_of_perp_trade(
+                amount=data["amount"],
+                symbol=data["symbol"],
+                action=data["action"],
+            )
+            return {
+                "entry_quote": entry_quote,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "entry_quote": None,
+                "message": f"Error getting Drift entry quote of perp trade: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class GetDriftLendBorrowApyTool(BaseTool):
+    name: str = "get_drift_lend_borrow_apy"
+    description: str = """
+    Retrieves the lending and borrowing APY for a given symbol on Drift.
+
+    Input: A JSON string with:
+    {
+        "symbol": "string, token symbol"
+    }
+    Output:
+    {
+        "apy_data": "dict, lending and borrowing APY details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            apy_data = await self.solana_kit.get_drift_lend_borrow_apy(
+                symbol=data["symbol"]
+            )
+            return {
+                "apy_data": apy_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "apy_data": None,
+                "message": f"Error getting Drift lend/borrow APY: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class CreateDriftVaultTool(BaseTool):
+    name: str = "create_drift_vault"
+    description: str = """
+    Creates a Drift vault.
+
+    Input: A JSON string with:
+    {
+        "name": "string, vault name",
+        "market_name": "string, market name format '<name>-<name>'",
+        "redeem_period": "int, redeem period in blocks",
+        "max_tokens": "int, maximum number of tokens",
+        "min_deposit_amount": "float, minimum deposit amount",
+        "management_fee": "float, management fee percentage",
+        "profit_share": "float, profit share percentage",
+        "hurdle_rate": "float, optional, hurdle rate",
+        "permissioned": "bool, optional, whether the vault is permissioned"
+    }
+    Output:
+    {
+        "vault_details": "dict, vault creation details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            vault_details = await self.solana_kit.create_drift_vault(
+                name=data["name"],
+                market_name=data["market_name"],
+                redeem_period=data["redeem_period"],
+                max_tokens=data["max_tokens"],
+                min_deposit_amount=data["min_deposit_amount"],
+                management_fee=data["management_fee"],
+                profit_share=data["profit_share"],
+                hurdle_rate=data.get("hurdle_rate"),
+                permissioned=data.get("permissioned"),
+            )
+            return {
+                "vault_details": vault_details,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "vault_details": None,
+                "message": f"Error creating Drift vault: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class UpdateDriftVaultDelegateTool(BaseTool):
+    name: str = "update_drift_vault_delegate"
+    description: str = """
+    Updates the delegate address for a Drift vault.
+
+    Input: A JSON string with:
+    {
+        "vault": "string, vault address",
+        "delegate_address": "string, new delegate address"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.update_drift_vault_delegate(
+                vault=data["vault"],
+                delegate_address=data["delegate_address"],
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error updating Drift vault delegate: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class UpdateDriftVaultTool(BaseTool):
+    name: str = "update_drift_vault"
+    description: str = """
+    Updates an existing Drift vault.
+
+    Input: A JSON string with:
+    {
+        "vault_address": "string, address of the vault",
+        "name": "string, vault name",
+        "market_name": "string, market name format '<name>-<name>'",
+        "redeem_period": "int, redeem period in blocks",
+        "max_tokens": "int, maximum number of tokens",
+        "min_deposit_amount": "float, minimum deposit amount",
+        "management_fee": "float, management fee percentage",
+        "profit_share": "float, profit share percentage",
+        "hurdle_rate": "float, optional, hurdle rate",
+        "permissioned": "bool, optional, whether the vault is permissioned"
+    }
+    Output:
+    {
+        "vault_update": "dict, vault update details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            vault_update = await self.solana_kit.update_drift_vault(
+                vault_address=data["vault_address"],
+                name=data["name"],
+                market_name=data["market_name"],
+                redeem_period=data["redeem_period"],
+                max_tokens=data["max_tokens"],
+                min_deposit_amount=data["min_deposit_amount"],
+                management_fee=data["management_fee"],
+                profit_share=data["profit_share"],
+                hurdle_rate=data.get("hurdle_rate"),
+                permissioned=data.get("permissioned"),
+            )
+            return {
+                "vault_update": vault_update,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "vault_update": None,
+                "message": f"Error updating Drift vault: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class GetDriftVaultInfoTool(BaseTool):
+    name: str = "get_drift_vault_info"
+    description: str = """
+    Retrieves information about a specific Drift vault.
+
+    Input: A JSON string with:
+    {
+        "vault_name": "string, name of the vault"
+    }
+    Output:
+    {
+        "vault_info": "dict, vault details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            vault_info = await self.solana_kit.get_drift_vault_info(
+                vault_name=data["vault_name"]
+            )
+            return {
+                "vault_info": vault_info,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "vault_info": None,
+                "message": f"Error retrieving Drift vault info: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+    
+class DepositIntoDriftVaultTool(BaseTool):
+    name: str = "deposit_into_drift_vault"
+    description: str = """
+    Deposits funds into a Drift vault.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, amount to deposit",
+        "vault": "string, vault address"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.deposit_into_drift_vault(
+                amount=data["amount"],
+                vault=data["vault"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error depositing into Drift vault: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class RequestWithdrawalFromDriftVaultTool(BaseTool):
+    name: str = "request_withdrawal_from_drift_vault"
+    description: str = """
+    Requests a withdrawal from a Drift vault.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, amount to withdraw",
+        "vault": "string, vault address"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.request_withdrawal_from_drift_vault(
+                amount=data["amount"],
+                vault=data["vault"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error requesting withdrawal from Drift vault: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class WithdrawFromDriftVaultTool(BaseTool):
+    name: str = "withdraw_from_drift_vault"
+    description: str = """
+    Withdraws funds from a Drift vault after a withdrawal request.
+
+    Input: A JSON string with:
+    {
+        "vault": "string, vault address"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.withdraw_from_drift_vault(
+                vault=data["vault"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error withdrawing from Drift vault: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class DeriveDriftVaultAddressTool(BaseTool):
+    name: str = "derive_drift_vault_address"
+    description: str = """
+    Derives the Drift vault address from a given name.
+
+    Input: A JSON string with:
+    {
+        "name": "string, vault name"
+    }
+    Output:
+    {
+        "vault_address": "string, derived vault address",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            vault_address = await self.solana_kit.derive_drift_vault_address(
+                name=data["name"]
+            )
+            return {
+                "vault_address": vault_address,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "vault_address": None,
+                "message": f"Error deriving Drift vault address: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class TradeUsingDelegatedDriftVaultTool(BaseTool):
+    name: str = "trade_using_delegated_drift_vault"
+    description: str = """
+    Executes a trade using a delegated Drift vault.
+
+    Input: A JSON string with:
+    {
+        "vault": "string, vault address",
+        "amount": "float, trade amount",
+        "symbol": "string, market symbol",
+        "action": "string, either 'long' or 'short'",
+        "trade_type": "string, either 'market' or 'limit'",
+        "price": "float, optional, trade execution price"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.trade_using_delegated_drift_vault(
+                vault=data["vault"],
+                amount=data["amount"],
+                symbol=data["symbol"],
+                action=data["action"],
+                trade_type=data["trade_type"],
+                price=data.get("price")
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error trading using delegated Drift vault: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+    
+class FlashOpenTradeTool(BaseTool):
+    name: str = "flash_open_trade"
+    description: str = """
+    Opens a flash trade using the Solana Agent toolkit API.
+
+    Input: A JSON string with:
+    {
+        "token": "string, the trading token",
+        "side": "string, either 'buy' or 'sell'",
+        "collateralUsd": "float, collateral amount in USD",
+        "leverage": "float, leverage multiplier"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.flash_open_trade(
+                token=data["token"],
+                side=data["side"],
+                collateral_usd=data["collateralUsd"],
+                leverage=data["leverage"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error opening flash trade: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class FlashCloseTradeTool(BaseTool):
+    name: str = "flash_close_trade"
+    description: str = """
+    Closes a flash trade using the Solana Agent toolkit API.
+
+    Input: A JSON string with:
+    {
+        "token": "string, the trading token",
+        "side": "string, either 'buy' or 'sell'"
+    }
+    Output:
+    {
+        "transaction": "dict, transaction details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction = await self.solana_kit.flash_close_trade(
+                token=data["token"],
+                side=data["side"]
+            )
+            return {
+                "transaction": transaction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction": None,
+                "message": f"Error closing flash trade: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun.")
+
+class ResolveAllDomainsTool(BaseTool):
+    name: str = "resolve_all_domains"
+    description: str = """
+    Resolves all domain types associated with a given domain name.
+
+    Input: A JSON string with:
+    {
+        "domain": "string, the domain name to resolve"
+    }
+    Output:
+    {
+        "tld": "string, the resolved domain's TLD",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            domain_tld = await self.solana_kit.resolve_all_domains(data["domain"])
+            return {"tld": domain_tld, "message": "Success"} if domain_tld else {"message": "Domain resolution failed"}
+        except Exception as e:
+            return {"message": f"Error resolving domain: {str(e)}"}
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class GetOwnedDomainsForTLDTool(BaseTool):
+    name: str = "get_owned_domains_for_tld"
+    description: str = """
+    Retrieves the domains owned by the user for a given TLD.
+
+    Input: A JSON string with:
+    {
+        "tld": "string, the top-level domain (TLD)"
+    }
+    Output:
+    {
+        "domains": "list of strings, owned domains under the TLD",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            owned_domains = await self.solana_kit.get_owned_domains_for_tld(data["tld"])
+            return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
+        except Exception as e:
+            return {"message": f"Error fetching owned domains: {str(e)}"}
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class GetAllDomainsTLDsTool(BaseTool):
+    name: str = "get_all_domains_tlds"
+    description: str = """
+    Retrieves all available top-level domains (TLDs).
+
+    Input: No input required.
+    Output:
+    {
+        "tlds": "list of strings, available TLDs",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            tlds = await self.solana_kit.get_all_domains_tlds()
+            return {"tlds": tlds, "message": "Success"} if tlds else {"message": "No TLDs found"}
+        except Exception as e:
+            return {"message": f"Error fetching TLDs: {str(e)}"}
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class GetOwnedAllDomainsTool(BaseTool):
+    name: str = "get_owned_all_domains"
+    description: str = """
+    Retrieves all domains owned by a given user.
+
+    Input: A JSON string with:
+    {
+        "owner": "string, the owner's public key"
+    }
+    Output:
+    {
+        "domains": "list of strings, owned domains",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            owned_domains = await self.solana_kit.get_owned_all_domains(data["owner"])
+            return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
+        except Exception as e:
+            return {"message": f"Error fetching owned domains: {str(e)}"}
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+    
 def create_solana_tools(solana_kit: SolanaAgentKit):
     return [
         SolanaBalanceTool(solana_kit=solana_kit),
@@ -4030,5 +5388,40 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         BackpackGetBorrowHistoryTool(solana_kit=solana_kit),
         BackpackGetInterestHistoryTool(solana_kit=solana_kit),
         BackpackGetMarketTool(solana_kit=solana_kit),
+        ClosePerpTradeLongTool(solana_kit=solana_kit),
+        ClosePerpTradeShortTool(solana_kit=solana_kit),
+        OpenPerpTradeLongTool(solana_kit=solana_kit),
+        OpenPerpTradeShortTool(solana_kit=solana_kit),
+        Create3LandCollectionTool(solana_kit=solana_kit),
+        Create3LandNFTTool(solana_kit=solana_kit),
+        CreateDriftUserAccountTool(solana_kit=solana_kit),
+        DepositToDriftUserAccountTool(solana_kit=solana_kit),
+        WithdrawFromDriftUserAccountTool(solana_kit=solana_kit),
+        TradeUsingDriftPerpAccountTool(solana_kit=solana_kit),
+        CheckIfDriftAccountExistsTool(solana_kit=solana_kit),
+        DriftUserAccountInfoTool(solana_kit=solana_kit),
+        GetAvailableDriftMarketsTool(solana_kit=solana_kit),
+        StakeToDriftInsuranceFundTool(solana_kit=solana_kit),
+        RequestUnstakeFromDriftInsuranceFundTool(solana_kit=solana_kit),
+        UnstakeFromDriftInsuranceFundTool(solana_kit=solana_kit),
+        DriftSwapSpotTokenTool(solana_kit=solana_kit),
+        GetDriftPerpMarketFundingRateTool(solana_kit=solana_kit),
+        GetDriftEntryQuoteOfPerpTradeTool(solana_kit=solana_kit),
+        GetDriftLendBorrowApyTool(solana_kit=solana_kit),
+        CreateDriftVaultTool(solana_kit=solana_kit),
+        UpdateDriftVaultDelegateTool(solana_kit=solana_kit),
+        UpdateDriftVaultTool(solana_kit=solana_kit),
+        GetDriftVaultInfoTool(solana_kit=solana_kit),
+        DepositIntoDriftVaultTool(solana_kit=solana_kit),
+        RequestWithdrawalFromDriftVaultTool(solana_kit=solana_kit),
+        WithdrawFromDriftVaultTool(solana_kit=solana_kit),
+        DeriveDriftVaultAddressTool(solana_kit=solana_kit),
+        TradeUsingDelegatedDriftVaultTool(solana_kit=solana_kit),
+        FlashCloseTradeTool(solana_kit=solana_kit),
+        FlashOpenTradeTool(solana_kit=solana_kit),
+        ResolveAllDomainsTool(solana_kit=solana_kit),
+        GetOwnedDomainsForTLDTool(solana_kit=solana_kit),
+        GetAllDomainsTLDsTool(solana_kit=solana_kit),
+        GetOwnedAllDomainsTool(solana_kit=solana_kit),
     ]
 

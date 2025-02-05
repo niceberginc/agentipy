@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import base58
 from solana.rpc.api import Client
@@ -9,7 +9,12 @@ from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from typing_extensions import Union
 
-from agentipy.constants import BASE_PROXY_URL, DEFAULT_OPTIONS
+from agentipy.constants import API_VERSION, BASE_PROXY_URL, DEFAULT_OPTIONS
+from agentipy.tools.use_3land import ThreeLandManager
+from agentipy.tools.use_adrena import AdrenaTradeManager
+from agentipy.tools.use_alldomains import AllDomainsManager
+from agentipy.tools.use_drift import DriftManager
+from agentipy.tools.use_flash import FlashTradeManager
 from agentipy.types import BondingCurveState, PumpfunTokenOptions
 from agentipy.utils.meteora_dlmm.types import ActivationType
 from agentipy.wallet.solana_wallet_client import SolanaWalletClient
@@ -71,6 +76,8 @@ class SolanaAgentKit:
         self.jito_block_engine_url = jito_block_engine_url or os.getenv("JITO_BLOCK_ENGINE_URL", "")
         self.jito_uuid = jito_uuid or os.getenv("JITO_UUID", None)
         self.stork_api_key = stork_api_key or os.getenv("STORK_API_KEY", "")
+        self.base_proxy_url = BASE_PROXY_URL
+        self.api_version = API_VERSION
 
         if generate_wallet:
             self.wallet = Keypair()
@@ -986,3 +993,702 @@ class SolanaAgentKit:
             return await BackpackManager.get_historical_trades(self, symbol, limit, offset)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to fetch historical trades: {e}")
+    
+    async def close_perp_trade_short(self, price: float, trade_mint: str) -> Optional[Dict[str, Any]]:
+        """
+        Closes a perpetual short trade.
+
+        Args:
+            price (float): Execution price for closing the trade.
+            trade_mint (str): Token mint address for the trade.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await AdrenaTradeManager.close_perp_trade_short(self, price, trade_mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to close perp short trade: {e}")
+
+    async def close_perp_trade_long(self, price: float, trade_mint: str) -> Optional[Dict[str, Any]]:
+        """
+        Closes a perpetual long trade.
+
+        Args:
+            price (float): Execution price for closing the trade.
+            trade_mint (str): Token mint address for the trade.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await AdrenaTradeManager.close_perp_trade_long(self, price, trade_mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to close perp long trade: {e}")
+
+    async def open_perp_trade_long(
+        self,
+        price: float,
+        collateral_amount: float,
+        collateral_mint: Optional[str] = None,
+        leverage: Optional[float] = None,
+        trade_mint: Optional[str] = None,
+        slippage: Optional[float] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Opens a perpetual long trade.
+
+        Args:
+            price (float): Entry price for the trade.
+            collateral_amount (float): Amount of collateral.
+            collateral_mint (str, optional): Mint address of the collateral.
+            leverage (float, optional): Leverage factor.
+            trade_mint (str, optional): Token mint address.
+            slippage (float, optional): Slippage tolerance.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await AdrenaTradeManager.open_perp_trade_long(
+                self, price, collateral_amount, collateral_mint, leverage, trade_mint, slippage
+            )
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to open perp long trade: {e}")
+
+    async def open_perp_trade_short(
+        self,
+        price: float,
+        collateral_amount: float,
+        collateral_mint: Optional[str] = None,
+        leverage: Optional[float] = None,
+        trade_mint: Optional[str] = None,
+        slippage: Optional[float] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Opens a perpetual short trade.
+
+        Args:
+            price (float): Entry price for the trade.
+            collateral_amount (float): Amount of collateral.
+            collateral_mint (str, optional): Mint address of the collateral.
+            leverage (float, optional): Leverage factor.
+            trade_mint (str, optional): Token mint address.
+            slippage (float, optional): Slippage tolerance.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await AdrenaTradeManager.open_perp_trade_short(
+                self, price, collateral_amount, collateral_mint, leverage, trade_mint, slippage
+            )
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to open perp short trade: {e}")
+
+    async def create_3land_collection(
+        self,
+        collection_symbol: str,
+        collection_name: str,
+        collection_description: str,
+        main_image_url: Optional[str] = None,
+        cover_image_url: Optional[str] = None,
+        is_devnet: Optional[bool] = False,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Creates a 3land NFT collection.
+
+        Args:
+            collection_symbol (str): Symbol of the collection.
+            collection_name (str): Name of the collection.
+            collection_description (str): Description of the collection.
+            main_image_url (str, optional): URL of the main image.
+            cover_image_url (str, optional): URL of the cover image.
+            is_devnet (bool, optional): Whether to use devnet.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await ThreeLandManager.create_3land_collection(
+                self, collection_symbol, collection_name, collection_description, main_image_url, cover_image_url, is_devnet
+            )
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create 3land collection: {e}")
+
+    async def create_3land_nft(
+        self,
+        item_name: str,
+        seller_fee: float,
+        item_amount: int,
+        item_symbol: str,
+        item_description: str,
+        traits: Any,
+        price: Optional[float] = None,
+        main_image_url: Optional[str] = None,
+        cover_image_url: Optional[str] = None,
+        spl_hash: Optional[str] = None,
+        pool_name: Optional[str] = None,
+        is_devnet: Optional[bool] = False,
+        with_pool: Optional[bool] = False,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Creates a 3land NFT.
+
+        Args:
+            item_name (str): Name of the NFT.
+            seller_fee (float): Seller fee percentage.
+            item_amount (int): Number of NFTs to mint.
+            item_symbol (str): Symbol of the NFT.
+            item_description (str): Description of the NFT.
+            traits (Any): NFT traits.
+            price (float, optional): Price of the NFT.
+            main_image_url (str, optional): URL of the main image.
+            cover_image_url (str, optional): URL of the cover image.
+            spl_hash (str, optional): SPL hash identifier.
+            pool_name (str, optional): Pool name.
+            is_devnet (bool, optional): Whether to use devnet.
+            with_pool (bool, optional): Whether to include a pool.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await ThreeLandManager.create_3land_nft(
+                self,
+                item_name,
+                seller_fee,
+                item_amount,
+                item_symbol,
+                item_description,
+                traits,
+                price,
+                main_image_url,
+                cover_image_url,
+                spl_hash,
+                pool_name,
+                is_devnet,
+                with_pool,
+            )
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create 3land NFT: {e}")
+
+    async def create_drift_user_account(self, deposit_amount: float, deposit_symbol: str) -> Optional[Dict[str, Any]]:
+        """
+        Creates a Drift user account with an initial deposit.
+
+        Args:
+            deposit_amount (float): Amount to deposit.
+            deposit_symbol (str): Symbol of the asset to deposit.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.create_drift_user_account(self, deposit_amount, deposit_symbol)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create Drift user account: {e}")
+
+    async def deposit_to_drift_user_account(
+        self, amount: float, symbol: str, is_repayment: Optional[bool] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Deposits funds into a Drift user account.
+
+        Args:
+            amount (float): Amount to deposit.
+            symbol (str): Symbol of the asset.
+            is_repayment (bool, optional): Whether the deposit is a loan repayment.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.deposit_to_drift_user_account(self, amount, symbol, is_repayment)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to deposit to Drift user account: {e}")
+
+    async def withdraw_from_drift_user_account(
+        self, amount: float, symbol: str, is_borrow: Optional[bool] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Withdraws funds from a Drift user account.
+
+        Args:
+            amount (float): Amount to withdraw.
+            symbol (str): Symbol of the asset.
+            is_borrow (bool, optional): Whether the withdrawal is a borrow request.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.withdraw_from_drift_user_account(self, amount, symbol, is_borrow)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to withdraw from Drift user account: {e}")
+
+    async def trade_using_drift_perp_account(
+        self, amount: float, symbol: str, action: str, trade_type: str, price: Optional[float] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Executes a trade using a Drift perpetual account.
+
+        Args:
+            amount (float): Trade amount.
+            symbol (str): Market symbol.
+            action (str): "long" or "short".
+            trade_type (str): "market" or "limit".
+            price (float, optional): Trade execution price.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.trade_using_drift_perp_account(self, amount, symbol, action, trade_type, price)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to trade using Drift perp account: {e}")
+
+    async def check_if_drift_account_exists(self) -> Optional[Dict[str, Any]]:
+        """
+        Checks if a Drift user account exists.
+
+        Returns:
+            dict: Boolean indicating account existence.
+        """
+        try:
+            return await DriftManager.check_if_drift_account_exists(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to check Drift account existence: {e}")
+
+    async def drift_user_account_info(self) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves Drift user account information.
+
+        Returns:
+            dict: Account details.
+        """
+        try:
+            return await DriftManager.drift_user_account_info(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch Drift user account info: {e}")
+        
+    async def get_available_drift_markets(self) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves available markets on Drift.
+
+        Returns:
+            dict: List of available Drift markets.
+        """
+        try:
+            return await DriftManager.get_available_drift_markets(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch available Drift markets: {e}")
+
+    async def stake_to_drift_insurance_fund(self, amount: float, symbol: str) -> Optional[Dict[str, Any]]:
+        """
+        Stakes funds into the Drift insurance fund.
+
+        Args:
+            amount (float): Amount to stake.
+            symbol (str): Token symbol.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.stake_to_drift_insurance_fund(self, amount, symbol)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to stake to Drift insurance fund: {e}")
+
+    async def request_unstake_from_drift_insurance_fund(self, amount: float, symbol: str) -> Optional[Dict[str, Any]]:
+        """
+        Requests unstaking from the Drift insurance fund.
+
+        Args:
+            amount (float): Amount to unstake.
+            symbol (str): Token symbol.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.request_unstake_from_drift_insurance_fund(self, amount, symbol)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to request unstake from Drift insurance fund: {e}")
+
+    async def unstake_from_drift_insurance_fund(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """
+        Completes an unstaking request from the Drift insurance fund.
+
+        Args:
+            symbol (str): Token symbol.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.unstake_from_drift_insurance_fund(self, symbol)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to unstake from Drift insurance fund: {e}")
+
+    async def drift_swap_spot_token(
+        self,
+        from_symbol: str,
+        to_symbol: str,
+        slippage: Optional[float] = None,
+        to_amount: Optional[float] = None,
+        from_amount: Optional[float] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Swaps spot tokens on Drift.
+
+        Args:
+            from_symbol (str): Token to swap from.
+            to_symbol (str): Token to swap to.
+            slippage (float, optional): Allowed slippage.
+            to_amount (float, optional): Desired amount of the output token.
+            from_amount (float, optional): Amount of the input token.
+
+        Returns:
+            dict: Swap transaction details.
+        """
+        try:
+            return await DriftManager.drift_swap_spot_token(self, from_symbol, to_symbol, slippage, to_amount, from_amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to swap spot token on Drift: {e}")
+
+    async def get_drift_perp_market_funding_rate(self, symbol: str, period: str = "year") -> Optional[Dict[str, Any]]:
+        """
+        Retrieves the funding rate for a Drift perpetual market.
+
+        Args:
+            symbol (str): Market symbol (must end in '-PERP').
+            period (str, optional): Funding rate period, either "year" or "hour". Defaults to "year".
+
+        Returns:
+            dict: Funding rate information.
+        """
+        try:
+            return await DriftManager.get_drift_perp_market_funding_rate(self, symbol, period)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get Drift perp market funding rate: {e}")
+        
+    async def get_drift_entry_quote_of_perp_trade(self, amount: float, symbol: str, action: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves the entry quote for a perpetual trade on Drift.
+
+        Args:
+            amount (float): Trade amount.
+            symbol (str): Market symbol (must end in '-PERP').
+            action (str): "long" or "short".
+
+        Returns:
+            dict: Entry quote details.
+        """
+        try:
+            return await DriftManager.get_drift_entry_quote_of_perp_trade(self, amount, symbol, action)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get Drift entry quote of perp trade: {e}")
+
+    async def get_drift_lend_borrow_apy(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves the lending and borrowing APY for a given symbol on Drift.
+
+        Args:
+            symbol (str): Token symbol.
+
+        Returns:
+            dict: Lending and borrowing APY details.
+        """
+        try:
+            return await DriftManager.get_drift_lend_borrow_apy(self, symbol)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get Drift lend/borrow APY: {e}")
+
+    async def create_drift_vault(
+        self,
+        name: str,
+        market_name: str,
+        redeem_period: int,
+        max_tokens: int,
+        min_deposit_amount: float,
+        management_fee: float,
+        profit_share: float,
+        hurdle_rate: Optional[float] = None,
+        permissioned: Optional[bool] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Creates a Drift vault.
+
+        Args:
+            name (str): Vault name.
+            market_name (str): Market name format '<name>-<name>'.
+            redeem_period (int): Redeem period in blocks.
+            max_tokens (int): Maximum number of tokens.
+            min_deposit_amount (float): Minimum deposit amount.
+            management_fee (float): Management fee percentage.
+            profit_share (float): Profit share percentage.
+            hurdle_rate (float, optional): Hurdle rate.
+            permissioned (bool, optional): Whether the vault is permissioned.
+
+        Returns:
+            dict: Vault creation details.
+        """
+        try:
+            return await DriftManager.create_drift_vault(
+                self, name, market_name, redeem_period, max_tokens, min_deposit_amount, management_fee, profit_share, hurdle_rate, permissioned
+            )
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create Drift vault: {e}")
+
+    async def update_drift_vault_delegate(self, vault: str, delegate_address: str) -> Optional[Dict[str, Any]]:
+        """
+        Updates the delegate address for a Drift vault.
+
+        Args:
+            vault (str): Vault address.
+            delegate_address (str): New delegate address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.update_drift_vault_delegate(self, vault, delegate_address)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to update Drift vault delegate: {e}")
+
+    async def update_drift_vault(
+        self,
+        vault_address: str,
+        name: str,
+        market_name: str,
+        redeem_period: int,
+        max_tokens: int,
+        min_deposit_amount: float,
+        management_fee: float,
+        profit_share: float,
+        hurdle_rate: Optional[float] = None,
+        permissioned: Optional[bool] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Updates an existing Drift vault.
+
+        Args:
+            vault_address (str): Address of the vault.
+            name (str): Vault name.
+            market_name (str): Market name format '<name>-<name>'.
+            redeem_period (int): Redeem period in blocks.
+            max_tokens (int): Maximum number of tokens.
+            min_deposit_amount (float): Minimum deposit amount.
+            management_fee (float): Management fee percentage.
+            profit_share (float): Profit share percentage.
+            hurdle_rate (float, optional): Hurdle rate.
+            permissioned (bool, optional): Whether the vault is permissioned.
+
+        Returns:
+            dict: Vault update details.
+        """
+        try:
+            return await DriftManager.update_drift_vault(
+                self, vault_address, name, market_name, redeem_period, max_tokens, min_deposit_amount, management_fee, profit_share, hurdle_rate, permissioned
+            )
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to update Drift vault: {e}")
+
+    async def get_drift_vault_info(self, vault_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves information about a specific Drift vault.
+
+        Args:
+            vault_name (str): Name of the vault.
+
+        Returns:
+            dict: Vault details.
+        """
+        try:
+            return await DriftManager.get_drift_vault_info(self, vault_name)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get Drift vault info: {e}")
+        
+    async def deposit_into_drift_vault(self, amount: float, vault: str) -> Optional[Dict[str, Any]]:
+        """
+        Deposits funds into a Drift vault.
+
+        Args:
+            amount (float): Amount to deposit.
+            vault (str): Vault address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.deposit_into_drift_vault(self, amount, vault)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to deposit into Drift vault: {e}")
+
+    async def request_withdrawal_from_drift_vault(self, amount: float, vault: str) -> Optional[Dict[str, Any]]:
+        """
+        Requests a withdrawal from a Drift vault.
+
+        Args:
+            amount (float): Amount to withdraw.
+            vault (str): Vault address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.request_withdrawal_from_drift_vault(self, amount, vault)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to request withdrawal from Drift vault: {e}")
+
+    async def withdraw_from_drift_vault(self, vault: str) -> Optional[Dict[str, Any]]:
+        """
+        Withdraws funds from a Drift vault after a withdrawal request.
+
+        Args:
+            vault (str): Vault address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.withdraw_from_drift_vault(self, vault)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to withdraw from Drift vault: {e}")
+
+    async def derive_drift_vault_address(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Derives the Drift vault address from a given name.
+
+        Args:
+            name (str): Vault name.
+
+        Returns:
+            dict: Derived vault address.
+        """
+        try:
+            return await DriftManager.derive_drift_vault_address(self, name)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to derive Drift vault address: {e}")
+
+    async def trade_using_delegated_drift_vault(
+        self,
+        vault: str,
+        amount: float,
+        symbol: str,
+        action: str,
+        trade_type: str,
+        price: Optional[float] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Executes a trade using a delegated Drift vault.
+
+        Args:
+            vault (str): Vault address.
+            amount (float): Trade amount.
+            symbol (str): Market symbol.
+            action (str): "long" or "short".
+            trade_type (str): "market" or "limit".
+            price (float, optional): Trade execution price.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await DriftManager.trade_using_delegated_drift_vault(self, vault, amount, symbol, action, trade_type, price)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to trade using delegated Drift vault: {e}")
+
+    async def flash_open_trade(
+        self, token: str, side: str, collateral_usd: float, leverage: float
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Opens a flash trade using the agent toolkit API.
+
+        Args:
+            token (str): The trading token.
+            side (str): The trade direction ("buy" or "sell").
+            collateral_usd (float): The collateral amount in USD.
+            leverage (float): The leverage multiplier.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await FlashTradeManager.flash_open_trade(self, token, side, collateral_usd, leverage)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to open flash trade: {e}")
+
+    async def flash_close_trade(self, token: str, side: str) -> Optional[Dict[str, Any]]:
+        """
+        Closes a flash trade using the agent toolkit API.
+
+        Args:
+            token (str): The trading token.
+            side (str): The trade direction ("buy" or "sell").
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            return await FlashTradeManager.flash_close_trade(self, token, side)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to close flash trade: {e}")
+        
+    async def resolve_all_domains(self, domain: str) -> Optional[str]:
+        """
+        Resolves all domain types for a given domain.
+
+        Args:
+            domain (str): The domain name.
+
+        Returns:
+            Optional[str]: The resolved domain's TLD.
+        """
+        try:
+            return await AllDomainsManager.resolve_all_domains(self, domain)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to resolve all domains: {e}")
+
+    async def get_owned_domains_for_tld(self, tld: str) -> Optional[List[str]]:
+        """
+        Retrieves domains owned by the user for a given TLD.
+
+        Args:
+            tld (str): The top-level domain.
+
+        Returns:
+            Optional[List[str]]: List of owned domains.
+        """
+        try:
+            return await AllDomainsManager.get_owned_domains_for_tld(self, tld)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch owned domains: {e}")
+
+    async def get_all_domains_tlds(self) -> Optional[List[str]]:
+        """
+        Retrieves all available TLDs.
+
+        Returns:
+            Optional[List[str]]: List of available TLDs.
+        """
+        try:
+            return await AllDomainsManager.get_all_domains_tlds(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch all domains TLDs: {e}")
+
+    async def get_owned_all_domains(self, owner: str) -> Optional[List[str]]:
+        """
+        Retrieves all domains owned by a given user.
+
+        Args:
+            owner (str): The owner's public key.
+
+        Returns:
+            Optional[List[str]]: List of owned domains.
+        """
+        try:
+            return await AllDomainsManager.get_owned_all_domains(self, owner)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch owned all domains: {e}")
