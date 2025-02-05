@@ -8,7 +8,7 @@ class StorkManager:
         """
         Fetch price data for a given asset using the Stork Oracle.
 
-        :param agent: SolanaAgentKit instance.
+        :param agent: SolanaAgentKit instance with a Stork API key.
         :param asset_id: The plaintext asset ID to fetch price data for.
         :return: A dictionary containing the price and timestamp. 
         """
