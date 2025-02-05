@@ -70,6 +70,7 @@ class SolanaAgentKit:
         self.quicknode_rpc_url = quicknode_rpc_url or os.getenv("QUICKNODE_RPC_URL", "")
         self.jito_block_engine_url = jito_block_engine_url or os.getenv("JITO_BLOCK_ENGINE_URL", "")
         self.jito_uuid = jito_uuid or os.getenv("JITO_UUID", None)
+        self.stork_api_key = stork_api_key or os.getenv("STORK_API_KEY", "")
 
         if generate_wallet:
             self.wallet = Keypair()
