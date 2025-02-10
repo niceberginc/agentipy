@@ -476,7 +476,7 @@ class SolanaMeteoraDLMMTool(BaseTool):
         "initial_price": 1.23,
         "price_rounding_up": true,
         "fee_bps": 300,
-        "activation_type": "Instant",  // Options: "Instant", "Delayed", "Manual"
+        "activation_type": "Slot",  // Options: "Slot", "Timestamp"
         "has_alpha_vault": false,
         "activation_point": null      // Optional, only for Delayed type
     }
@@ -502,6 +502,12 @@ class SolanaMeteoraDLMMTool(BaseTool):
             for key in required_keys:
                 if key not in data:
                     raise ValueError(f"Missing required key: {key}")
+                
+            if not isinstance(data["bin_step"], int) or data["bin_step"] <= 0:
+                raise ValueError("bin_step must be a positive integer")
+    
+            if not isinstance(data["fee_bps"], int) or not (0 <= data["fee_bps"] <= 10000):
+                raise ValueError("fee_bps must be an integer between 0 and 10000")
 
             activation_type_mapping = {
                 "Slot": ActivationType.Slot,
