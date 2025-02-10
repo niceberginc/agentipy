@@ -1,0 +1,1 @@
+STORK_HTTPS_ENDPOINT = "https://rest.jp.stork-oracle.network"
