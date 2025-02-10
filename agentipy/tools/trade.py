@@ -1,6 +1,8 @@
 import base64
-
+import asyncio
 import aiohttp
+import platform
+
 from solana.rpc.commitment import Confirmed
 from solana.rpc.types import TxOpts
 from solders.message import to_bytes_versioned  # type: ignore
@@ -10,19 +12,22 @@ from solders.transaction import VersionedTransaction  # type: ignore
 from agentipy.agent import SolanaAgentKit
 from agentipy.constants import (DEFAULT_OPTIONS, JUP_API, LAMPORTS_PER_SOL,
                                 TOKENS)
-from agentipy.helpers import fix_asyncio_for_windows
+# from agentipy.helpers import fix_asyncio_for_windows #Removed because it is not needed anymore.
 
-fix_asyncio_for_windows()
+if platform.system() == "Windows": #Added the aiodns fix.
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy()) #Added the aiodns fix.
+
+# fix_asyncio_for_windows() #Removed because it is not needed anymore.
 
 class TradeManager:
     @staticmethod
     async def trade(
-    agent: SolanaAgentKit,
-    output_mint: Pubkey,
-    input_amount: float,
-    input_mint: Pubkey = TOKENS["USDC"],
-    slippage_bps: int = DEFAULT_OPTIONS["SLIPPAGE_BPS"],
-) -> str:
+        agent: SolanaAgentKit,
+        output_mint: Pubkey,
+        input_amount: float,
+        input_mint: Pubkey = TOKENS["USDC"],
+        slippage_bps: int = DEFAULT_OPTIONS["SLIPPAGE_BPS"],
+    ) -> str:
         """
         Swap tokens using Jupiter Exchange.
 
@@ -91,7 +96,6 @@ class TradeManager:
             )
 
             return str(signature)
-
 
         except Exception as e:
             raise Exception(f"Swap failed: {str(e)}")
