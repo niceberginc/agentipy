@@ -749,7 +749,7 @@ class SolanaCreateGibworkTaskTool(BaseTool):
 
             return {
                 "status": "success",
-                "message": "Token accounts burned and closed successfully.",
+                "message": "Gibwork task created successfully",
                 "result": result,
             }
         except Exception as e:
