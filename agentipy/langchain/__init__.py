@@ -752,7 +752,18 @@ class SolanaCreateGibworkTaskTool(BaseTool):
                     raise ValueError(f"Missing required key: {key}")
             if not isinstance(data["token_amount"], int) or data["token_amount"] <= 0:
                 raise ValueError("token_amount must be a positive integer")
-           
+            if not isinstance(data["tags"], list) or not all(isinstance(tag, str) for tag in data["tags"]):
+                raise ValueError("tags must be a list of strings")
+            if not isinstance(data["title"], str) or len(data["title"]) == 0:
+                raise ValueError("title must be a non-empty string")
+            if not isinstance(data["content"], str) or len(data["content"]) == 0:
+                raise ValueError("content must be a non-empty string")  
+            if not isinstance(data["requirements"], str) or len(data["requirements"]) == 0:
+                raise ValueError("requirements must be a non-empty string")
+            if not isinstance(data["token_mint_address"], str) or len(data["token_mint_address"]) == 0:
+                raise ValueError("token_mint_address must be a non-empty string")
+            
+            
          
             title = data["title"]
             content = data["content"]
