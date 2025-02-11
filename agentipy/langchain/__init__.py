@@ -736,8 +736,24 @@ class SolanaCreateGibworkTaskTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
+     
         try:
-            data = toJSON(input)
+            required_keys = [
+                "title",
+                "content",
+                "requirements",
+                "tags",
+                "token_mint_address",
+                "token_amount"
+            ]
+            data = toJSON(input)    
+            for key in required_keys:
+                if key not in data:
+                    raise ValueError(f"Missing required key: {key}")
+            if not isinstance(data["token_amount"], int) or data["token_amount"] <= 0:
+                raise ValueError("token_amount must be a positive integer")
+           
+         
             title = data["title"]
             content = data["content"]
             requirements = data["requirements"]
