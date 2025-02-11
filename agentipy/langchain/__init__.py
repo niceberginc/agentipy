@@ -736,7 +736,6 @@ class SolanaCreateGibworkTaskTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-     
         try:
             required_keys = [
                 "title",
@@ -763,8 +762,6 @@ class SolanaCreateGibworkTaskTool(BaseTool):
             if not isinstance(data["token_mint_address"], str) or len(data["token_mint_address"]) == 0:
                 raise ValueError("token_mint_address must be a non-empty string")
             
-            
-         
             title = data["title"]
             content = data["content"]
             requirements = data["requirements"]
@@ -777,54 +774,6 @@ class SolanaCreateGibworkTaskTool(BaseTool):
             return {
                 "status": "success",
                 "message": "Gibwork task created successfully",
-                "result": result,
-            }
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": str(e),
-                "code": getattr(e, "code", "UNKNOWN_ERROR"),
-            }
-
-
-    def _run(self, input: str):
-        """Synchronous version of the run method, required by BaseTool."""
-        raise NotImplementedError(
-            "This tool only supports async execution via _arun. Please use the async interface."
-        )
-    
-class SolanaCreateGibworkTaskTool(BaseTool):
-    name: str = "solana_create_gibwork_task"
-    description: str = """
-    Create an new task on Gibwork
-
-    Input: A JSON string with:
-    {
-        "title": "title of the task",
-        "content: "description of the task",
-        "requirements": "requirements to complete the task",
-        "tags": ["tag1", "tag2", ...] # list of tags associated with the task,
-        "token_mint_address": "token mint address for payment",
-        "token_amount": 1000 # amount of token to pay for the task
-    }
-    """
-    solana_kit: SolanaAgentKit
-
-    async def _arun(self, input: str):
-        try:
-            data = toJSON(input)
-            title = data["title"]
-            content = data["content"]
-            requirements = data["requirements"]
-            tags = data.get("tags", [])
-            token_mint_address = Pubkey.from_string(data["token_mint_address"])
-            token_amount = data["token_amount"]
-            
-            result = await self.solana_kit.create_gibwork_task(title, content, requirements, tags, token_mint_address, token_amount)
-
-            return {
-                "status": "success",
-                "message": "Token accounts burned and closed successfully.",
                 "result": result,
             }
         except Exception as e:
@@ -921,7 +870,7 @@ class SolanaSellUsingMoonshotTool(BaseTool):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-            
+
 class SolanaPythGetPriceTool(BaseTool):
     name: str = "solana_pyth_get_price"
     description: str = """
