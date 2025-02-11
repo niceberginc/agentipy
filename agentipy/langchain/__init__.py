@@ -5294,6 +5294,524 @@ class GetOwnedAllDomainsTool(BaseTool):
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
+class LightProtocolSendCompressedAirdropTool(BaseTool):
+    name: str = "lightprotocol_send_compressed_airdrop"
+    description: str = """
+    Sends a compressed airdrop using LightProtocolManager.
+
+    Input: A JSON string with:
+    {
+        "mint_address": "string, the mint address of the token",
+        "amount": "float, the amount to send",
+        "decimals": "int, the number of decimal places for the token",
+        "recipients": "list, the list of recipient addresses",
+        "priority_fee_in_lamports": "int, the priority fee in lamports",
+        "should_log": "bool, optional, whether to log the transaction"
+    }
+    Output:
+    {
+        "transaction_ids": "list, transaction IDs of the airdrop",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction_ids = await self.solana_kit.send_compressed_airdrop(
+                mint_address=data["mint_address"],
+                amount=data["amount"],
+                decimals=data["decimals"],
+                recipients=data["recipients"],
+                priority_fee_in_lamports=data["priority_fee_in_lamports"],
+                should_log=data.get("should_log", False)
+            )
+            return {
+                "transaction_ids": transaction_ids,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction_ids": None,
+                "message": f"Error sending compressed airdrop: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class ManifestCreateMarketTool(BaseTool):
+    name: str = "manifest_create_market"
+    description: str = """
+    Creates a new market using ManifestManager.
+
+    Input: A JSON string with:
+    {
+        "base_mint": "string, the base mint address",
+        "quote_mint": "string, the quote mint address"
+    }
+    Output:
+    {
+        "market_data": "dict, the created market details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            market_data = await self.solana_kit.create_manifest_market(
+                base_mint=data["base_mint"],
+                quote_mint=data["quote_mint"]
+            )
+            return {
+                "market_data": market_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "market_data": None,
+                "message": f"Error creating market: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class ManifestPlaceLimitOrderTool(BaseTool):
+    name: str = "manifest_place_limit_order"
+    description: str = """
+    Places a limit order on a market using ManifestManager.
+
+    Input: A JSON string with:
+    {
+        "market_id": "string, the market ID",
+        "quantity": "float, the quantity to trade",
+        "side": "string, 'buy' or 'sell'",
+        "price": "float, the price per unit"
+    }
+    Output:
+    {
+        "order_details": "dict, the placed order details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            order_details = await self.solana_kit.place_limit_order(
+                market_id=data["market_id"],
+                quantity=data["quantity"],
+                side=data["side"],
+                price=data["price"]
+            )
+            return {
+                "order_details": order_details,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "order_details": None,
+                "message": f"Error placing limit order: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class ManifestPlaceBatchOrdersTool(BaseTool):
+    name: str = "manifest_place_batch_orders"
+    description: str = """
+    Places multiple batch orders on a market using ManifestManager.
+
+    Input: A JSON string with:
+    {
+        "market_id": "string, the market ID",
+        "orders": "list, a list of orders (each order must include 'quantity', 'side', and 'price')"
+    }
+    Output:
+    {
+        "batch_order_details": "dict, details of the placed batch orders",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            batch_order_details = await self.solana_kit.place_batch_orders(
+                market_id=data["market_id"],
+                orders=data["orders"]
+            )
+            return {
+                "batch_order_details": batch_order_details,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "batch_order_details": None,
+                "message": f"Error placing batch orders: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class ManifestCancelAllOrdersTool(BaseTool):
+    name: str = "manifest_cancel_all_orders"
+    description: str = """
+    Cancels all open orders for a given market using ManifestManager.
+
+    Input: A JSON string with:
+    {
+        "market_id": "string, the market ID"
+    }
+    Output:
+    {
+        "cancellation_result": "dict, details of canceled orders",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            cancellation_result = await self.solana_kit.cancel_all_orders(
+                market_id=data["market_id"]
+            )
+            return {
+                "cancellation_result": cancellation_result,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "cancellation_result": None,
+                "message": f"Error canceling all orders: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class ManifestWithdrawAllTool(BaseTool):
+    name: str = "manifest_withdraw_all"
+    description: str = """
+    Withdraws all assets from a given market using ManifestManager.
+
+    Input: A JSON string with:
+    {
+        "market_id": "string, the market ID"
+    }
+    Output:
+    {
+        "withdrawal_result": "dict, details of the withdrawal",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            withdrawal_result = await self.solana_kit.withdraw_all(
+                market_id=data["market_id"]
+            )
+            return {
+                "withdrawal_result": withdrawal_result,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "withdrawal_result": None,
+                "message": f"Error withdrawing all assets: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class OpenBookCreateMarketTool(BaseTool):
+    name: str = "openbook_create_market"
+    description: str = """
+    Creates a new OpenBook market using OpenBookManager.
+
+    Input: A JSON string with:
+    {
+        "base_mint": "string, the base mint address",
+        "quote_mint": "string, the quote mint address",
+        "lot_size": "float, optional, the lot size (default: 1)",
+        "tick_size": "float, optional, the tick size (default: 0.01)"
+    }
+    Output:
+    {
+        "market_data": "dict, the created market details",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            market_data = await self.solana_kit.create_openbook_market(
+                base_mint=data["base_mint"],
+                quote_mint=data["quote_mint"],
+                lot_size=data.get("lot_size", 1),
+                tick_size=data.get("tick_size", 0.01)
+            )
+            return {
+                "market_data": market_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "market_data": None,
+                "message": f"Error creating OpenBook market: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class OrcaClosePositionTool(BaseTool):
+    name: str = "orca_close_position"
+    description: str = """
+    Closes a position using OrcaManager.
+
+    Input: A JSON string with:
+    {
+        "position_mint_address": "string, the mint address of the position"
+    }
+    Output:
+    {
+        "closure_result": "dict, details of the closed position",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            closure_result = await self.solana_kit.close_position(
+                position_mint_address=data["position_mint_address"]
+            )
+            return {
+                "closure_result": closure_result,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "closure_result": None,
+                "message": f"Error closing position: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class OrcaCreateClmmTool(BaseTool):
+    name: str = "orca_create_clmm"
+    description: str = """
+    Creates a Concentrated Liquidity Market Maker (CLMM) using OrcaManager.
+
+    Input: A JSON string with:
+    {
+        "mint_deploy": "string, the deploy mint address",
+        "mint_pair": "string, the paired mint address",
+        "initial_price": "float, the initial price for the pool",
+        "fee_tier": "string, the fee tier percentage"
+    }
+    Output:
+    {
+        "clmm_data": "dict, details of the created CLMM",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            clmm_data = await self.solana_kit.create_clmm(
+                mint_deploy=data["mint_deploy"],
+                mint_pair=data["mint_pair"],
+                initial_price=data["initial_price"],
+                fee_tier=data["fee_tier"]
+            )
+            return {
+                "clmm_data": clmm_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "clmm_data": None,
+                "message": f"Error creating CLMM: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class OrcaCreateLiquidityPoolTool(BaseTool):
+    name: str = "orca_create_liquidity_pool"
+    description: str = """
+    Creates a liquidity pool using OrcaManager.
+
+    Input: A JSON string with:
+    {
+        "deposit_token_amount": "float, the amount of token to deposit",
+        "deposit_token_mint": "string, the mint address of the deposit token",
+        "other_token_mint": "string, the mint address of the paired token",
+        "initial_price": "float, the initial price for the pool",
+        "max_price": "float, the maximum price for the pool",
+        "fee_tier": "string, the fee tier percentage"
+    }
+    Output:
+    {
+        "pool_data": "dict, details of the created liquidity pool",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            pool_data = await self.solana_kit.create_liquidity_pool(
+                deposit_token_amount=data["deposit_token_amount"],
+                deposit_token_mint=data["deposit_token_mint"],
+                other_token_mint=data["other_token_mint"],
+                initial_price=data["initial_price"],
+                max_price=data["max_price"],
+                fee_tier=data["fee_tier"]
+            )
+            return {
+                "pool_data": pool_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "pool_data": None,
+                "message": f"Error creating liquidity pool: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class OrcaFetchPositionsTool(BaseTool):
+    name: str = "orca_fetch_positions"
+    description: str = """
+    Fetches all open positions using OrcaManager.
+
+    Input: None
+    Output:
+    {
+        "positions": "dict, details of all positions",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            positions = await self.solana_kit.fetch_positions()
+            return {
+                "positions": positions,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "positions": None,
+                "message": f"Error fetching positions: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class OrcaOpenCenteredPositionTool(BaseTool):
+    name: str = "orca_open_centered_position"
+    description: str = """
+    Opens a centered position using OrcaManager.
+
+    Input: A JSON string with:
+    {
+        "whirlpool_address": "string, the Whirlpool address",
+        "price_offset_bps": "int, the price offset in basis points",
+        "input_token_mint": "string, the mint address of the input token",
+        "input_amount": "float, the input token amount"
+    }
+    Output:
+    {
+        "position_data": "dict, details of the opened position",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            position_data = await self.solana_kit.open_centered_position(
+                whirlpool_address=data["whirlpool_address"],
+                price_offset_bps=data["price_offset_bps"],
+                input_token_mint=data["input_token_mint"],
+                input_amount=data["input_amount"]
+            )
+            return {
+                "position_data": position_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "position_data": None,
+                "message": f"Error opening centered position: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class OrcaOpenSingleSidedPositionTool(BaseTool):
+    name: str = "orca_open_single_sided_position"
+    description: str = """
+    Opens a single-sided position using OrcaManager.
+
+    Input: A JSON string with:
+    {
+        "whirlpool_address": "string, the Whirlpool address",
+        "distance_from_current_price_bps": "int, the distance from the current price in basis points",
+        "width_bps": "int, the width in basis points",
+        "input_token_mint": "string, the mint address of the input token",
+        "input_amount": "float, the input token amount"
+    }
+    Output:
+    {
+        "position_data": "dict, details of the opened position",
+        "message": "string, if an error occurs"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            position_data = await self.solana_kit.open_single_sided_position(
+                whirlpool_address=data["whirlpool_address"],
+                distance_from_current_price_bps=data["distance_from_current_price_bps"],
+                width_bps=data["width_bps"],
+                input_token_mint=data["input_token_mint"],
+                input_amount=data["input_amount"]
+            )
+            return {
+                "position_data": position_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "position_data": None,
+                "message": f"Error opening single-sided position: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
 def create_solana_tools(solana_kit: SolanaAgentKit):
     return [
         SolanaBalanceTool(solana_kit=solana_kit),
@@ -5429,5 +5947,18 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         GetOwnedDomainsForTLDTool(solana_kit=solana_kit),
         GetAllDomainsTLDsTool(solana_kit=solana_kit),
         GetOwnedAllDomainsTool(solana_kit=solana_kit),
+        LightProtocolSendCompressedAirdropTool(solana_kit=solana_kit),
+        ManifestCreateMarketTool(solana_kit=solana_kit),
+        ManifestPlaceLimitOrderTool(solana_kit=solana_kit),
+        ManifestPlaceBatchOrdersTool(solana_kit=solana_kit),
+        ManifestCancelAllOrdersTool(solana_kit=solana_kit),
+        ManifestWithdrawAllTool(solana_kit=solana_kit),
+        OpenBookCreateMarketTool(solana_kit=solana_kit),
+        OrcaClosePositionTool(solana_kit=solana_kit),
+        OrcaCreateClmmTool(solana_kit=solana_kit),
+        OrcaCreateLiquidityPoolTool(solana_kit=solana_kit),
+        OrcaFetchPositionsTool(solana_kit=solana_kit),
+        OrcaOpenCenteredPositionTool(solana_kit=solana_kit),
+        OrcaOpenSingleSidedPositionTool(solana_kit=solana_kit)
     ]
 
