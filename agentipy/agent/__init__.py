@@ -44,6 +44,7 @@ class SolanaAgentKit:
         quicknode_rpc_url: Optional[str] = None,
         jito_block_engine_url: Optional[str] = None,
         jito_uuid: Optional[str] = None,
+        stork_api_key: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -69,6 +70,7 @@ class SolanaAgentKit:
         self.quicknode_rpc_url = quicknode_rpc_url or os.getenv("QUICKNODE_RPC_URL", "")
         self.jito_block_engine_url = jito_block_engine_url or os.getenv("JITO_BLOCK_ENGINE_URL", "")
         self.jito_uuid = jito_uuid or os.getenv("JITO_UUID", None)
+        self.stork_api_key = stork_api_key or os.getenv("STORK_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
@@ -238,6 +240,13 @@ class SolanaAgentKit:
         from agentipy.tools.use_pyth import PythManager
         try:
             return await PythManager.get_price(mint_str)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to {e}")
+    
+    async def stork_fetch_price(self, asset_id: str):
+        from agentipy.tools.use_stork import StorkManager
+        try:
+            return await StorkManager.get_price(self, asset_id)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to {e}")
         
