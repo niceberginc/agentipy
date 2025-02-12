@@ -597,6 +597,11 @@ class SolanaMeteoraDLMMTool(BaseTool):
     
             if not isinstance(data["fee_bps"], int) or not (0 <= data["fee_bps"] <= 10000):
                 raise ValueError("fee_bps must be an integer between 0 and 10000")
+            if not isinstance(data["activation_type"], str):
+                raise ValueError("activation_type must be a string")
+            if not isinstance(data["has_alpha_vault"], bool):
+                raise ValueError("has_alpha_vault must be a boolean")
+            
 
             activation_type_mapping = {
                 "Slot": ActivationType.Slot,
@@ -4671,7 +4676,25 @@ class OpenPerpTradeShortTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["price", "collateral_amount"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["price"], float):
+                raise ValueError("price must be a float")
+            if not isinstance(data["collateral_amount"], float):
+                raise ValueError("collateral_amount must be a float")
+            if "collateral_mint" in data and not isinstance(data["collateral_mint"], str):
+                raise ValueError("collateral_mint must be a string")
+            if "leverage" in data and not isinstance(data["leverage"], float):
+                raise ValueError("leverage must be a float")
+            if "trade_mint" in data and not isinstance(data["trade_mint"], str):
+                raise ValueError("trade_mint must be a string")
+            if "slippage" in data and not isinstance(data["slippage"], float):
+                raise ValueError("slippage must be a float")
+            
             transaction = await self.solana_kit.open_perp_trade_short(
                 price=data["price"],
                 collateral_amount=data["collateral_amount"],
@@ -4690,8 +4713,8 @@ class OpenPerpTradeShortTool(BaseTool):
                 "message": f"Error opening perp short trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class Create3LandCollectionTool(BaseTool):
     name: str = "create_3land_collection"
@@ -4717,7 +4740,25 @@ class Create3LandCollectionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["collection_symbol", "collection_name", "collection_description"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["collection_symbol"], str):
+                raise ValueError("collection_symbol must be a string")
+            if not isinstance(data["collection_name"], str):
+                raise ValueError("collection_name must be a string")
+            if not isinstance(data["collection_description"], str):
+                raise ValueError("collection_description must be a string")
+            if "main_image_url" in data and not isinstance(data["main_image_url"], str):
+                raise ValueError("main_image_url must be a string")
+            if "cover_image_url" in data and not isinstance(data["cover_image_url"], str):
+                raise ValueError("cover_image_url must be a string")
+            if "is_devnet" in data and not isinstance(data["is_devnet"], bool):
+                raise ValueError("is_devnet must be a boolean")
+            
             transaction = await self.solana_kit.create_3land_collection(
                 collection_symbol=data["collection_symbol"],
                 collection_name=data["collection_name"],
@@ -4736,8 +4777,8 @@ class Create3LandCollectionTool(BaseTool):
                 "message": f"Error creating 3land collection: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class Create3LandNFTTool(BaseTool):
     name: str = "create_3land_nft"
@@ -4770,7 +4811,39 @@ class Create3LandNFTTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["item_name", "seller_fee", "item_amount", "item_symbol", "item_description", "traits"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["item_name"], str):
+                raise ValueError("item_name must be a string")
+            if not isinstance(data["seller_fee"], float):
+                raise ValueError("seller_fee must be a float")
+            if not isinstance(data["item_amount"], int):
+                raise ValueError("item_amount must be an integer")
+            if not isinstance(data["item_symbol"], str):
+                raise ValueError("item_symbol must be a string")
+            if not isinstance(data["item_description"], str):
+                raise ValueError("item_description must be a string")
+            if not isinstance(data["traits"], dict):
+                raise ValueError("traits must be a dictionary")
+            if "price" in data and not isinstance(data["price"], float):
+                raise ValueError("price must be a float")
+            if "main_image_url" in data and not isinstance(data["main_image_url"], str):
+                raise ValueError("main_image_url must be a string")
+            if "cover_image_url" in data and not isinstance(data["cover_image_url"], str):
+                raise ValueError("cover_image_url must be a string")
+            if "spl_hash" in data and not isinstance(data["spl_hash"], str):
+                raise ValueError("spl_hash must be a string")
+            if "pool_name" in data and not isinstance(data["pool_name"], str):
+                raise ValueError("pool_name must be a string")
+            if "is_devnet" in data and not isinstance(data["is_devnet"], bool):
+                raise ValueError("is_devnet must be a boolean")
+            if "with_pool" in data and not isinstance(data["with_pool"], bool):
+                raise ValueError("with_pool must be a boolean")
+            
             transaction = await self.solana_kit.create_3land_nft(
                 item_name=data["item_name"],
                 seller_fee=data["seller_fee"],
@@ -4796,7 +4869,7 @@ class Create3LandNFTTool(BaseTool):
                 "message": f"Error creating 3land NFT: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class CreateDriftUserAccountTool(BaseTool):
@@ -4819,7 +4892,17 @@ class CreateDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["deposit_amount", "deposit_symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["deposit_amount"], float):
+                raise ValueError("deposit_amount must be a float")
+            if not isinstance(data["deposit_symbol"], str):
+                raise ValueError("deposit_symbol must be a string")
+            
             transaction = await self.solana_kit.create_drift_user_account(
                 deposit_amount=data["deposit_amount"],
                 deposit_symbol=data["deposit_symbol"],
@@ -4834,8 +4917,8 @@ class CreateDriftUserAccountTool(BaseTool):
                 "message": f"Error creating Drift user account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class DepositToDriftUserAccountTool(BaseTool):
     name: str = "deposit_to_drift_user_account"
@@ -4858,7 +4941,19 @@ class DepositToDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["amount", "symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            if "is_repayment" in data and not isinstance(data["is_repayment"], bool):
+                raise ValueError("is_repayment must be a boolean")
+            
             transaction = await self.solana_kit.deposit_to_drift_user_account(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -4874,8 +4969,8 @@ class DepositToDriftUserAccountTool(BaseTool):
                 "message": f"Error depositing to Drift user account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class WithdrawFromDriftUserAccountTool(BaseTool):
     name: str = "withdraw_from_drift_user_account"
@@ -4898,7 +4993,19 @@ class WithdrawFromDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["amount", "symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            if "is_borrow" in data and not isinstance(data["is_borrow"], bool):
+                raise ValueError("is_borrow must be a boolean")
+
             transaction = await self.solana_kit.withdraw_from_drift_user_account(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -4914,8 +5021,8 @@ class WithdrawFromDriftUserAccountTool(BaseTool):
                 "message": f"Error withdrawing from Drift user account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class TradeUsingDriftPerpAccountTool(BaseTool):
     name: str = "trade_using_drift_perp_account"
@@ -4940,7 +5047,23 @@ class TradeUsingDriftPerpAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["amount", "symbol", "action", "trade_type"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            if not isinstance(data["action"], str):
+                raise ValueError("action must be a string")
+            if not isinstance(data["trade_type"], str):
+                raise ValueError("trade_type must be a string")
+            if "price" in data and not isinstance(data["price"], float):
+                raise ValueError("price must be a float")
+
             transaction = await self.solana_kit.trade_using_drift_perp_account(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -4958,8 +5081,8 @@ class TradeUsingDriftPerpAccountTool(BaseTool):
                 "message": f"Error trading using Drift perp account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class CheckIfDriftAccountExistsTool(BaseTool):
     name: str = "check_if_drift_account_exists"
@@ -4975,7 +5098,7 @@ class CheckIfDriftAccountExistsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             exists = await self.solana_kit.check_if_drift_account_exists()
             return {
@@ -4988,7 +5111,7 @@ class CheckIfDriftAccountExistsTool(BaseTool):
                 "message": f"Error checking Drift account existence: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class DriftUserAccountInfoTool(BaseTool):
@@ -5005,7 +5128,7 @@ class DriftUserAccountInfoTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             account_info = await self.solana_kit.drift_user_account_info()
             return {
@@ -5018,7 +5141,7 @@ class DriftUserAccountInfoTool(BaseTool):
                 "message": f"Error fetching Drift user account info: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class GetAvailableDriftMarketsTool(BaseTool):
@@ -5035,7 +5158,7 @@ class GetAvailableDriftMarketsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             markets = await self.solana_kit.get_available_drift_markets()
             return {
@@ -5048,7 +5171,7 @@ class GetAvailableDriftMarketsTool(BaseTool):
                 "message": f"Error fetching available Drift markets: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class StakeToDriftInsuranceFundTool(BaseTool):
@@ -5071,7 +5194,17 @@ class StakeToDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["amount", "symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            
             transaction = await self.solana_kit.stake_to_drift_insurance_fund(
                 amount=data["amount"],
                 symbol=data["symbol"]
@@ -5086,8 +5219,8 @@ class StakeToDriftInsuranceFundTool(BaseTool):
                 "message": f"Error staking to Drift insurance fund: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
     name: str = "request_unstake_from_drift_insurance_fund"
@@ -5109,7 +5242,17 @@ class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["amount", "symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            
             transaction = await self.solana_kit.request_unstake_from_drift_insurance_fund(
                 amount=data["amount"],
                 symbol=data["symbol"]
@@ -5124,8 +5267,8 @@ class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
                 "message": f"Error requesting unstake from Drift insurance fund: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class UnstakeFromDriftInsuranceFundTool(BaseTool):
     name: str = "unstake_from_drift_insurance_fund"
@@ -5146,7 +5289,15 @@ class UnstakeFromDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            
             transaction = await self.solana_kit.unstake_from_drift_insurance_fund(
                 symbol=data["symbol"]
             )
@@ -5160,8 +5311,8 @@ class UnstakeFromDriftInsuranceFundTool(BaseTool):
                 "message": f"Error unstaking from Drift insurance fund: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class DriftSwapSpotTokenTool(BaseTool):
     name: str = "drift_swap_spot_token"
@@ -5186,7 +5337,15 @@ class DriftSwapSpotTokenTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["from_symbol", "to_symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["from_symbol"], str):
+                raise ValueError("from_symbol must be a string")
+        
             transaction = await self.solana_kit.drift_swap_spot_token(
                 from_symbol=data["from_symbol"],
                 to_symbol=data["to_symbol"],
@@ -5204,8 +5363,8 @@ class DriftSwapSpotTokenTool(BaseTool):
                 "message": f"Error swapping spot token on Drift: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetDriftPerpMarketFundingRateTool(BaseTool):
     name: str = "get_drift_perp_market_funding_rate"
@@ -5227,7 +5386,15 @@ class GetDriftPerpMarketFundingRateTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+        
             funding_rate = await self.solana_kit.get_drift_perp_market_funding_rate(
                 symbol=data["symbol"],
                 period=data.get("period", "year"),
@@ -5242,8 +5409,8 @@ class GetDriftPerpMarketFundingRateTool(BaseTool):
                 "message": f"Error getting Drift perp market funding rate: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
     name: str = "get_drift_entry_quote_of_perp_trade"
@@ -5266,7 +5433,19 @@ class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["amount", "symbol", "action"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            if not isinstance(data["action"], str):
+                raise ValueError("action must be a string")
+            
             entry_quote = await self.solana_kit.get_drift_entry_quote_of_perp_trade(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -5282,8 +5461,8 @@ class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
                 "message": f"Error getting Drift entry quote of perp trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetDriftLendBorrowApyTool(BaseTool):
     name: str = "get_drift_lend_borrow_apy"
@@ -5304,7 +5483,15 @@ class GetDriftLendBorrowApyTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["symbol"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            
             apy_data = await self.solana_kit.get_drift_lend_borrow_apy(
                 symbol=data["symbol"]
             )
@@ -5318,8 +5505,8 @@ class GetDriftLendBorrowApyTool(BaseTool):
                 "message": f"Error getting Drift lend/borrow APY: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class CreateDriftVaultTool(BaseTool):
     name: str = "create_drift_vault"
@@ -5348,7 +5535,32 @@ class CreateDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["name", "market_name", "redeem_period", "max_tokens", "min_deposit_amount", "management_fee", "profit_share"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["name"], str):
+                raise ValueError("name must be a string")
+            if not isinstance(data["market_name"], str):
+                raise ValueError("market_name must be a string")
+            if not isinstance(data["redeem_period"], int):
+                raise ValueError("redeem_period must be an integer")
+            if not isinstance(data["max_tokens"], int):
+                raise ValueError("max_tokens must be an integer")
+            if not isinstance(data["min_deposit_amount"], float):
+                raise ValueError("min_deposit_amount must be a float")
+            if not isinstance(data["management_fee"], float):
+                raise ValueError("management_fee must be a float")
+            if not isinstance(data["profit_share"], float):
+                raise ValueError("profit_share must be a float")
+            if not isinstance(data["hurdle_rate"], float):
+                raise ValueError("hurdle_rate must be a float")
+            if not isinstance(data["permissioned"], bool):
+                raise ValueError("permissioned must be a boolean")
+            
+            
             vault_details = await self.solana_kit.create_drift_vault(
                 name=data["name"],
                 market_name=data["market_name"],
@@ -5370,8 +5582,8 @@ class CreateDriftVaultTool(BaseTool):
                 "message": f"Error creating Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class UpdateDriftVaultDelegateTool(BaseTool):
     name: str = "update_drift_vault_delegate"
@@ -5393,7 +5605,17 @@ class UpdateDriftVaultDelegateTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["vault", "delegate_address"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["vault"], str):
+                raise ValueError("vault must be a string")
+            if not isinstance(data["delegate_address"], str):
+                raise ValueError("delegate_address must be a string")
+            
             transaction = await self.solana_kit.update_drift_vault_delegate(
                 vault=data["vault"],
                 delegate_address=data["delegate_address"],
@@ -5408,8 +5630,8 @@ class UpdateDriftVaultDelegateTool(BaseTool):
                 "message": f"Error updating Drift vault delegate: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class UpdateDriftVaultTool(BaseTool):
     name: str = "update_drift_vault"
@@ -5439,7 +5661,33 @@ class UpdateDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["vault_address", "name", "market_name", "redeem_period", "max_tokens", "min_deposit_amount", "management_fee", "profit_share"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["vault_address"], str):
+                raise ValueError("vault_address must be a string")
+            if not isinstance(data["name"], str):
+                raise ValueError("name must be a string")
+            if not isinstance(data["market_name"], str):
+                raise ValueError("market_name must be a string")
+            if not isinstance(data["redeem_period"], int):
+                raise ValueError("redeem_period must be an integer")
+            if not isinstance(data["max_tokens"], int):
+                raise ValueError("max_tokens must be an integer")
+            if not isinstance(data["min_deposit_amount"], float):
+                raise ValueError("min_deposit_amount must be a float")
+            if not isinstance(data["management_fee"], float):
+                raise ValueError("management_fee must be a float")
+            if not isinstance(data["profit_share"], float):
+                raise ValueError("profit_share must be a float")
+            if "hurdle_rate" in data and not isinstance(data["hurdle_rate"], float):
+                raise ValueError("hurdle_rate must be a float")
+            if "permissioned" in data and not isinstance(data["permissioned"], bool):
+                raise ValueError("permissioned must be a boolean")
+            
             vault_update = await self.solana_kit.update_drift_vault(
                 vault_address=data["vault_address"],
                 name=data["name"],
@@ -5484,7 +5732,15 @@ class GetDriftVaultInfoTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["vault_name"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["vault_name"], str):
+                raise ValueError("vault_name must be a string")
+            
             vault_info = await self.solana_kit.get_drift_vault_info(
                 vault_name=data["vault_name"]
             )
@@ -5498,8 +5754,8 @@ class GetDriftVaultInfoTool(BaseTool):
                 "message": f"Error retrieving Drift vault info: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class DepositIntoDriftVaultTool(BaseTool):
     name: str = "deposit_into_drift_vault"
@@ -5521,7 +5777,17 @@ class DepositIntoDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["amount", "vault"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["vault"], str):
+                raise ValueError("vault must be a string")
+            
             transaction = await self.solana_kit.deposit_into_drift_vault(
                 amount=data["amount"],
                 vault=data["vault"]
@@ -5536,8 +5802,8 @@ class DepositIntoDriftVaultTool(BaseTool):
                 "message": f"Error depositing into Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class RequestWithdrawalFromDriftVaultTool(BaseTool):
     name: str = "request_withdrawal_from_drift_vault"
@@ -5558,8 +5824,18 @@ class RequestWithdrawalFromDriftVaultTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
+        try:    
+            required_fields = ["amount", "vault"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["vault"], str):
+                raise ValueError("vault must be a string")
+            
             transaction = await self.solana_kit.request_withdrawal_from_drift_vault(
                 amount=data["amount"],
                 vault=data["vault"]
@@ -5574,8 +5850,8 @@ class RequestWithdrawalFromDriftVaultTool(BaseTool):
                 "message": f"Error requesting withdrawal from Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class WithdrawFromDriftVaultTool(BaseTool):
     name: str = "withdraw_from_drift_vault"
@@ -5596,7 +5872,15 @@ class WithdrawFromDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["vault"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["vault"], str):
+                raise ValueError("vault must be a string")
+            
             transaction = await self.solana_kit.withdraw_from_drift_vault(
                 vault=data["vault"]
             )
@@ -5610,8 +5894,8 @@ class WithdrawFromDriftVaultTool(BaseTool):
                 "message": f"Error withdrawing from Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class DeriveDriftVaultAddressTool(BaseTool):
     name: str = "derive_drift_vault_address"
@@ -5632,7 +5916,15 @@ class DeriveDriftVaultAddressTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["name"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["name"], str):
+                raise ValueError("name must be a string")
+            
             vault_address = await self.solana_kit.derive_drift_vault_address(
                 name=data["name"]
             )
@@ -5646,8 +5938,8 @@ class DeriveDriftVaultAddressTool(BaseTool):
                 "message": f"Error deriving Drift vault address: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class TradeUsingDelegatedDriftVaultTool(BaseTool):
     name: str = "trade_using_delegated_drift_vault"
@@ -5673,7 +5965,25 @@ class TradeUsingDelegatedDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["vault", "amount", "symbol", "action", "trade_type"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["vault"], str):
+                raise ValueError("vault must be a string")
+            if not isinstance(data["amount"], float):
+                raise ValueError("amount must be a float")
+            if not isinstance(data["symbol"], str):
+                raise ValueError("symbol must be a string")
+            if not isinstance(data["action"], str):
+                raise ValueError("action must be a string")
+            if not isinstance(data["trade_type"], str):
+                raise ValueError("trade_type must be a string")
+            if "price" in data and not isinstance(data["price"], float):
+                raise ValueError("price must be a float")
+            
             transaction = await self.solana_kit.trade_using_delegated_drift_vault(
                 vault=data["vault"],
                 amount=data["amount"],
@@ -5692,8 +6002,8 @@ class TradeUsingDelegatedDriftVaultTool(BaseTool):
                 "message": f"Error trading using delegated Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class FlashOpenTradeTool(BaseTool):
     name: str = "flash_open_trade"
@@ -5717,7 +6027,21 @@ class FlashOpenTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["token", "side", "collateralUsd", "leverage"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["token"], str):
+                raise ValueError("token must be a string")
+            if not isinstance(data["side"], str):
+                raise ValueError("side must be a string")
+            if not isinstance(data["collateralUsd"], float):
+                raise ValueError("collateralUsd must be a float")
+            if not isinstance(data["leverage"], float):
+                raise ValueError("leverage must be a float")
+
             transaction = await self.solana_kit.flash_open_trade(
                 token=data["token"],
                 side=data["side"],
@@ -5734,7 +6058,7 @@ class FlashOpenTradeTool(BaseTool):
                 "message": f"Error opening flash trade: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class FlashCloseTradeTool(BaseTool):
@@ -5757,7 +6081,17 @@ class FlashCloseTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["token", "side"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["token"], str):
+                raise ValueError("token must be a string")
+            if not isinstance(data["side"], str):
+                raise ValueError("side must be a string")
+            
             transaction = await self.solana_kit.flash_close_trade(
                 token=data["token"],
                 side=data["side"]
@@ -5772,8 +6106,8 @@ class FlashCloseTradeTool(BaseTool):
                 "message": f"Error closing flash trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class ResolveAllDomainsTool(BaseTool):
     name: str = "resolve_all_domains"
@@ -5794,13 +6128,21 @@ class ResolveAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["domain"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["domain"], str):
+                raise ValueError("domain must be a string")
+            
             domain_tld = await self.solana_kit.resolve_all_domains(data["domain"])
             return {"tld": domain_tld, "message": "Success"} if domain_tld else {"message": "Domain resolution failed"}
         except Exception as e:
             return {"message": f"Error resolving domain: {str(e)}"}
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetOwnedDomainsForTLDTool(BaseTool):
@@ -5822,7 +6164,15 @@ class GetOwnedDomainsForTLDTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["tld"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["tld"], str):
+                raise ValueError("tld must be a string")
+            
             owned_domains = await self.solana_kit.get_owned_domains_for_tld(data["tld"])
             return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
         except Exception as e:
@@ -5845,14 +6195,14 @@ class GetAllDomainsTLDsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             tlds = await self.solana_kit.get_all_domains_tlds()
             return {"tlds": tlds, "message": "Success"} if tlds else {"message": "No TLDs found"}
         except Exception as e:
             return {"message": f"Error fetching TLDs: {str(e)}"}
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetOwnedAllDomainsTool(BaseTool):
@@ -5874,13 +6224,21 @@ class GetOwnedAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            required_fields = ["owner"]
+            data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["owner"], str):
+                raise ValueError("owner must be a string")
+            
             owned_domains = await self.solana_kit.get_owned_all_domains(data["owner"])
             return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
         except Exception as e:
             return {"message": f"Error fetching owned domains: {str(e)}"}
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 def create_solana_tools(solana_kit: SolanaAgentKit):
