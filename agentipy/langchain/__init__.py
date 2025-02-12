@@ -4,6 +4,7 @@ from langchain.tools import BaseTool
 from solders.pubkey import Pubkey  # type: ignore
 
 from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
 from agentipy.tools import create_image
 from agentipy.utils import toJSON
 from agentipy.utils.meteora_dlmm.types import ActivationType
@@ -58,22 +59,16 @@ class SolanaTransferTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["to", "amount"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if "to" in data and not isinstance(data["to"], str):
-                raise ValueError("To must be a string")
-            if not isinstance(data["amount"], int) or data["amount"] <= 0:
-                raise ValueError("Amount must be a positive integer")
-            if "mint" in data and not isinstance(data["mint"], str):
-                raise ValueError("Mint must be a string")
-            
+            schema = {  
+                "to": {"type": str, "required": True},
+                "amount": {"type": int, "required": True, "min": 1},
+                "mint": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
             recipient = Pubkey.from_string(data["to"])
-            mint_address = Pubkey.from_string(data["mint"]) if "mint" in data else None
+            mint_address = data.get("mint") and Pubkey.from_string(data["mint"])
 
             transaction = await self.solana_kit.transfer(recipient, data["amount"], mint_address)
 
@@ -91,7 +86,7 @@ class SolanaTransferTool(BaseTool):
                 "message": str(e),
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -111,21 +106,14 @@ class SolanaDeployTokenTool(BaseTool):
     async def _arun(self, input: str):
 
         try:
-            required_fields = ["decimals", "initialSupply"]
-            data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["decimals"], int) or data["decimals"] < 0 or data["decimals"] > 9:
-                raise ValueError("Decimals must be an integer between 0 and 9")
-            if not isinstance(data["initialSupply"], int) or data["initialSupply"] < 0:
-                raise ValueError("Initial supply must be a positive integer")
-
-            decimals = data.get("decimals", 9)
-
            
-
+            data = toJSON(input)
+            schema = {
+                "decimals": {"type": int, "required": True, "min": 0, "max": 9},
+                "initialSupply": {"type": int, "required": True, "min": 1}
+            }
+            validate_input(data, schema)
+            decimals = data.get("decimals", 9)
             token_details = await self.solana_kit.deploy_token(decimals)
             return {
                 "status": "success",
@@ -140,7 +128,7 @@ class SolanaDeployTokenTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -164,20 +152,14 @@ class SolanaTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["output_mint", "input_amount"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["input_amount"], int) or data["input_amount"] <= 0:
-                raise ValueError("Input amount must be a positive integer")
-            if "input_mint" in data and not isinstance(data["input_mint"], str):
-                raise ValueError("Input mint must be a string")
-            if "slippage_bps" in data and not isinstance(data["slippage_bps"], int):
-                raise ValueError("Slippage bps must be an integer")
-            if "output_mint" in data and not isinstance(data["output_mint"], str):
-                raise ValueError("Output mint must be a string")
+            schema = {
+                "output_mint": {"type": str, "required": True},
+                "input_amount": {"type": int, "required": True, "min": 1},
+                "input_mint": {"type": str, "required": False},
+                "slippage_bps": {"type": int, "required": False}
+            }
+            validate_input(data, schema)
 
             output_mint = Pubkey.from_string(data["output_mint"])
             input_mint = Pubkey.from_string(data["input_mint"]) if "input_mint" in data else None
@@ -192,6 +174,7 @@ class SolanaTradeTool(BaseTool):
                 "message": "Trade executed successfully",
                 "transaction": transaction,
             }
+          
         except Exception as e:
             return {
                 "status": "error",
@@ -199,7 +182,7 @@ class SolanaTradeTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -210,7 +193,7 @@ class SolanaFaucetTool(BaseTool):
     description:str = "Request test funds from a Solana faucet."
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             result = await self.solana_kit.request_faucet_funds()
             return {
@@ -225,7 +208,7 @@ class SolanaFaucetTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -252,7 +235,7 @@ class SolanaStakeTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -278,7 +261,7 @@ class SolanaGetWalletAddressTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -300,18 +283,16 @@ class SolanaCreateImageTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["prompt"]
-            data = json.loads(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["prompt"], str):
-                raise ValueError("Prompt must be a string")
-            if "size" in data and not isinstance(data["size"], str):
-                raise ValueError("Size must be a string")
-            if "n" in data and not isinstance(data["n"], int):
-                raise ValueError("N must be an integer")
-
+            data = toJSON(input)
+            schema = {
+                "prompt": {"type": str, "required": True},
+                "size": {"type": str, "required": False},
+                "n": {"type": int, "required": False}
+            }
+            validate_input(data, schema)
+           
+            prompt = data["prompt"]
+            size = data.get("size", "1024x1024")
             prompt = data["prompt"]
             size = data.get("size", "1024x1024")
             n = data.get("n", 1)
@@ -333,7 +314,7 @@ class SolanaCreateImageTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR")
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -359,7 +340,7 @@ class SolanaTPSCalculatorTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR")
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -382,21 +363,15 @@ class SolanaPumpFunTokenTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["token_name", "token_ticker", "description", "image_url"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["token_name"], str):
-                raise ValueError("Token name must be a string")
-            if not isinstance(data["token_ticker"], str):
-                raise ValueError("Token ticker must be a string")
-            if not isinstance(data["description"], str):
-                raise ValueError("Description must be a string")
-            if not isinstance(data["image_url"], str):
-                raise ValueError("Image URL must be a string")
-            
+            schema = {
+                "token_name": {"type": str, "required": True},
+                "token_ticker": {"type": str, "required": True},
+                "description": {"type": str, "required": True},
+                "image_url": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+    
             result = await self.solana_kit.launch_pump_fun_token(
                 data["token_name"],
                 data["token_ticker"],
@@ -416,7 +391,7 @@ class SolanaPumpFunTokenTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -435,16 +410,12 @@ class SolanaFetchPriceTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def call(self, input: str) -> str:
-        try:    
-            required_fields = ["token_id"]
+        try:
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["token_id"], str):
-                raise ValueError("Token ID must be a string")
-
+            schema = {
+                "token_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             token_id = data["token_id"]
             price = await self.solana_kit.fetch_price(token_id)
             return json.dumps({
@@ -459,7 +430,7 @@ class SolanaFetchPriceTool(BaseTool):
                 "code": getattr(error, "code", "UNKNOWN_ERROR"),
             })
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -479,15 +450,11 @@ class SolanaTokenDataTool(BaseTool):
 
     async def call(self, input: str) -> str:
         try:
-            required_fields = ["mint_address"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["mint_address"], str):
-                raise ValueError("Mint address must be a string")
-
+            schema = {
+                "mint_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             mint_address = data["mint_address"]
             token_data = await self.solana_kit.get_token_data_by_address(mint_address)
             return json.dumps({
@@ -501,7 +468,7 @@ class SolanaTokenDataTool(BaseTool):
                 "code": getattr(error, "code", "UNKNOWN_ERROR"),
             })
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -521,14 +488,11 @@ class SolanaTokenDataByTickerTool(BaseTool):
 
     async def call(self, input: str) -> str:
         try:
-            required_fields = ["ticker"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["ticker"], str):
-                raise ValueError("Ticker must be a string")
+            schema = {
+                "ticker": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
             ticker = data["ticker"]
             token_data = await self.solana_kit.get_token_data_by_ticker(ticker)
@@ -543,7 +507,7 @@ class SolanaTokenDataByTickerTool(BaseTool):
                 "code": getattr(error, "code", "UNKNOWN_ERROR"),
             })
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -574,33 +538,21 @@ class SolanaMeteoraDLMMTool(BaseTool):
 
     async def _arun(self, input: str) -> dict:
         try:
-            # Parse input
             data = toJSON(input)
+            schema = {
+                "bin_step": {"type": int, "required": True},
+                "token_a_mint": {"type": str, "required": True},
+                "token_b_mint": {"type": str, "required": True},
+                "initial_price": {"type": float, "required": True},
+                "price_rounding_up": {"type": bool, "required": True},
+                "fee_bps": {"type": int, "required": True},
+                "activation_type": {"type": str, "required": True},
+                "has_alpha_vault": {"type": bool, "required": True},
+                "activation_point": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            # Ensure required keys exist
-            required_keys = [
-                "bin_step",
-                "token_a_mint",
-                "token_b_mint",
-                "initial_price",
-                "price_rounding_up",
-                "fee_bps",
-                "activation_type",
-                "has_alpha_vault"
-            ]
-            for key in required_keys:
-                if key not in data:
-                    raise ValueError(f"Missing required key: {key}")
-                
-            if not isinstance(data["bin_step"], int) or data["bin_step"] <= 0:
-                raise ValueError("bin_step must be a positive integer")
-    
-            if not isinstance(data["fee_bps"], int) or not (0 <= data["fee_bps"] <= 10000):
-                raise ValueError("fee_bps must be an integer between 0 and 10000")
-            if not isinstance(data["activation_type"], str):
-                raise ValueError("activation_type must be a string")
-            if not isinstance(data["has_alpha_vault"], bool):
-                raise ValueError("has_alpha_vault must be a boolean")
+           
             
 
             activation_type_mapping = {
@@ -638,7 +590,7 @@ class SolanaMeteoraDLMMTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -818,16 +770,13 @@ class SolanaBurnAndCloseMultipleTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["token_accounts"]
             data = toJSON(input)
+            schema = {
+                "token_accounts": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
             token_accounts = data.get("token_accounts", [])
-
-            if not isinstance(token_accounts, list) or not token_accounts:
-                raise ValueError("A list of token accounts is required.")
 
             result = await self.solana_kit.multiple_burn_and_close_accounts(token_accounts)
 
@@ -868,31 +817,17 @@ class SolanaCreateGibworkTaskTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_keys = [
-                "title",
-                "content",
-                "requirements",
-                "tags",
-                "token_mint_address",
-                "token_amount"
-            ]
-            data = toJSON(input)    
-            for key in required_keys:
-                if key not in data:
-                    raise ValueError(f"Missing required key: {key}")
-            if not isinstance(data["token_amount"], int) or data["token_amount"] <= 0:
-                raise ValueError("token_amount must be a positive integer")
-            if not isinstance(data["tags"], list) or not all(isinstance(tag, str) for tag in data["tags"]):
-                raise ValueError("tags must be a list of strings")
-            if not isinstance(data["title"], str) or len(data["title"]) == 0:
-                raise ValueError("title must be a non-empty string")
-            if not isinstance(data["content"], str) or len(data["content"]) == 0:
-                raise ValueError("content must be a non-empty string")  
-            if not isinstance(data["requirements"], str) or len(data["requirements"]) == 0:
-                raise ValueError("requirements must be a non-empty string")
-            if not isinstance(data["token_mint_address"], str) or len(data["token_mint_address"]) == 0:
-                raise ValueError("token_mint_address must be a non-empty string")
-            
+            data = toJSON(input)
+            schema = {
+                "title": {"type": str, "required": True},
+                "content": {"type": str, "required": True},
+                "requirements": {"type": str, "required": True},
+                "tags": {"type": list, "required": True},
+                "token_mint_address": {"type": str, "required": True},
+                "token_amount": {"type": int, "required": True, "min": 1}
+            }
+            validate_input(data, schema)
+
             title = data["title"]
             content = data["content"]
             requirements = data["requirements"]
@@ -936,15 +871,14 @@ class SolanaBuyUsingMoonshotTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["mint_str", "collateral_amount", "slippage_bps"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["collateral_amount"], float) or data["collateral_amount"] <= 0:
-                raise ValueError("collateral_amount must be a positive float")
-            if not isinstance(data["slippage_bps"], int) or not (0 <= data["slippage_bps"] <= 10000):
-                raise ValueError("slippage_bps must be an integer between 0 and 10000")
+            schema = {
+                "mint_str": {"type": str, "required": True},
+                "collateral_amount": {"type": float, "required": False, "min": 0},
+                "slippage_bps": {"type": int, "required": False, "min": 0, "max": 10000}
+            }
+            validate_input(data, schema)
+
             mint_str = data["mint_str"]
             collateral_amount = data.get("collateral_amount", 0.01)
             slippage_bps = data.get("slippage_bps", 500)
@@ -985,15 +919,14 @@ class SolanaSellUsingMoonshotTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["mint_str", "token_balance", "slippage_bps"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["token_balance"], float) or data["token_balance"] <= 0:
-                raise ValueError("token_balance must be a positive float")
-            if not isinstance(data["slippage_bps"], int) or not (0 <= data["slippage_bps"] <= 10000):
-                raise ValueError("slippage_bps must be an integer between 0 and 10000")
+            schema = {
+                "mint_str": {"type": str, "required": True},
+                "token_balance": {"type": float, "required": False, "min": 0},
+                "slippage_bps": {"type": int, "required": False, "min": 0, "max": 10000}
+            }
+            validate_input(data, schema)
+
             mint_str = data["mint_str"]
             token_balance = data.get("token_balance", 0.01)
             slippage_bps = data.get("slippage_bps", 500)
@@ -1040,11 +973,12 @@ class SolanaPythGetPriceTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["mint_address"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
+            schema = {
+                "mint_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             mint_address = data["mint_address"]
 
             result = await self.solana_kit.pythFetchPrice(mint_address)
@@ -1084,11 +1018,12 @@ class SolanaHeliusGetBalancesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["address"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
+            schema = {
+                "address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             address = data["address"]
 
             result = await self.solana_kit.get_balances(address)
@@ -1126,13 +1061,12 @@ class SolanaHeliusGetAddressNameTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["address"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["address"], str) or len(data["address"]) == 0:
-                raise ValueError("address must be a non-empty string")
+            schema = {
+                "address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             address = data["address"]
 
             result = await self.solana_kit.get_address_name(address)
@@ -1181,14 +1115,22 @@ class SolanaHeliusGetNftEventsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["accounts"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            
-           
-            
+            schema = {
+                "accounts": {"type": list, "required": True},
+                "types": {"type": list, "required": False},
+                "sources": {"type": list, "required": False},
+                "start_slot": {"type": int, "required": False},
+                "end_slot": {"type": int, "required": False},
+                "start_time": {"type": int, "required": False},
+                "end_time": {"type": int, "required": False},
+                "first_verified_creator": {"type": list, "required": False},
+                "verified_collection_address": {"type": list, "required": False},
+                "limit": {"type": int, "required": False},
+                "sort_order": {"type": str, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
             accounts = data["accounts"]
             types = data.get("types")
@@ -1242,20 +1184,22 @@ class SolanaHeliusGetMintlistsTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-
         try:
-            required_fields = ["first_verified_creators", ]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            
-            first_verified_creators = data["first_verified_creators"]
-            verified_collection_addresses = data.get("verified_collection_addresses")
-            limit = data.get("limit")
-            pagination_token = data.get("pagination_token")
+            schema = {
+                "first_verified_creators": {"type": list, "required": True},
+                "verified_collection_addresses": {"type": list, "required": False},
+                "limit": {"type": int, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            result = await self.solana_kit.get_mintlists(first_verified_creators, verified_collection_addresses, limit, pagination_token)
+            result = await self.solana_kit.get_mintlists(
+                first_verified_creators=data["first_verified_creators"],
+                verified_collection_addresses=data.get("verified_collection_addresses"),
+                limit=data.get("limit"),
+                pagination_token=data.get("pagination_token")
+            )
             return {
                 "status": "success",
                 "data": result,
@@ -1288,11 +1232,11 @@ class SolanaHeliusGetNFTFingerprintTool(BaseTool):
 
     async def _arun(self, input: str):
         try:    
-            required_fields = ["mints"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
+            schema = {
+                "mints": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
             mints = data["mints"]
 
             result = await self.solana_kit.get_nft_fingerprint(mints)
@@ -1336,21 +1280,22 @@ class SolanaHeliusGetActiveListingsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["first_verified_creators"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            
-            first_verified_creators = data["first_verified_creators"]
-            verified_collection_addresses = data.get("verified_collection_addresses", [])
-            marketplaces = data.get("marketplaces", [])
-            limit = data.get("limit", None)
-            pagination_token = data.get("pagination_token", None)
+            schema = {
+                "first_verified_creators": {"type": list, "required": True},
+                "verified_collection_addresses": {"type": list, "required": False},
+                "marketplaces": {"type": list, "required": False},
+                "limit": {"type": int, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
             result = await self.solana_kit.get_active_listings(
-                first_verified_creators, verified_collection_addresses, marketplaces, limit, pagination_token
+                first_verified_creators=data["first_verified_creators"],
+                verified_collection_addresses=data.get("verified_collection_addresses"),
+                marketplaces=data.get("marketplaces"),
+                limit=data.get("limit"),
+                pagination_token=data.get("pagination_token")
             )
             return {
                 "status": "success",
@@ -1363,10 +1308,7 @@ class SolanaHeliusGetActiveListingsTool(BaseTool):
             }
 
     def _run(self, input: str):
-        """Synchronous version of the run method, required by BaseTool."""
-        raise NotImplementedError(
-            "This tool only supports async execution via _arun. Please use the async interface."
-        )
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 
 class SolanaHeliusGetNFTMetadataTool(BaseTool):
@@ -1376,7 +1318,7 @@ class SolanaHeliusGetNFTMetadataTool(BaseTool):
 
     Input: A JSON string with:
     {
-        "mint_accounts": ["string, the mint addresses of the NFTs"]
+        "mint_addresses": ["string, the mint addresses of the NFTs"]
     }
 
     Output:
@@ -1388,16 +1330,14 @@ class SolanaHeliusGetNFTMetadataTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["mint_accounts"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["mint_accounts"], list) or not all(isinstance(account, str) for account in data["mint_accounts"]):
-                raise ValueError("mint_accounts must be a list of strings") 
-            mint_accounts = data["mint_accounts"]
+            schema = {
+                "mint_addresses": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
+            mint_addresses = data["mint_addresses"]
 
-            result = await self.solana_kit.get_nft_metadata(mint_accounts)
+            result = await self.solana_kit.get_nft_metadata(mint_addresses)
             return {
                 "status": "success",
                 "data": result,
@@ -1422,7 +1362,7 @@ class SolanaHeliusGetRawTransactionsTool(BaseTool):
 
     Input: A JSON string with:
     {
-        "accounts": ["string, the account addresses"],
+        "signatures": ["string, the transaction signatures"],
         "start_slot": "optional start slot",
         "end_slot": "optional end slot",
         "start_time": "optional start time",
@@ -1441,26 +1381,30 @@ class SolanaHeliusGetRawTransactionsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["accounts"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["accounts"], list) or not all(isinstance(account, str) for account in data["accounts"]):
-                raise ValueError("accounts must be a list of strings")
-            
+            schema = {
+                "signatures": {"type": list, "required": True},
+                "start_slot": {"type": int, "required": False},
+                "end_slot": {"type": int, "required": False},
+                "start_time": {"type": int, "required": False},
+                "end_time": {"type": int, "required": False},
+                "limit": {"type": int, "required": False},
+                "sort_order": {"type": str, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            accounts = data["accounts"]
-            start_slot = data.get("start_slot", None)
-            end_slot = data.get("end_slot", None)
-            start_time = data.get("start_time", None)
-            end_time = data.get("end_time", None)
-            limit = data.get("limit", None)
-            sort_order = data.get("sort_order", None)
-            pagination_token = data.get("pagination_token", None)
+            signatures = data["signatures"]
+            start_slot = data.get("start_slot")
+            end_slot = data.get("end_slot")
+            start_time = data.get("start_time")
+            end_time = data.get("end_time")
+            limit = data.get("limit")
+            sort_order = data.get("sort_order")
+            pagination_token = data.get("pagination_token")
 
             result = await self.solana_kit.get_raw_transactions(
-                accounts, start_slot, end_slot, start_time, end_time, limit, sort_order, pagination_token
+                signatures, start_slot, end_slot, start_time, end_time, limit, sort_order, pagination_token
             )
             return {
                 "status": "success",
@@ -1486,7 +1430,7 @@ class SolanaHeliusGetParsedTransactionsTool(BaseTool):
 
     Input: A JSON string with:
     {
-        "transactions": ["string, the transaction IDs"],
+        "signatures": ["string, the transaction signatures"],
         "commitment": "optional commitment level"
     }
 
@@ -1499,20 +1443,17 @@ class SolanaHeliusGetParsedTransactionsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["transactions"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["transactions"], list) or not all(isinstance(tx, str) for tx in data["transactions"]):
-                raise ValueError("transactions must be a list of strings")
-            if "commitment" in data and not isinstance(data["commitment"], str):
-                raise ValueError("commitment must be a string")
-            
-            transactions = data["transactions"]
-            commitment = data.get("commitment", None)
+            schema = {
+                "signatures": {"type": list, "required": True},
+                "commitment": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            result = await self.solana_kit.get_parsed_transactions(transactions, commitment)
+            signatures = data["signatures"]
+            commitment = data.get("commitment")
+
+            result = await self.solana_kit.get_parsed_transactions(signatures, commitment)
             return {
                 "status": "success",
                 "data": result,
@@ -1554,24 +1495,17 @@ class SolanaHeliusGetParsedTransactionHistoryTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["address"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["address"], str):
-                raise ValueError("address must be a string")
-            if "before" in data and not isinstance(data["before"], str):
-                raise ValueError("before must be a string")
-            if "until" in data and not isinstance(data["until"], str):
-                raise ValueError("until must be a string")
-            if "commitment" in data and not isinstance(data["commitment"], str):
-                raise ValueError("commitment must be a string")
-            if "source" in data and not isinstance(data["source"], str):
-                raise ValueError("source must be a string")
-            if "type" in data and not isinstance(data["type"], str):
-                raise ValueError("type must be a string")
-            
+            schema = {
+                "address": {"type": str, "required": True},
+                "before": {"type": str, "required": False},
+                "until": {"type": str, "required": False},
+                "commitment": {"type": str, "required": False},
+                "source": {"type": str, "required": False},
+                "type": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             address = data["address"]
             before = data.get("before", "")
             until = data.get("until", "")
@@ -1623,23 +1557,15 @@ class SolanaHeliusCreateWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["webhook_url", "transaction_types", "account_addresses", "webhook_type"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["webhook_url"], str):
-                raise ValueError("webhook_url must be a string")
-            if not isinstance(data["transaction_types"], list) or not all(isinstance(tx, str) for tx in data["transaction_types"]):
-                raise ValueError("transaction_types must be a list of strings")
-            if not isinstance(data["account_addresses"], list) or not all(isinstance(account, str) for account in data["account_addresses"]):
-                raise ValueError("account_addresses must be a list of strings")
-            if not isinstance(data["webhook_type"], str):
-                raise ValueError("webhook_type must be a string")
-            if "txn_status" in data and not isinstance(data["txn_status"], str):
-                raise ValueError("txn_status must be a string")
-            if "auth_header" in data and not isinstance(data["auth_header"], str):
-                raise ValueError("auth_header must be a string")
+            schema = {
+                "webhook_url": {"type": str, "required": True},
+                "transaction_types": {"type": list, "required": True},
+                "account_addresses": {"type": list, "required": True},
+                "webhook_type": {"type": str, "required": True},
+                "auth_header": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
             webhook_url = data["webhook_url"]
             transaction_types = data["transaction_types"]
@@ -1721,17 +1647,12 @@ class SolanaHeliusGetWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["webhook_id"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["webhook_id"], str):
-                raise ValueError("webhook_id must be a string")
-
+            schema = {
+                "webhook_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             webhook_id = data["webhook_id"]
-
             result = await self.solana_kit.get_webhook(webhook_id)
             return {
                 "status": "success",
@@ -1743,7 +1664,7 @@ class SolanaHeliusGetWebhookTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -1774,27 +1695,16 @@ class SolanaHeliusEditWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["webhook_id", "webhook_url", "transaction_types", "account_addresses", "webhook_type"]   
+            schema = {
+                "webhook_id": {"type": str, "required": True},
+                "webhook_url": {"type": str, "required": True},
+                "transaction_types": {"type": list, "required": True},
+                "account_addresses": {"type": list, "required": True},
+                "webhook_type": {"type": str, "required": True}
+            }
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["webhook_id"], str):
-                raise ValueError("webhook_id must be a string")
-            if not isinstance(data["webhook_url"], str):
-                raise ValueError("webhook_url must be a string")
-            if not isinstance(data["transaction_types"], list) or not all(isinstance(tx, str) for tx in data["transaction_types"]):
-                raise ValueError("transaction_types must be a list of strings")
-            if not isinstance(data["account_addresses"], list) or not all(isinstance(account, str) for account in data["account_addresses"]):
-                raise ValueError("account_addresses must be a list of strings")
-            if not isinstance(data["webhook_type"], str):
-                raise ValueError("webhook_type must be a string")
-            
-            if "auth_header" in data and not isinstance(data["auth_header"], str):
-                raise ValueError("auth_header must be a string")
-            if "txn_status" in data and not isinstance(data["txn_status"], str):
-                raise ValueError("txn_status must be a string")
-            
+            validate_input(data, schema)
+         
             webhook_id = data["webhook_id"]
             webhook_url = data["webhook_url"]
             transaction_types = data["transaction_types"]
@@ -1816,7 +1726,7 @@ class SolanaHeliusEditWebhookTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -1842,17 +1752,12 @@ class SolanaHeliusDeleteWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-
-            required_fields = ["webhook_id"]
+            schema = {
+                "webhook_id": {"type": str, "required": True}
+            }
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["webhook_id"], str):
-                raise ValueError("webhook_id must be a string")
-
-            webhook_id = data["webhook_id"]
-
+            validate_input(data, schema)
+            webhook_id = data["webhook_id"] 
             result = await self.solana_kit.delete_webhook(webhook_id)
             return {
                 "status": "success",
@@ -1864,7 +1769,7 @@ class SolanaHeliusDeleteWebhookTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -1893,15 +1798,12 @@ class SolanaFetchTokenReportSummaryTool(BaseTool):
         Asynchronous implementation of the tool.
         """
         try:
-            required_fields = ["mint"]
             data = toJSON(input)
+            schema = {
+                "mint": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["mint"], str):
-                raise ValueError("mint must be a string")
-            
             mint = data["mint"]
             
             result = self.solana_kit.fetch_token_report_summary(mint)
@@ -1915,7 +1817,7 @@ class SolanaFetchTokenReportSummaryTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """
         Synchronous version of the tool, not implemented for async-only tools.
         """
@@ -1946,10 +1848,13 @@ class SolanaFetchTokenDetailedReportTool(BaseTool):
         Asynchronous implementation of the tool.
         """
         try:
-            data = json.loads(input)
-            mint = data.get("mint")
-            if not mint:
-                raise ValueError("Missing 'mint' in input.")
+            data = toJSON(input)
+            schema = {
+                "mint": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
+            mint = data["mint"]
             
             result = self.solana_kit.fetch_token_detailed_report(mint)
             return {
@@ -1962,7 +1867,7 @@ class SolanaFetchTokenDetailedReportTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """
         Synchronous version of the tool, not implemented for async-only tools.
         """
@@ -1991,18 +1896,15 @@ class SolanaGetPumpCurveStateTool(BaseTool):
 
     async def _arun(self, input: str):
         try:    
-            required_fields = ["conn", "curve_address"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["conn"], str):
-                raise ValueError("conn must be a string")
-            if not isinstance(data["curve_address"], str):
-                raise ValueError("curve_address must be a string")
+            schema = {
+                "conn": {"type": str, "required": True},
+                "curve_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             conn = data["conn"]
             curve_address = data["curve_address"]
-
 
             curve_address_key = Pubkey(curve_address)
             result = await self.solana_kit.get_pump_curve_state(conn, curve_address_key)
@@ -2016,7 +1918,7 @@ class SolanaGetPumpCurveStateTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
 class SolanaCalculatePumpCurvePriceTool(BaseTool):
@@ -2039,13 +1941,12 @@ class SolanaCalculatePumpCurvePriceTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["curve_state"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["curve_state"], str):
-                raise ValueError("curve_state must be a string")
+            schema = {
+                "curve_state": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             curve_state = data["curve_state"]
 
             result = await self.solana_kit.calculate_pump_curve_price(curve_state)
@@ -2087,30 +1988,23 @@ class SolanaBuyTokenTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["mint", "bonding_curve", "associated_bonding_curve", "amount", "slippage", "max_retries"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["mint"], str):
-                raise ValueError("mint must be a string")
-            if not isinstance(data["bonding_curve"], str):
-                raise ValueError("bonding_curve must be a string")
-            if not isinstance(data["associated_bonding_curve"], str):
-                raise ValueError("associated_bonding_curve must be a string")
-            if not isinstance(data["amount"], int):
-                raise ValueError("amount must be an integer")
-            if not isinstance(data["slippage"], float):
-                raise ValueError("slippage must be a float")
-            if not isinstance(data["max_retries"], int):
-                raise ValueError("max_retries must be an integer")
+            schema = {
+                "mint": {"type": str, "required": True},
+                "bonding_curve": {"type": str, "required": True},
+                "associated_bonding_curve": {"type": str, "required": True},
+                "amount": {"type": int, "required": True, "min": 1},
+                "slippage": {"type": float, "required": False, "min": 0, "max": 100},
+                "max_retries": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
 
             mint = Pubkey(data["mint"])
             bonding_curve = Pubkey(data["bonding_curve"])
             associated_bonding_curve = Pubkey(data["associated_bonding_curve"])
             amount = data["amount"]
-            slippage = data["slippage"]
-            max_retries = data["max_retries"]
+            slippage = data.get("slippage", 0.5)
+            max_retries = data.get("max_retries", 3)
 
             result = await self.solana_kit.buy_token(
                 mint, bonding_curve, associated_bonding_curve, amount, slippage, max_retries
@@ -2125,7 +2019,7 @@ class SolanaBuyTokenTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
 class SolanaSellTokenTool(BaseTool):
@@ -2153,31 +2047,23 @@ class SolanaSellTokenTool(BaseTool):
 
     async def _arun(self, input: str):
         try:    
-            required_fields = ["mint", "bonding_curve", "associated_bonding_curve", "amount", "slippage", "max_retries"]
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["mint"], str):
-                raise ValueError("mint must be a string")
-            if not isinstance(data["bonding_curve"], str):
-                raise ValueError("bonding_curve must be a string")
-            if not isinstance(data["associated_bonding_curve"], str):
-                raise ValueError("associated_bonding_curve must be a string")
-            if not isinstance(data["amount"], int):
-                raise ValueError("amount must be an integer")
-            if not isinstance(data["slippage"], float):
-                raise ValueError("slippage must be a float")
-            if not isinstance(data["max_retries"], int):
-                raise ValueError("max_retries must be an integer")
+            schema = {
+                "mint": {"type": str, "required": True},
+                "bonding_curve": {"type": str, "required": True},
+                "associated_bonding_curve": {"type": str, "required": True},
+                "amount": {"type": int, "required": True, "min": 1},
+                "slippage": {"type": float, "required": False, "min": 0, "max": 100},
+                "max_retries": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
 
             mint = Pubkey(data["mint"])
             bonding_curve = Pubkey(data["bonding_curve"])
             associated_bonding_curve = Pubkey(data["associated_bonding_curve"])
             amount = data["amount"]
-            slippage = data["slippage"]
-            max_retries = data["max_retries"]
+            slippage = data.get("slippage", 0.5)
+            max_retries = data.get("max_retries", 3)
 
             result = await self.solana_kit.sell_token(
                 mint, bonding_curve, associated_bonding_curve, amount, slippage, max_retries
@@ -2192,7 +2078,7 @@ class SolanaSellTokenTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
 class SolanaSNSResolveTool(BaseTool):
@@ -2215,15 +2101,12 @@ class SolanaSNSResolveTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["domain"]
             data = toJSON(input)
+            schema = {
+                "domain": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["domain"], str):
-                raise ValueError("domain must be a string")
-            
             domain = data["domain"]
             if not domain:
                 raise ValueError("Domain is required.")
@@ -2239,7 +2122,7 @@ class SolanaSNSResolveTool(BaseTool):
                 "message": f"Error resolving domain: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2269,24 +2152,17 @@ class SolanaSNSRegisterDomainTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["domain", "buyer", "buyer_token_account", "space"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["domain"], str):
-                raise ValueError("domain must be a string")
-            if not isinstance(data["buyer"], str):
-                raise ValueError("buyer must be a string")
-            if not isinstance(data["buyer_token_account"], str):
-                raise ValueError("buyer_token_account must be a string")
-            if not isinstance(data["space"], int):
-                raise ValueError("space must be an integer")
-            if "mint" in data and not isinstance(data["mint"], str):
-                raise ValueError("mint must be a string")
-            if "referrer_key" in data and not isinstance(data["referrer_key"], str):
-                raise ValueError("referrer_key must be a string")
-            
+            schema = {
+                "domain": {"type": str, "required": True},
+                "buyer": {"type": str, "required": True},
+                "buyer_token_account": {"type": str, "required": True},
+                "space": {"type": int, "required": True, "min": 1},
+                "mint": {"type": str, "required": False},
+                "referrer_key": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             domain = data["domain"]
             buyer = data["buyer"]
             buyer_token_account = data["buyer_token_account"]
@@ -2307,7 +2183,7 @@ class SolanaSNSRegisterDomainTool(BaseTool):
                 "message": f"Error preparing registration transaction: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2332,15 +2208,12 @@ class SolanaSNSGetFavouriteDomainTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["owner"]
             data = toJSON(input)
-            
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["owner"], str):
-                raise ValueError("owner must be a string")
-            
+            schema = {
+                "owner": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             owner = data["owner"]
             if not owner:
                 raise ValueError("Owner address is required.")
@@ -2356,7 +2229,7 @@ class SolanaSNSGetFavouriteDomainTool(BaseTool):
                 "message": f"Error fetching favorite domain: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2381,14 +2254,12 @@ class SolanaSNSGetAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["owner"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["owner"], str):
-                raise ValueError("owner must be a string")
-            
+            schema = {
+                "owner": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             owner = data["owner"]
             
             domains = await self.solana_kit.get_all_domains_for_owner(owner)
@@ -2402,7 +2273,7 @@ class SolanaSNSGetAllDomainsTool(BaseTool):
                 "message": f"Error fetching domains: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2431,26 +2302,19 @@ class SolanaDeployCollectionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["name", "uri", "royalty_basis_points", "creator_address"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["name"], str):
-                raise ValueError("name must be a string")
-            if not isinstance(data["uri"], str):
-                raise ValueError("uri must be a string")
-            if not isinstance(data["royalty_basis_points"], int):
-                raise ValueError("royalty_basis_points must be an integer")
-            if not isinstance(data["creator_address"], str):
-                raise ValueError("creator_address must be a string")
+            schema = {
+                "name": {"type": str, "required": True},
+                "uri": {"type": str, "required": True},
+                "royalty_basis_points": {"type": int, "required": True, "min": 0, "max": 10000},
+                "creator_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
             name = data["name"]
             uri = data["uri"]
             royalty_basis_points = data["royalty_basis_points"]
             creator_address = data["creator_address"]
-
-           
 
             result = await self.solana_kit.deploy_collection(
                 name=name,
@@ -2486,18 +2350,13 @@ class SolanaGetMetaplexAssetTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["asset_id"]
             data = toJSON(input)
-            
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["asset_id"], str):
-                raise ValueError("asset_id must be a string")
-            
-            asset_id = data["asset_id"]
+            schema = {
+                "asset_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            
+            asset_id = data["asset_id"]
 
             result = await self.solana_kit.get_metaplex_asset(asset_id)
             return result
@@ -2506,7 +2365,7 @@ class SolanaGetMetaplexAssetTool(BaseTool):
 
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-    
+
 class SolanaGetMetaplexAssetsByCreatorTool(BaseTool):
     name: str = "solana_get_metaplex_assets_by_creator"
     description: str = """
@@ -2533,25 +2392,17 @@ class SolanaGetMetaplexAssetsByCreatorTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["creator", "only_verified", "sort_by", "sort_direction", "limit", "page"]
             data = toJSON(input)
+            schema = {
+                "creator": {"type": str, "required": True},
+                "only_verified": {"type": bool, "required": False},
+                "sort_by": {"type": str, "required": False},
+                "sort_direction": {"type": str, "required": False},
+                "limit": {"type": int, "required": False, "min": 1},
+                "page": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["creator"], str):
-                raise ValueError("creator must be a string")
-            if not isinstance(data["only_verified"], bool):
-                raise ValueError("only_verified must be a boolean")
-            if not isinstance(data["sort_by"], str):
-                raise ValueError("sort_by must be a string")
-            if not isinstance(data["sort_direction"], str):
-                raise ValueError("sort_direction must be a string")
-            if not isinstance(data["limit"], int):
-                raise ValueError("limit must be an integer")
-            if not isinstance(data["page"], int):
-                raise ValueError("page must be an integer")
-            
             creator = data["creator"]
             only_verified = data.get("only_verified", False)
             sort_by = data.get("sort_by")
@@ -2559,7 +2410,6 @@ class SolanaGetMetaplexAssetsByCreatorTool(BaseTool):
             limit = data.get("limit")
             page = data.get("page")
 
-            
             result = await self.solana_kit.get_metaplex_assets_by_creator(
                 creator=creator,
                 onlyVerified=only_verified,
@@ -2574,7 +2424,6 @@ class SolanaGetMetaplexAssetsByCreatorTool(BaseTool):
 
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-
 
 class SolanaGetMetaplexAssetsByAuthorityTool(BaseTool):
     name: str = "solana_get_metaplex_assets_by_authority"
@@ -2601,30 +2450,22 @@ class SolanaGetMetaplexAssetsByAuthorityTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["authority", "sort_by", "sort_direction", "limit", "page"]
             data = toJSON(input)
+            schema = {
+                "authority": {"type": str, "required": True},
+                "sort_by": {"type": str, "required": False},
+                "sort_direction": {"type": str, "required": False},
+                "limit": {"type": int, "required": False, "min": 1},
+                "page": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["authority"], str):
-                raise ValueError("authority must be a string")
-            if not isinstance(data["sort_by"], str):
-                raise ValueError("sort_by must be a string")
-            if not isinstance(data["sort_direction"], str):
-                raise ValueError("sort_direction must be a string")
-            if not isinstance(data["limit"], int):
-                raise ValueError("limit must be an integer")
-            if not isinstance(data["page"], int):
-                raise ValueError("page must be an integer")
-            
             authority = data["authority"]
             sort_by = data.get("sort_by")
             sort_direction = data.get("sort_direction")
             limit = data.get("limit")
             page = data.get("page")
 
-            
             result = await self.solana_kit.get_metaplex_assets_by_authority(
                 authority=authority,
                 sortBy=sort_by,
@@ -2666,27 +2507,18 @@ class SolanaMintMetaplexCoreNFTTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["collection_mint", "name", "uri", "seller_fee_basis_points", "address", "share", "recipient"]
             data = toJSON(input)
+            schema = {
+                "collection_mint": {"type": str, "required": True},
+                "name": {"type": str, "required": True},
+                "uri": {"type": str, "required": True},
+                "seller_fee_basis_points": {"type": int, "required": True, "min": 0, "max": 10000},
+                "address": {"type": str, "required": True},
+                "share": {"type": str, "required": True},
+                "recipient": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["collection_mint"], str):
-                raise ValueError("collection_mint must be a string")
-            if not isinstance(data["name"], str):
-                raise ValueError("name must be a string")
-            if not isinstance(data["uri"], str):
-                raise ValueError("uri must be a string")
-            if not isinstance(data["seller_fee_basis_points"], int):
-                raise ValueError("seller_fee_basis_points must be an integer")
-            if not isinstance(data["address"], str):
-                raise ValueError("address must be a string")
-            if not isinstance(data["share"], str):
-                raise ValueError("share must be a string")
-            if not isinstance(data["recipient"], str):
-                raise ValueError("recipient must be a string")
-            
             collection_mint = data["collection_mint"]
             name = data["name"]
             uri = data["uri"]
@@ -2742,29 +2574,23 @@ class SolanaDeBridgeCreateTransactionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["src_chain_id", "src_chain_token_in", "src_chain_token_in_amount", "dst_chain_id", "dst_chain_token_out", "dst_chain_token_out_recipient", "src_chain_order_authority_address", "dst_chain_order_authority_address", "affiliate_fee_percent", "affiliate_fee_recipient", "prepend_operating_expenses", "dst_chain_token_out_amount"]
             data = toJSON(input)
+            schema = {
+                "src_chain_id": {"type": str, "required": True},
+                "src_chain_token_in": {"type": str, "required": True},
+                "src_chain_token_in_amount": {"type": str, "required": True},
+                "dst_chain_id": {"type": str, "required": True},
+                "dst_chain_token_out": {"type": str, "required": True},
+                "dst_chain_token_out_recipient": {"type": str, "required": True},
+                "src_chain_order_authority_address": {"type": str, "required": True},
+                "dst_chain_order_authority_address": {"type": str, "required": True},
+                "affiliate_fee_percent": {"type": str, "required": False},
+                "affiliate_fee_recipient": {"type": str, "required": False},
+                "prepend_operating_expenses": {"type": bool, "required": False},
+                "dst_chain_token_out_amount": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["src_chain_id"], str):
-                raise ValueError("src_chain_id must be a string")
-            if not isinstance(data["src_chain_token_in"], str):
-                raise ValueError("src_chain_token_in must be a string")
-            if not isinstance(data["src_chain_token_in_amount"], str):
-                raise ValueError("src_chain_token_in_amount must be a string")
-            if not isinstance(data["dst_chain_id"], str):
-                raise ValueError("dst_chain_id must be a string")
-            if not isinstance(data["dst_chain_token_out"], str):
-                raise ValueError("dst_chain_token_out must be a string")
-            if not isinstance(data["dst_chain_token_out_recipient"], str):
-                raise ValueError("dst_chain_token_out_recipient must be a string")
-            if not isinstance(data["src_chain_order_authority_address"], str):
-                raise ValueError("src_chain_order_authority_address must be a string")
-            if not isinstance(data["dst_chain_order_authority_address"], str):
-                raise ValueError("dst_chain_order_authority_address must be a string")
-            
             transaction_data = await self.solana_kit.create_debridge_transaction(
                 src_chain_id=data["src_chain_id"],
                 src_chain_token_in=data["src_chain_token_in"],
@@ -2814,15 +2640,12 @@ class SolanaDeBridgeExecuteTransactionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["transaction_data"]
             data = toJSON(input)
+            schema = {
+                "transaction_data": {"type": dict, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["transaction_data"], dict):
-                raise ValueError("transaction_data must be a dictionary")
-            
             transaction_data = data["transaction_data"]
 
             result = await self.solana_kit.execute_debridge_transaction(transaction_data)
@@ -2861,17 +2684,13 @@ class SolanaDeBridgeCheckTransactionStatusTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["tx_hash"]
             data = toJSON(input)
+            schema = {
+                "tx_hash": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["tx_hash"], str):
-                raise ValueError("tx_hash must be a string")
-            
             tx_hash = data["tx_hash"]
-
 
             status = await self.solana_kit.check_transaction_status(tx_hash)
             return {
@@ -2888,7 +2707,7 @@ class SolanaDeBridgeCheckTransactionStatusTool(BaseTool):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-    
+
 class SolanaCybersCreateCoinTool(BaseTool):
     name: str = "cybers_create_coin"
     description: str = """
@@ -2913,30 +2732,22 @@ class SolanaCybersCreateCoinTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["name", "symbol", "image_path", "tweet_author_id", "tweet_author_username"]
             data = toJSON(input)
+            schema = {
+                "name": {"type": str, "required": True},
+                "symbol": {"type": str, "required": True},
+                "image_path": {"type": str, "required": True},
+                "tweet_author_id": {"type": str, "required": True},
+                "tweet_author_username": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["name"], str):
-                raise ValueError("name must be a string")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if not isinstance(data["image_path"], str):
-                raise ValueError("image_path must be a string")
-            if not isinstance(data["tweet_author_id"], str):
-                raise ValueError("tweet_author_id must be a string")
-            if not isinstance(data["tweet_author_username"], str):
-                raise ValueError("tweet_author_username must be a string")
-            
             name = data["name"]
             symbol = data["symbol"]
             image_path = data["image_path"]
             tweet_author_id = data["tweet_author_id"]
             tweet_author_username = data["tweet_author_username"]
 
-            
             coin_id = await self.solana_kit.cybers_create_coin(
                 name=name,
                 symbol=symbol,
@@ -2970,7 +2781,7 @@ class SolanaGetTipAccounts(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self):
         try:
             result = await self.solana_kit.get_tip_accounts()
@@ -2981,12 +2792,12 @@ class SolanaGetTipAccounts(BaseTool):
             return {
                 "accounts": None
             }
-    
+
     def _run(self, input: str):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaGetRandomTipAccount(BaseTool):
     name: str = "get_random_tip_account"
     description: str = """
@@ -2998,7 +2809,7 @@ class SolanaGetRandomTipAccount(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self):
         try:
             result = await self.solana_kit.get_random_tip_account()
@@ -3009,12 +2820,12 @@ class SolanaGetRandomTipAccount(BaseTool):
             return {
                 "account": None
             }
-    
+
     def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaGetBundleStatuses(BaseTool):
     name: str = "get_bundle_statuses"
     description: str = """
@@ -3031,18 +2842,15 @@ class SolanaGetBundleStatuses(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            required_fields = ["bundle_uuids"]  
             data = toJSON(input)
+            schema = {
+                "bundle_uuids": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["bundle_uuids"], list):
-                raise ValueError("bundle_uuids must be a list")
-            
             bundle_uuids = data["bundle_uuids"]
             result = await self.solana_kit.get_bundle_statuses(bundle_uuids)
             return {
@@ -3052,12 +2860,12 @@ class SolanaGetBundleStatuses(BaseTool):
             return {
                 "statuses": None
             }
-    
+
     def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaSendBundle(BaseTool):
     name: str = "send_bundle"
     description: str = """
@@ -3074,18 +2882,15 @@ class SolanaSendBundle(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            required_fields = ["txn_signatures"]
             data = toJSON(input)
+            schema = {
+                "txn_signatures": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["txn_signatures"], list):
-                raise ValueError("txn_signatures must be a list")
-            
             txn_signatures = data["txn_signatures"]
             result = await self.solana_kit.send_bundle(txn_signatures)
             return {
@@ -3095,12 +2900,12 @@ class SolanaSendBundle(BaseTool):
             return {
                 "bundle_ids": None
             }
-    
+
     def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaGetInflightBundleStatuses(BaseTool):
     name: str = "get_inflight_bundle_statuses"
     description: str = """
@@ -3117,18 +2922,15 @@ class SolanaGetInflightBundleStatuses(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            required_fields = ["bundle_uuids"]
             data = toJSON(input)
+            schema = {
+                "bundle_uuids": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["bundle_uuids"], list):
-                raise ValueError("bundle_uuids must be a list")
-            
             bundle_uuids = data["bundle_uuids"]
             result = await self.solana_kit.get_inflight_bundle_statuses(bundle_uuids)
             return {
@@ -3138,12 +2940,12 @@ class SolanaGetInflightBundleStatuses(BaseTool):
             return {
                 "statuses": None
             }
-    
+
     def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaSendTxn(BaseTool):
     name: str = "send_txn"
     description: str = """
@@ -3161,20 +2963,16 @@ class SolanaSendTxn(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            required_fields = ["txn_signature", "bundleOnly"]
             data = toJSON(input)
+            schema = {
+                "txn_signature": {"type": str, "required": True},
+                "bundleOnly": {"type": bool, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["txn_signature"], str):
-                raise ValueError("txn_signature must be a string")
-            if not isinstance(data["bundleOnly"], bool):
-                raise ValueError("bundleOnly must be a boolean")
-            
             txn_signature = data["txn_signature"]
             bundleOnly = data["bundleOnly"]
             result = await self.solana_kit.send_txn(txn_signature, bundleOnly)
@@ -3185,7 +2983,7 @@ class SolanaSendTxn(BaseTool):
             return {
                 "status": None
             }
-    
+
     def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -3243,21 +3041,16 @@ class BackpackRequestWithdrawalTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["address", "blockchain", "quantity", "symbol"]
             data = toJSON(input)
+            schema = {
+                "address": {"type": str, "required": True},
+                "blockchain": {"type": str, "required": True},
+                "quantity": {"type": str, "required": True},
+                "symbol": {"type": str, "required": True},
+                "additional_params": {"type": dict, "required": False}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["address"], str):
-                raise ValueError("address must be a string")
-            if not isinstance(data["blockchain"], str):
-                raise ValueError("blockchain must be a string")
-            if not isinstance(data["quantity"], str):
-                raise ValueError("quantity must be a string")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            
             result = await self.solana_kit.request_withdrawal(
                 address=data["address"],
                 blockchain=data["blockchain"],
@@ -3390,19 +3183,14 @@ class BackpackExecuteBorrowLendTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["quantity", "side", "symbol"]
             data = toJSON(input)
+            schema = {
+                "quantity": {"type": str, "required": True},
+                "side": {"type": str, "required": True},
+                "symbol": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["quantity"], str):
-                raise ValueError("quantity must be a string")
-            if not isinstance(data["side"], str):
-                raise ValueError("side must be a string")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            
             result = await self.solana_kit.execute_borrow_lend(
                 quantity=data["quantity"],
                 side=data["side"],
@@ -3933,11 +3721,12 @@ class BackpackGetDepthTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             symbol = data["symbol"]
             depth = await self.solana_kit.get_depth(symbol)
             return {
@@ -3975,17 +3764,14 @@ class BackpackGetKlinesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol", "interval", "start_time"]
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "interval": {"type": str, "required": True},
+                "start_time": {"type": int, "required": True}
+            }
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["start_time"], int):
-                raise ValueError("start_time must be an integer")
-            if not isinstance(data["interval"], str):
-                raise ValueError("interval must be a string")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
+            validate_input(data, schema)
+
             
             klines = await self.solana_kit.get_klines(
                 symbol=data["symbol"],
@@ -4025,13 +3811,12 @@ class BackpackGetMarkPriceTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
+            validate_input(data, schema)
+
             symbol = data["symbol"]
             mark_price_data = await self.solana_kit.get_mark_price(symbol)
             return {
@@ -4066,13 +3851,12 @@ class BackpackGetOpenInterestTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
+            validate_input(data, schema)
+
             symbol = data["symbol"]
             open_interest = await self.solana_kit.get_open_interest(symbol)
             return {
@@ -4109,23 +3893,22 @@ class BackpackGetFundingIntervalRatesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "limit": {"type": int, "required": False},
+                "offset": {"type": int, "required": False}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if "limit" in data and not isinstance(data["limit"], int):
-                raise ValueError("limit must be an integer")
-            if "offset" in data and not isinstance(data["offset"], int):
-                raise ValueError("offset must be an integer")
-            
+            symbol = data["symbol"]
+            limit = data.get("limit", 100)
+            offset = data.get("offset", 0)
+
             funding_rates = await self.solana_kit.get_funding_interval_rates(
-                symbol=data["symbol"],
-                limit=data.get("limit", 100),
-                offset=data.get("offset", 0)
+                symbol=symbol,
+                limit=limit,
+                offset=offset
             )
             return {
                 "funding_rates": funding_rates,
@@ -4250,19 +4033,19 @@ class BackpackGetRecentTradesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "limit": {"type": int, "required": False}
+            }
             data = toJSON(input)
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if "limit" in data and not isinstance(data["limit"], int):
-                raise ValueError("limit must be an integer")
-            
+            validate_input(data, schema)
+
+            symbol = data["symbol"]
+            limit = data.get("limit", 100)
+
             recent_trades = await self.solana_kit.get_recent_trades(
-                symbol=data["symbol"],
-                limit=data.get("limit", 100)
+                symbol=symbol,
+                limit=limit
             )
             return {
                 "recent_trades": recent_trades,
@@ -4298,23 +4081,22 @@ class BackpackGetHistoricalTradesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "limit": {"type": int, "required": False},
+                "offset": {"type": int, "required": False}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if "limit" in data and not isinstance(data["limit"], int):
-                raise ValueError("limit must be an integer")
-            if "offset" in data and not isinstance(data["offset"], int):
-                raise ValueError("offset must be an integer")
-            
+            symbol = data["symbol"]
+            limit = data.get("limit", 100)
+            offset = data.get("offset", 0)
+
             historical_trades = await self.solana_kit.get_historical_trades(
-                symbol=data["symbol"],
-                limit=data.get("limit", 100),
-                offset=data.get("offset", 0)
+                symbol=symbol,
+                limit=limit,
+                offset=offset
             )
             return {
                 "historical_trades": historical_trades,
@@ -4348,11 +4130,12 @@ class BackpackGetCollateralInfoTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            
+            schema = {
+                "sub_account_id": {"type": int, "required": False}
+            }
             data = toJSON(input)
-            if "sub_account_id" in data and not isinstance(data["sub_account_id"], int):
-                raise ValueError("sub_account_id must be an integer")
-            
+            validate_input(data, schema)
+
             collateral_info = await self.solana_kit.get_collateral_info(
                 sub_account_id=data.get("sub_account_id")
             )
@@ -4385,8 +4168,16 @@ class BackpackGetAccountDepositsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            deposits = await self.solana_kit.get_account_deposits(**data)
+            schema = {
+                "sub_account_id": {"type": int, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            sub_account_id = data.get("sub_account_id")
+            deposits = await self.solana_kit.get_account_deposits(
+                sub_account_id=sub_account_id
+            )
             return {
                 "deposits": deposits,
                 "message": "Success"
@@ -4512,20 +4303,19 @@ class ClosePerpTradeShortTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["price", "trade_mint"]
+            schema = {
+                "price": {"type": float, "required": True},
+                "trade_mint": {"type": str, "required": True}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["price"], float):
-                raise ValueError("price must be a float")
-            if not isinstance(data["trade_mint"], str):
-                raise ValueError("trade_mint must be a string")
+            price = data["price"]
+            trade_mint = data["trade_mint"]
             
             transaction = await self.solana_kit.close_perp_trade_short(
-                price=data["price"],
-                trade_mint=data["trade_mint"]
+                price=price,
+                trade_mint=trade_mint
             )
             return {
                 "transaction": transaction,
@@ -4560,20 +4350,19 @@ class ClosePerpTradeLongTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["price", "trade_mint"]
+            schema = {
+                "price": {"type": float, "required": True},
+                "trade_mint": {"type": str, "required": True}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["price"], float):
-                raise ValueError("price must be a float")
-            if not isinstance(data["trade_mint"], str):
-                raise ValueError("trade_mint must be a string")
+            price = data["price"]
+            trade_mint = data["trade_mint"]
             
             transaction = await self.solana_kit.close_perp_trade_long(
-                price=data["price"],
-                trade_mint=data["trade_mint"]
+                price=price,
+                trade_mint=trade_mint
             )
             return {
                 "transaction": transaction,
@@ -4612,25 +4401,19 @@ class OpenPerpTradeLongTool(BaseTool):
 
     async def _arun(self, input: str):
         try:    
-            required_fields = ["price", "collateral_amount"]
+            schema = {
+                "price": {"type": float, "required": True},
+                "collateral_amount": {"type": float, "required": True},
+                "collateral_mint": {"type": str, "required": False},
+                "leverage": {"type": float, "required": False},
+                "trade_mint": {"type": str, "required": False},
+                "slippage": {"type": float, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["price"], float):
-                raise ValueError("price must be a float")
-            if not isinstance(data["collateral_amount"], float):
-                raise ValueError("collateral_amount must be a float")
-            if "collateral_mint" in data and not isinstance(data["collateral_mint"], str):
-                raise ValueError("collateral_mint must be a string")
-            if "leverage" in data and not isinstance(data["leverage"], float):
-                raise ValueError("leverage must be a float")
-            if "trade_mint" in data and not isinstance(data["trade_mint"], str):
-                raise ValueError("trade_mint must be a string")
-            if "slippage" in data and not isinstance(data["slippage"], float):
-                raise ValueError("slippage must be a float")
+            validate_input(data, schema)
             
+            
+           
             transaction = await self.solana_kit.open_perp_trade_long(
                 price=data["price"],
                 collateral_amount=data["collateral_amount"],
@@ -4676,26 +4459,18 @@ class OpenPerpTradeShortTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["price", "collateral_amount"]
+            schema = {
+                "price": {"type": float, "required": True},
+                "collateral_amount": {"type": float, "required": True},
+                "collateral_mint": {"type": str, "required": False},
+                "leverage": {"type": float, "required": False},
+                "trade_mint": {"type": str, "required": False},
+                "slippage": {"type": float, "required": False}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["price"], float):
-                raise ValueError("price must be a float")
-            if not isinstance(data["collateral_amount"], float):
-                raise ValueError("collateral_amount must be a float")
-            if "collateral_mint" in data and not isinstance(data["collateral_mint"], str):
-                raise ValueError("collateral_mint must be a string")
-            if "leverage" in data and not isinstance(data["leverage"], float):
-                raise ValueError("leverage must be a float")
-            if "trade_mint" in data and not isinstance(data["trade_mint"], str):
-                raise ValueError("trade_mint must be a string")
-            if "slippage" in data and not isinstance(data["slippage"], float):
-                raise ValueError("slippage must be a float")
-            
-            transaction = await self.solana_kit.open_perp_trade_short(
+            transaction = await self.solana_kit.open_perp_trade_short(  
                 price=data["price"],
                 collateral_amount=data["collateral_amount"],
                 collateral_mint=data.get("collateral_mint"),
@@ -4703,6 +4478,7 @@ class OpenPerpTradeShortTool(BaseTool):
                 trade_mint=data.get("trade_mint"),
                 slippage=data.get("slippage")
             )
+           
             return {
                 "transaction": transaction,
                 "message": "Success"
@@ -4740,24 +4516,18 @@ class Create3LandCollectionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["collection_symbol", "collection_name", "collection_description"]
+            schema = {
+                "collection_symbol": {"type": str, "required": True},
+                "collection_name": {"type": str, "required": True},
+                "collection_description": {"type": str, "required": True},
+                "main_image_url": {"type": str, "required": False},
+                "cover_image_url": {"type": str, "required": False},
+                "is_devnet": {"type": bool, "required": False}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["collection_symbol"], str):
-                raise ValueError("collection_symbol must be a string")
-            if not isinstance(data["collection_name"], str):
-                raise ValueError("collection_name must be a string")
-            if not isinstance(data["collection_description"], str):
-                raise ValueError("collection_description must be a string")
-            if "main_image_url" in data and not isinstance(data["main_image_url"], str):
-                raise ValueError("main_image_url must be a string")
-            if "cover_image_url" in data and not isinstance(data["cover_image_url"], str):
-                raise ValueError("cover_image_url must be a string")
-            if "is_devnet" in data and not isinstance(data["is_devnet"], bool):
-                raise ValueError("is_devnet must be a boolean")
+            
             
             transaction = await self.solana_kit.create_3land_collection(
                 collection_symbol=data["collection_symbol"],
@@ -4811,38 +4581,25 @@ class Create3LandNFTTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["item_name", "seller_fee", "item_amount", "item_symbol", "item_description", "traits"]
+            schema = {
+                "item_name": {"type": str, "required": True},
+                "seller_fee": {"type": float, "required": True},
+                "item_amount": {"type": int, "required": True},
+                "item_symbol": {"type": str, "required": True},
+                "item_description": {"type": str, "required": True},
+                "traits": {"type": str, "required": True},
+                "price": {"type": float, "required": False},
+                "main_image_url": {"type": str, "required": False},
+                "cover_image_url": {"type": str, "required": False},
+                "spl_hash": {"type": str, "required": False},
+                "pool_name": {"type": str, "required": False},
+                "is_devnet": {"type": bool, "required": False},
+                "with_pool": {"type": bool, "required": False}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["item_name"], str):
-                raise ValueError("item_name must be a string")
-            if not isinstance(data["seller_fee"], float):
-                raise ValueError("seller_fee must be a float")
-            if not isinstance(data["item_amount"], int):
-                raise ValueError("item_amount must be an integer")
-            if not isinstance(data["item_symbol"], str):
-                raise ValueError("item_symbol must be a string")
-            if not isinstance(data["item_description"], str):
-                raise ValueError("item_description must be a string")
-            if not isinstance(data["traits"], dict):
-                raise ValueError("traits must be a dictionary")
-            if "price" in data and not isinstance(data["price"], float):
-                raise ValueError("price must be a float")
-            if "main_image_url" in data and not isinstance(data["main_image_url"], str):
-                raise ValueError("main_image_url must be a string")
-            if "cover_image_url" in data and not isinstance(data["cover_image_url"], str):
-                raise ValueError("cover_image_url must be a string")
-            if "spl_hash" in data and not isinstance(data["spl_hash"], str):
-                raise ValueError("spl_hash must be a string")
-            if "pool_name" in data and not isinstance(data["pool_name"], str):
-                raise ValueError("pool_name must be a string")
-            if "is_devnet" in data and not isinstance(data["is_devnet"], bool):
-                raise ValueError("is_devnet must be a boolean")
-            if "with_pool" in data and not isinstance(data["with_pool"], bool):
-                raise ValueError("with_pool must be a boolean")
+           
             
             transaction = await self.solana_kit.create_3land_nft(
                 item_name=data["item_name"],
@@ -4892,17 +4649,12 @@ class CreateDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["deposit_amount", "deposit_symbol"]
+            schema = {
+                "deposit_amount": {"type": float, "required": True},
+                "deposit_symbol": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["deposit_amount"], float):
-                raise ValueError("deposit_amount must be a float")
-            if not isinstance(data["deposit_symbol"], str):
-                raise ValueError("deposit_symbol must be a string")
-            
+            validate_input(data, schema)
             transaction = await self.solana_kit.create_drift_user_account(
                 deposit_amount=data["deposit_amount"],
                 deposit_symbol=data["deposit_symbol"],
@@ -4941,18 +4693,15 @@ class DepositToDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["amount", "symbol"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "is_repayment": {"type": bool, "required": False}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if "is_repayment" in data and not isinstance(data["is_repayment"], bool):
-                raise ValueError("is_repayment must be a boolean")
+           
             
             transaction = await self.solana_kit.deposit_to_drift_user_account(
                 amount=data["amount"],
@@ -4993,18 +4742,14 @@ class WithdrawFromDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["amount", "symbol"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "is_borrow": {"type": bool, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if "is_borrow" in data and not isinstance(data["is_borrow"], bool):
-                raise ValueError("is_borrow must be a boolean")
+            validate_input(data, schema)
+          
 
             transaction = await self.solana_kit.withdraw_from_drift_user_account(
                 amount=data["amount"],
@@ -5047,23 +4792,15 @@ class TradeUsingDriftPerpAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["amount", "symbol", "action", "trade_type"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "action": {"type": str, "required": True},
+                "trade_type": {"type": str, "required": True},
+                "price": {"type": float, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if not isinstance(data["action"], str):
-                raise ValueError("action must be a string")
-            if not isinstance(data["trade_type"], str):
-                raise ValueError("trade_type must be a string")
-            if "price" in data and not isinstance(data["price"], float):
-                raise ValueError("price must be a float")
-
+            validate_input(data, schema)
             transaction = await self.solana_kit.trade_using_drift_perp_account(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -5194,16 +4931,14 @@ class StakeToDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["amount", "symbol"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
+            
             
             transaction = await self.solana_kit.stake_to_drift_insurance_fund(
                 amount=data["amount"],
@@ -5242,17 +4977,14 @@ class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["amount", "symbol"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            
+         
             transaction = await self.solana_kit.request_unstake_from_drift_insurance_fund(
                 amount=data["amount"],
                 symbol=data["symbol"]
@@ -5289,15 +5021,13 @@ class UnstakeFromDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
             data = toJSON(input)
+            validate_input(data, schema)
 
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            
+           
             transaction = await self.solana_kit.unstake_from_drift_insurance_fund(
                 symbol=data["symbol"]
             )
@@ -5337,15 +5067,15 @@ class DriftSwapSpotTokenTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["from_symbol", "to_symbol"]
+            schema = {
+                "from_symbol": {"type": str, "required": True},
+                "to_symbol": {"type": str, "required": True},
+                "slippage": {"type": float, "required": False},
+                "to_amount": {"type": float, "required": False},
+                "from_amount": {"type": float, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["from_symbol"], str):
-                raise ValueError("from_symbol must be a string")
-        
+            validate_input(data, schema)           
             transaction = await self.solana_kit.drift_swap_spot_token(
                 from_symbol=data["from_symbol"],
                 to_symbol=data["to_symbol"],
@@ -5386,15 +5116,12 @@ class GetDriftPerpMarketFundingRateTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "period": {"type": str, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-        
+            validate_input(data, schema)            
             funding_rate = await self.solana_kit.get_drift_perp_market_funding_rate(
                 symbol=data["symbol"],
                 period=data.get("period", "year"),
@@ -5433,19 +5160,13 @@ class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["amount", "symbol", "action"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "action": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if not isinstance(data["action"], str):
-                raise ValueError("action must be a string")
-            
+            validate_input(data, schema)
             entry_quote = await self.solana_kit.get_drift_entry_quote_of_perp_trade(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -5483,15 +5204,12 @@ class GetDriftLendBorrowApyTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["symbol"]
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            
+            validate_input(data, schema)
+               
             apy_data = await self.solana_kit.get_drift_lend_borrow_apy(
                 symbol=data["symbol"]
             )
@@ -5535,31 +5253,19 @@ class CreateDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["name", "market_name", "redeem_period", "max_tokens", "min_deposit_amount", "management_fee", "profit_share"]
+            schema = {
+                "name": {"type": str, "required": True},
+                "market_name": {"type": str, "required": True},
+                "redeem_period": {"type": int, "required": True},
+                "max_tokens": {"type": int, "required": True},
+                "min_deposit_amount": {"type": float, "required": True},
+                "management_fee": {"type": float, "required": True},
+                "profit_share": {"type": float, "required": True},
+                "hurdle_rate": {"type": float, "required": False},
+                "permissioned": {"type": bool, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["name"], str):
-                raise ValueError("name must be a string")
-            if not isinstance(data["market_name"], str):
-                raise ValueError("market_name must be a string")
-            if not isinstance(data["redeem_period"], int):
-                raise ValueError("redeem_period must be an integer")
-            if not isinstance(data["max_tokens"], int):
-                raise ValueError("max_tokens must be an integer")
-            if not isinstance(data["min_deposit_amount"], float):
-                raise ValueError("min_deposit_amount must be a float")
-            if not isinstance(data["management_fee"], float):
-                raise ValueError("management_fee must be a float")
-            if not isinstance(data["profit_share"], float):
-                raise ValueError("profit_share must be a float")
-            if not isinstance(data["hurdle_rate"], float):
-                raise ValueError("hurdle_rate must be a float")
-            if not isinstance(data["permissioned"], bool):
-                raise ValueError("permissioned must be a boolean")
-            
+            validate_input(data, schema)
             
             vault_details = await self.solana_kit.create_drift_vault(
                 name=data["name"],
@@ -5605,16 +5311,12 @@ class UpdateDriftVaultDelegateTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["vault", "delegate_address"]
+            schema = {
+                "vault": {"type": str, "required": True},
+                "delegate_address": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["vault"], str):
-                raise ValueError("vault must be a string")
-            if not isinstance(data["delegate_address"], str):
-                raise ValueError("delegate_address must be a string")
+            validate_input(data, schema)
             
             transaction = await self.solana_kit.update_drift_vault_delegate(
                 vault=data["vault"],
@@ -5661,32 +5363,20 @@ class UpdateDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["vault_address", "name", "market_name", "redeem_period", "max_tokens", "min_deposit_amount", "management_fee", "profit_share"]
+            schema = {
+                "vault_address": {"type": str, "required": True},
+                "name": {"type": str, "required": True},
+                "market_name": {"type": str, "required": True},
+                "redeem_period": {"type": int, "required": True},
+                "max_tokens": {"type": int, "required": True},
+                "min_deposit_amount": {"type": float, "required": True},
+                "management_fee": {"type": float, "required": True},
+                "profit_share": {"type": float, "required": True},
+                "hurdle_rate": {"type": float, "required": False},
+                "permissioned": {"type": bool, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["vault_address"], str):
-                raise ValueError("vault_address must be a string")
-            if not isinstance(data["name"], str):
-                raise ValueError("name must be a string")
-            if not isinstance(data["market_name"], str):
-                raise ValueError("market_name must be a string")
-            if not isinstance(data["redeem_period"], int):
-                raise ValueError("redeem_period must be an integer")
-            if not isinstance(data["max_tokens"], int):
-                raise ValueError("max_tokens must be an integer")
-            if not isinstance(data["min_deposit_amount"], float):
-                raise ValueError("min_deposit_amount must be a float")
-            if not isinstance(data["management_fee"], float):
-                raise ValueError("management_fee must be a float")
-            if not isinstance(data["profit_share"], float):
-                raise ValueError("profit_share must be a float")
-            if "hurdle_rate" in data and not isinstance(data["hurdle_rate"], float):
-                raise ValueError("hurdle_rate must be a float")
-            if "permissioned" in data and not isinstance(data["permissioned"], bool):
-                raise ValueError("permissioned must be a boolean")
+            validate_input(data, schema)
             
             vault_update = await self.solana_kit.update_drift_vault(
                 vault_address=data["vault_address"],
@@ -5710,7 +5400,7 @@ class UpdateDriftVaultTool(BaseTool):
                 "message": f"Error updating Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class GetDriftVaultInfoTool(BaseTool):
@@ -5732,14 +5422,11 @@ class GetDriftVaultInfoTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["vault_name"]
+            schema = {
+                "vault_name": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["vault_name"], str):
-                raise ValueError("vault_name must be a string")
+            validate_input(data, schema)
             
             vault_info = await self.solana_kit.get_drift_vault_info(
                 vault_name=data["vault_name"]
@@ -5777,16 +5464,12 @@ class DepositIntoDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["amount", "vault"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "vault": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["vault"], str):
-                raise ValueError("vault must be a string")
+            validate_input(data, schema)
             
             transaction = await self.solana_kit.deposit_into_drift_vault(
                 amount=data["amount"],
@@ -5825,16 +5508,12 @@ class RequestWithdrawalFromDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:    
-            required_fields = ["amount", "vault"]
+            schema = {
+                "amount": {"type": float, "required": True},
+                "vault": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["vault"], str):
-                raise ValueError("vault must be a string")
+            validate_input(data, schema)
             
             transaction = await self.solana_kit.request_withdrawal_from_drift_vault(
                 amount=data["amount"],
@@ -5872,14 +5551,11 @@ class WithdrawFromDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["vault"]
+            schema = {
+                "vault": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["vault"], str):
-                raise ValueError("vault must be a string")
+            validate_input(data, schema)
             
             transaction = await self.solana_kit.withdraw_from_drift_vault(
                 vault=data["vault"]
@@ -5916,14 +5592,11 @@ class DeriveDriftVaultAddressTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["name"]
+            schema = {
+                "name": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["name"], str):
-                raise ValueError("name must be a string")
+            validate_input(data, schema)
             
             vault_address = await self.solana_kit.derive_drift_vault_address(
                 name=data["name"]
@@ -5965,24 +5638,16 @@ class TradeUsingDelegatedDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["vault", "amount", "symbol", "action", "trade_type"]
+            schema = {
+                "vault": {"type": str, "required": True},
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "action": {"type": str, "required": True},
+                "trade_type": {"type": str, "required": True},
+                "price": {"type": float, "required": False}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["vault"], str):
-                raise ValueError("vault must be a string")
-            if not isinstance(data["amount"], float):
-                raise ValueError("amount must be a float")
-            if not isinstance(data["symbol"], str):
-                raise ValueError("symbol must be a string")
-            if not isinstance(data["action"], str):
-                raise ValueError("action must be a string")
-            if not isinstance(data["trade_type"], str):
-                raise ValueError("trade_type must be a string")
-            if "price" in data and not isinstance(data["price"], float):
-                raise ValueError("price must be a float")
+            validate_input(data, schema)
             
             transaction = await self.solana_kit.trade_using_delegated_drift_vault(
                 vault=data["vault"],
@@ -6027,21 +5692,15 @@ class FlashOpenTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["token", "side", "collateralUsd", "leverage"]
+            schema = {
+                "token": {"type": str, "required": True},
+                "side": {"type": str, "required": True},
+                "collateralUsd": {"type": float, "required": True},
+                "leverage": {"type": float, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["token"], str):
-                raise ValueError("token must be a string")
-            if not isinstance(data["side"], str):
-                raise ValueError("side must be a string")
-            if not isinstance(data["collateralUsd"], float):
-                raise ValueError("collateralUsd must be a float")
-            if not isinstance(data["leverage"], float):
-                raise ValueError("leverage must be a float")
-
+            validate_input(data, schema)
+           
             transaction = await self.solana_kit.flash_open_trade(
                 token=data["token"],
                 side=data["side"],
@@ -6081,17 +5740,12 @@ class FlashCloseTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["token", "side"]
+            schema = {
+                "token": {"type": str, "required": True},
+                "side": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["token"], str):
-                raise ValueError("token must be a string")
-            if not isinstance(data["side"], str):
-                raise ValueError("side must be a string")
-            
+            validate_input(data, schema)         
             transaction = await self.solana_kit.flash_close_trade(
                 token=data["token"],
                 side=data["side"]
@@ -6128,14 +5782,11 @@ class ResolveAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["domain"]
+            schema = {
+                "domain": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["domain"], str):
-                raise ValueError("domain must be a string")
+            validate_input(data, schema)
             
             domain_tld = await self.solana_kit.resolve_all_domains(data["domain"])
             return {"tld": domain_tld, "message": "Success"} if domain_tld else {"message": "Domain resolution failed"}
@@ -6164,15 +5815,11 @@ class GetOwnedDomainsForTLDTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["tld"]
+            schema = {
+                "tld": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["tld"], str):
-                raise ValueError("tld must be a string")
-            
+            validate_input(data, schema)
             owned_domains = await self.solana_kit.get_owned_domains_for_tld(data["tld"])
             return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
         except Exception as e:
@@ -6224,15 +5871,11 @@ class GetOwnedAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_fields = ["owner"]
+            schema = {
+                "owner": {"type": str, "required": True}
+            }
             data = toJSON(input)
-
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Missing required field: {field}")
-            if not isinstance(data["owner"], str):
-                raise ValueError("owner must be a string")
-            
+            validate_input(data, schema)
             owned_domains = await self.solana_kit.get_owned_all_domains(data["owner"])
             return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
         except Exception as e:
