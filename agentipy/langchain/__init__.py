@@ -4,6 +4,7 @@ from langchain.tools import BaseTool
 from solders.pubkey import Pubkey  # type: ignore
 
 from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
 from agentipy.tools import create_image
 from agentipy.utils import toJSON
 from agentipy.utils.meteora_dlmm.types import ActivationType
@@ -59,8 +60,15 @@ class SolanaTransferTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = toJSON(input)
+            schema = {  
+                "to": {"type": str, "required": True},
+                "amount": {"type": int, "required": True, "min": 1},
+                "mint": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             recipient = Pubkey.from_string(data["to"])
-            mint_address = Pubkey.from_string(data["mint"]) if "mint" in data else None
+            mint_address = data.get("mint") and Pubkey.from_string(data["mint"])
 
             transaction = await self.solana_kit.transfer(recipient, data["amount"], mint_address)
 
@@ -78,7 +86,7 @@ class SolanaTransferTool(BaseTool):
                 "message": str(e),
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -96,13 +104,16 @@ class SolanaDeployTokenTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
+
         try:
+           
             data = toJSON(input)
+            schema = {
+                "decimals": {"type": int, "required": True, "min": 0, "max": 9},
+                "initialSupply": {"type": int, "required": True, "min": 1}
+            }
+            validate_input(data, schema)
             decimals = data.get("decimals", 9)
-
-            if decimals < 0 or decimals > 9:
-                raise ValueError("Decimals must be between 0 and 9")
-
             token_details = await self.solana_kit.deploy_token(decimals)
             return {
                 "status": "success",
@@ -117,7 +128,7 @@ class SolanaDeployTokenTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -142,6 +153,14 @@ class SolanaTradeTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = toJSON(input)
+            schema = {
+                "output_mint": {"type": str, "required": True},
+                "input_amount": {"type": int, "required": True, "min": 1},
+                "input_mint": {"type": str, "required": False},
+                "slippage_bps": {"type": int, "required": False}
+            }
+            validate_input(data, schema)
+
             output_mint = Pubkey.from_string(data["output_mint"])
             input_mint = Pubkey.from_string(data["input_mint"]) if "input_mint" in data else None
             slippage_bps = data.get("slippage_bps", 100)
@@ -155,6 +174,7 @@ class SolanaTradeTool(BaseTool):
                 "message": "Trade executed successfully",
                 "transaction": transaction,
             }
+          
         except Exception as e:
             return {
                 "status": "error",
@@ -162,7 +182,7 @@ class SolanaTradeTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -173,7 +193,7 @@ class SolanaFaucetTool(BaseTool):
     description:str = "Request test funds from a Solana faucet."
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             result = await self.solana_kit.request_faucet_funds()
             return {
@@ -188,7 +208,7 @@ class SolanaFaucetTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -215,7 +235,7 @@ class SolanaStakeTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -241,7 +261,7 @@ class SolanaGetWalletAddressTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -263,7 +283,16 @@ class SolanaCreateImageTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "prompt": {"type": str, "required": True},
+                "size": {"type": str, "required": False},
+                "n": {"type": int, "required": False}
+            }
+            validate_input(data, schema)
+           
+            prompt = data["prompt"]
+            size = data.get("size", "1024x1024")
             prompt = data["prompt"]
             size = data.get("size", "1024x1024")
             n = data.get("n", 1)
@@ -285,7 +314,7 @@ class SolanaCreateImageTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR")
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -311,7 +340,7 @@ class SolanaTPSCalculatorTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR")
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -335,6 +364,14 @@ class SolanaPumpFunTokenTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = toJSON(input)
+            schema = {
+                "token_name": {"type": str, "required": True},
+                "token_ticker": {"type": str, "required": True},
+                "description": {"type": str, "required": True},
+                "image_url": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+    
             result = await self.solana_kit.launch_pump_fun_token(
                 data["token_name"],
                 data["token_ticker"],
@@ -354,7 +391,7 @@ class SolanaPumpFunTokenTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -374,7 +411,12 @@ class SolanaFetchPriceTool(BaseTool):
 
     async def call(self, input: str) -> str:
         try:
-            token_id = input.strip()
+            data = toJSON(input)
+            schema = {
+                "token_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+            token_id = data["token_id"]
             price = await self.solana_kit.fetch_price(token_id)
             return json.dumps({
                 "status": "success",
@@ -388,7 +430,7 @@ class SolanaFetchPriceTool(BaseTool):
                 "code": getattr(error, "code", "UNKNOWN_ERROR"),
             })
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -408,7 +450,12 @@ class SolanaTokenDataTool(BaseTool):
 
     async def call(self, input: str) -> str:
         try:
-            mint_address = input.strip()
+            data = toJSON(input)
+            schema = {
+                "mint_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+            mint_address = data["mint_address"]
             token_data = await self.solana_kit.get_token_data_by_address(mint_address)
             return json.dumps({
                 "status": "success",
@@ -421,7 +468,7 @@ class SolanaTokenDataTool(BaseTool):
                 "code": getattr(error, "code", "UNKNOWN_ERROR"),
             })
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -441,7 +488,13 @@ class SolanaTokenDataByTickerTool(BaseTool):
 
     async def call(self, input: str) -> str:
         try:
-            ticker = input.strip()
+            data = toJSON(input)
+            schema = {
+                "ticker": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
+            ticker = data["ticker"]
             token_data = await self.solana_kit.get_token_data_by_ticker(ticker)
             return json.dumps({
                 "status": "success",
@@ -454,7 +507,7 @@ class SolanaTokenDataByTickerTool(BaseTool):
                 "code": getattr(error, "code", "UNKNOWN_ERROR"),
             })
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -485,29 +538,22 @@ class SolanaMeteoraDLMMTool(BaseTool):
 
     async def _arun(self, input: str) -> dict:
         try:
-            # Parse input
             data = toJSON(input)
+            schema = {
+                "bin_step": {"type": int, "required": True},
+                "token_a_mint": {"type": str, "required": True},
+                "token_b_mint": {"type": str, "required": True},
+                "initial_price": {"type": float, "required": True},
+                "price_rounding_up": {"type": bool, "required": True},
+                "fee_bps": {"type": int, "required": True},
+                "activation_type": {"type": str, "required": True},
+                "has_alpha_vault": {"type": bool, "required": True},
+                "activation_point": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            # Ensure required keys exist
-            required_keys = [
-                "bin_step",
-                "token_a_mint",
-                "token_b_mint",
-                "initial_price",
-                "price_rounding_up",
-                "fee_bps",
-                "activation_type",
-                "has_alpha_vault"
-            ]
-            for key in required_keys:
-                if key not in data:
-                    raise ValueError(f"Missing required key: {key}")
-                
-            if not isinstance(data["bin_step"], int) or data["bin_step"] <= 0:
-                raise ValueError("bin_step must be a positive integer")
-    
-            if not isinstance(data["fee_bps"], int) or not (0 <= data["fee_bps"] <= 10000):
-                raise ValueError("fee_bps must be an integer between 0 and 10000")
+           
+            
 
             activation_type_mapping = {
                 "Slot": ActivationType.Slot,
@@ -544,7 +590,7 @@ class SolanaMeteoraDLMMTool(BaseTool):
                 "code": getattr(e, "code", "UNKNOWN_ERROR"),
             }
         
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -566,7 +612,19 @@ class SolanaRaydiumBuyTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
+            required_fields = ["pair_address", "sol_in", "slippage"]
             data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["pair_address"], str):
+                raise ValueError("Pair address must be a string")
+            if not isinstance(data["sol_in"], float) or data["sol_in"] <= 0:
+                raise ValueError("SOL in must be a positive float")
+            if not isinstance(data["slippage"], int) or not (0 <= data["slippage"] <= 100):
+                raise ValueError("Slippage must be an integer between 0 and 100")
+            
             pair_address = data["pair_address"]
             sol_in = data.get("sol_in", 0.01)  # Default to 0.01 SOL if not provided
             slippage = data.get("slippage", 5)  # Default to 5% slippage if not provided
@@ -610,7 +668,21 @@ class SolanaRaydiumSellTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
+            required_keys = [   
+                "pair_address",
+                "percentage",
+                "slippage"
+            ]
             data = toJSON(input)
+            
+            for key in required_keys:
+                if key not in data:
+                    raise ValueError(f"Missing required key: {key}")
+            if not isinstance(data["percentage"], int) or not (0 <= data["percentage"] <= 100):
+                raise ValueError("percentage must be an integer between 0 and 100")
+            if not isinstance(data["slippage"], int) or not (0 <= data["slippage"] <= 100):
+                raise ValueError("slippage must be an integer between 0 and 100")
+            
             pair_address = data["pair_address"]
             percentage = data.get("percentage", 100)  # Default to 100% if not provided
             slippage = data.get("slippage", 5)  # Default to 5% slippage if not provided
@@ -652,11 +724,17 @@ class SolanaBurnAndCloseTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
+            required_fields = ["token_account"]
             data = toJSON(input)
+
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data["token_account"], str):
+                raise ValueError("Token account must be a string")
+            
             token_account = data["token_account"]
 
-            if not token_account:
-                raise ValueError("Token account is required.")
 
             result = await self.solana_kit.burn_and_close_accounts(token_account)
 
@@ -693,10 +771,12 @@ class SolanaBurnAndCloseMultipleTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = toJSON(input)
-            token_accounts = data.get("token_accounts", [])
+            schema = {
+                "token_accounts": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
 
-            if not isinstance(token_accounts, list) or not token_accounts:
-                raise ValueError("A list of token accounts is required.")
+            token_accounts = data.get("token_accounts", [])
 
             result = await self.solana_kit.multiple_burn_and_close_accounts(token_accounts)
 
@@ -737,31 +817,17 @@ class SolanaCreateGibworkTaskTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_keys = [
-                "title",
-                "content",
-                "requirements",
-                "tags",
-                "token_mint_address",
-                "token_amount"
-            ]
-            data = toJSON(input)    
-            for key in required_keys:
-                if key not in data:
-                    raise ValueError(f"Missing required key: {key}")
-            if not isinstance(data["token_amount"], int) or data["token_amount"] <= 0:
-                raise ValueError("token_amount must be a positive integer")
-            if not isinstance(data["tags"], list) or not all(isinstance(tag, str) for tag in data["tags"]):
-                raise ValueError("tags must be a list of strings")
-            if not isinstance(data["title"], str) or len(data["title"]) == 0:
-                raise ValueError("title must be a non-empty string")
-            if not isinstance(data["content"], str) or len(data["content"]) == 0:
-                raise ValueError("content must be a non-empty string")  
-            if not isinstance(data["requirements"], str) or len(data["requirements"]) == 0:
-                raise ValueError("requirements must be a non-empty string")
-            if not isinstance(data["token_mint_address"], str) or len(data["token_mint_address"]) == 0:
-                raise ValueError("token_mint_address must be a non-empty string")
-            
+            data = toJSON(input)
+            schema = {
+                "title": {"type": str, "required": True},
+                "content": {"type": str, "required": True},
+                "requirements": {"type": str, "required": True},
+                "tags": {"type": list, "required": True},
+                "token_mint_address": {"type": str, "required": True},
+                "token_amount": {"type": int, "required": True, "min": 1}
+            }
+            validate_input(data, schema)
+
             title = data["title"]
             content = data["content"]
             requirements = data["requirements"]
@@ -805,24 +871,18 @@ class SolanaBuyUsingMoonshotTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            required_keys = [
-                "mint_str",
-                "collateral_amount",
-                "slippage_bps"
-            ]
             data = toJSON(input)
-            
-            for key in required_keys:
-                if key not in data:
-                    raise ValueError(f"Missing required key: {key}")
-            if not isinstance(data["collateral_amount"], float) or data["collateral_amount"] <= 0:
-                raise ValueError("collateral_amount must be a positive float")
-            if not isinstance(data["slippage_bps"], int) or data["slippage_bps"] < 0:
-                raise ValueError("slippage_bps must be a non-negative integer")
-            
+            schema = {
+                "mint_str": {"type": str, "required": True},
+                "collateral_amount": {"type": float, "required": False, "min": 0},
+                "slippage_bps": {"type": int, "required": False, "min": 0, "max": 10000}
+            }
+            validate_input(data, schema)
+
             mint_str = data["mint_str"]
             collateral_amount = data.get("collateral_amount", 0.01)
             slippage_bps = data.get("slippage_bps", 500)
+            
             result = await self.solana_kit.buy_using_moonshot(mint_str, collateral_amount, slippage_bps)
 
             return {
@@ -860,6 +920,13 @@ class SolanaSellUsingMoonshotTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = toJSON(input)
+            schema = {
+                "mint_str": {"type": str, "required": True},
+                "token_balance": {"type": float, "required": False, "min": 0},
+                "slippage_bps": {"type": int, "required": False, "min": 0, "max": 10000}
+            }
+            validate_input(data, schema)
+
             mint_str = data["mint_str"]
             token_balance = data.get("token_balance", 0.01)
             slippage_bps = data.get("slippage_bps", 500)
@@ -906,7 +973,12 @@ class SolanaPythGetPriceTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "mint_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             mint_address = data["mint_address"]
 
             result = await self.solana_kit.pythFetchPrice(mint_address)
@@ -946,7 +1018,12 @@ class SolanaHeliusGetBalancesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             address = data["address"]
 
             result = await self.solana_kit.get_balances(address)
@@ -984,7 +1061,12 @@ class SolanaHeliusGetAddressNameTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             address = data["address"]
 
             result = await self.solana_kit.get_address_name(address)
@@ -1033,7 +1115,23 @@ class SolanaHeliusGetNftEventsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "accounts": {"type": list, "required": True},
+                "types": {"type": list, "required": False},
+                "sources": {"type": list, "required": False},
+                "start_slot": {"type": int, "required": False},
+                "end_slot": {"type": int, "required": False},
+                "start_time": {"type": int, "required": False},
+                "end_time": {"type": int, "required": False},
+                "first_verified_creator": {"type": list, "required": False},
+                "verified_collection_address": {"type": list, "required": False},
+                "limit": {"type": int, "required": False},
+                "sort_order": {"type": str, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             accounts = data["accounts"]
             types = data.get("types")
             sources = data.get("sources")
@@ -1087,13 +1185,21 @@ class SolanaHeliusGetMintlistsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            first_verified_creators = data["first_verified_creators"]
-            verified_collection_addresses = data.get("verified_collection_addresses")
-            limit = data.get("limit")
-            pagination_token = data.get("pagination_token")
+            data = toJSON(input)
+            schema = {
+                "first_verified_creators": {"type": list, "required": True},
+                "verified_collection_addresses": {"type": list, "required": False},
+                "limit": {"type": int, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            result = await self.solana_kit.get_mintlists(first_verified_creators, verified_collection_addresses, limit, pagination_token)
+            result = await self.solana_kit.get_mintlists(
+                first_verified_creators=data["first_verified_creators"],
+                verified_collection_addresses=data.get("verified_collection_addresses"),
+                limit=data.get("limit"),
+                pagination_token=data.get("pagination_token")
+            )
             return {
                 "status": "success",
                 "data": result,
@@ -1125,8 +1231,12 @@ class SolanaHeliusGetNFTFingerprintTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
+        try:    
+            data = toJSON(input)
+            schema = {
+                "mints": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
             mints = data["mints"]
 
             result = await self.solana_kit.get_nft_fingerprint(mints)
@@ -1170,15 +1280,22 @@ class SolanaHeliusGetActiveListingsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            first_verified_creators = data["first_verified_creators"]
-            verified_collection_addresses = data.get("verified_collection_addresses", [])
-            marketplaces = data.get("marketplaces", [])
-            limit = data.get("limit", None)
-            pagination_token = data.get("pagination_token", None)
+            data = toJSON(input)
+            schema = {
+                "first_verified_creators": {"type": list, "required": True},
+                "verified_collection_addresses": {"type": list, "required": False},
+                "marketplaces": {"type": list, "required": False},
+                "limit": {"type": int, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
             result = await self.solana_kit.get_active_listings(
-                first_verified_creators, verified_collection_addresses, marketplaces, limit, pagination_token
+                first_verified_creators=data["first_verified_creators"],
+                verified_collection_addresses=data.get("verified_collection_addresses"),
+                marketplaces=data.get("marketplaces"),
+                limit=data.get("limit"),
+                pagination_token=data.get("pagination_token")
             )
             return {
                 "status": "success",
@@ -1191,10 +1308,7 @@ class SolanaHeliusGetActiveListingsTool(BaseTool):
             }
 
     def _run(self, input: str):
-        """Synchronous version of the run method, required by BaseTool."""
-        raise NotImplementedError(
-            "This tool only supports async execution via _arun. Please use the async interface."
-        )
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 
 class SolanaHeliusGetNFTMetadataTool(BaseTool):
@@ -1204,7 +1318,7 @@ class SolanaHeliusGetNFTMetadataTool(BaseTool):
 
     Input: A JSON string with:
     {
-        "mint_accounts": ["string, the mint addresses of the NFTs"]
+        "mint_addresses": ["string, the mint addresses of the NFTs"]
     }
 
     Output:
@@ -1216,10 +1330,14 @@ class SolanaHeliusGetNFTMetadataTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            mint_accounts = data["mint_accounts"]
+            data = toJSON(input)
+            schema = {
+                "mint_addresses": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
+            mint_addresses = data["mint_addresses"]
 
-            result = await self.solana_kit.get_nft_metadata(mint_accounts)
+            result = await self.solana_kit.get_nft_metadata(mint_addresses)
             return {
                 "status": "success",
                 "data": result,
@@ -1244,7 +1362,7 @@ class SolanaHeliusGetRawTransactionsTool(BaseTool):
 
     Input: A JSON string with:
     {
-        "accounts": ["string, the account addresses"],
+        "signatures": ["string, the transaction signatures"],
         "start_slot": "optional start slot",
         "end_slot": "optional end slot",
         "start_time": "optional start time",
@@ -1263,18 +1381,30 @@ class SolanaHeliusGetRawTransactionsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            accounts = data["accounts"]
-            start_slot = data.get("start_slot", None)
-            end_slot = data.get("end_slot", None)
-            start_time = data.get("start_time", None)
-            end_time = data.get("end_time", None)
-            limit = data.get("limit", None)
-            sort_order = data.get("sort_order", None)
-            pagination_token = data.get("pagination_token", None)
+            data = toJSON(input)
+            schema = {
+                "signatures": {"type": list, "required": True},
+                "start_slot": {"type": int, "required": False},
+                "end_slot": {"type": int, "required": False},
+                "start_time": {"type": int, "required": False},
+                "end_time": {"type": int, "required": False},
+                "limit": {"type": int, "required": False},
+                "sort_order": {"type": str, "required": False},
+                "pagination_token": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
+            signatures = data["signatures"]
+            start_slot = data.get("start_slot")
+            end_slot = data.get("end_slot")
+            start_time = data.get("start_time")
+            end_time = data.get("end_time")
+            limit = data.get("limit")
+            sort_order = data.get("sort_order")
+            pagination_token = data.get("pagination_token")
 
             result = await self.solana_kit.get_raw_transactions(
-                accounts, start_slot, end_slot, start_time, end_time, limit, sort_order, pagination_token
+                signatures, start_slot, end_slot, start_time, end_time, limit, sort_order, pagination_token
             )
             return {
                 "status": "success",
@@ -1300,7 +1430,7 @@ class SolanaHeliusGetParsedTransactionsTool(BaseTool):
 
     Input: A JSON string with:
     {
-        "transactions": ["string, the transaction IDs"],
+        "signatures": ["string, the transaction signatures"],
         "commitment": "optional commitment level"
     }
 
@@ -1313,11 +1443,17 @@ class SolanaHeliusGetParsedTransactionsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            transactions = data["transactions"]
-            commitment = data.get("commitment", None)
+            data = toJSON(input)
+            schema = {
+                "signatures": {"type": list, "required": True},
+                "commitment": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
 
-            result = await self.solana_kit.get_parsed_transactions(transactions, commitment)
+            signatures = data["signatures"]
+            commitment = data.get("commitment")
+
+            result = await self.solana_kit.get_parsed_transactions(signatures, commitment)
             return {
                 "status": "success",
                 "data": result,
@@ -1359,7 +1495,17 @@ class SolanaHeliusGetParsedTransactionHistoryTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "address": {"type": str, "required": True},
+                "before": {"type": str, "required": False},
+                "until": {"type": str, "required": False},
+                "commitment": {"type": str, "required": False},
+                "source": {"type": str, "required": False},
+                "type": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             address = data["address"]
             before = data.get("before", "")
             until = data.get("until", "")
@@ -1411,7 +1557,16 @@ class SolanaHeliusCreateWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "webhook_url": {"type": str, "required": True},
+                "transaction_types": {"type": list, "required": True},
+                "account_addresses": {"type": list, "required": True},
+                "webhook_type": {"type": str, "required": True},
+                "auth_header": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             webhook_url = data["webhook_url"]
             transaction_types = data["transaction_types"]
             account_addresses = data["account_addresses"]
@@ -1453,7 +1608,7 @@ class SolanaHeliusGetAllWebhooksTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             result = await self.solana_kit.get_all_webhooks()
             return {
@@ -1492,9 +1647,12 @@ class SolanaHeliusGetWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "webhook_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             webhook_id = data["webhook_id"]
-
             result = await self.solana_kit.get_webhook(webhook_id)
             return {
                 "status": "success",
@@ -1506,7 +1664,7 @@ class SolanaHeliusGetWebhookTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -1537,7 +1695,16 @@ class SolanaHeliusEditWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "webhook_id": {"type": str, "required": True},
+                "webhook_url": {"type": str, "required": True},
+                "transaction_types": {"type": list, "required": True},
+                "account_addresses": {"type": list, "required": True},
+                "webhook_type": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+         
             webhook_id = data["webhook_id"]
             webhook_url = data["webhook_url"]
             transaction_types = data["transaction_types"]
@@ -1559,7 +1726,7 @@ class SolanaHeliusEditWebhookTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -1585,9 +1752,12 @@ class SolanaHeliusDeleteWebhookTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            webhook_id = data["webhook_id"]
-
+            schema = {
+                "webhook_id": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            webhook_id = data["webhook_id"] 
             result = await self.solana_kit.delete_webhook(webhook_id)
             return {
                 "status": "success",
@@ -1599,7 +1769,7 @@ class SolanaHeliusDeleteWebhookTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """Synchronous version of the run method, required by BaseTool."""
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
@@ -1628,10 +1798,13 @@ class SolanaFetchTokenReportSummaryTool(BaseTool):
         Asynchronous implementation of the tool.
         """
         try:
-            data = json.loads(input)
-            mint = data.get("mint")
-            if not mint:
-                raise ValueError("Missing 'mint' in input.")
+            data = toJSON(input)
+            schema = {
+                "mint": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
+            mint = data["mint"]
             
             result = self.solana_kit.fetch_token_report_summary(mint)
             return {
@@ -1644,7 +1817,7 @@ class SolanaFetchTokenReportSummaryTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """
         Synchronous version of the tool, not implemented for async-only tools.
         """
@@ -1675,10 +1848,13 @@ class SolanaFetchTokenDetailedReportTool(BaseTool):
         Asynchronous implementation of the tool.
         """
         try:
-            data = json.loads(input)
-            mint = data.get("mint")
-            if not mint:
-                raise ValueError("Missing 'mint' in input.")
+            data = toJSON(input)
+            schema = {
+                "mint": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
+            mint = data["mint"]
             
             result = self.solana_kit.fetch_token_detailed_report(mint)
             return {
@@ -1691,7 +1867,7 @@ class SolanaFetchTokenDetailedReportTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         """
         Synchronous version of the tool, not implemented for async-only tools.
         """
@@ -1719,12 +1895,16 @@ class SolanaGetPumpCurveStateTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
-            conn = data.get("conn")
-            curve_address = data.get("curve_address")
-            if not conn or not curve_address:
-                raise ValueError("Missing 'conn' or 'curve_address' in input.")
+        try:    
+            data = toJSON(input)
+            schema = {
+                "conn": {"type": str, "required": True},
+                "curve_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
+            conn = data["conn"]
+            curve_address = data["curve_address"]
 
             curve_address_key = Pubkey(curve_address)
             result = await self.solana_kit.get_pump_curve_state(conn, curve_address_key)
@@ -1738,7 +1918,7 @@ class SolanaGetPumpCurveStateTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
 class SolanaCalculatePumpCurvePriceTool(BaseTool):
@@ -1761,10 +1941,13 @@ class SolanaCalculatePumpCurvePriceTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            curve_state = data.get("curve_state")
-            if not curve_state:
-                raise ValueError("Missing 'curve_state' in input.")
+            data = toJSON(input)
+            schema = {
+                "curve_state": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
+            curve_state = data["curve_state"]
 
             result = await self.solana_kit.calculate_pump_curve_price(curve_state)
             return {
@@ -1777,7 +1960,7 @@ class SolanaCalculatePumpCurvePriceTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
 class SolanaBuyTokenTool(BaseTool):
@@ -1805,18 +1988,23 @@ class SolanaBuyTokenTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            required_keys = ["mint", "bonding_curve", "associated_bonding_curve", "amount", "slippage", "max_retries"]
-            for key in required_keys:
-                if key not in data:
-                    raise ValueError(f"Missing '{key}' in input.")
+            data = toJSON(input)
+            schema = {
+                "mint": {"type": str, "required": True},
+                "bonding_curve": {"type": str, "required": True},
+                "associated_bonding_curve": {"type": str, "required": True},
+                "amount": {"type": int, "required": True, "min": 1},
+                "slippage": {"type": float, "required": False, "min": 0, "max": 100},
+                "max_retries": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
 
             mint = Pubkey(data["mint"])
             bonding_curve = Pubkey(data["bonding_curve"])
             associated_bonding_curve = Pubkey(data["associated_bonding_curve"])
             amount = data["amount"]
-            slippage = data["slippage"]
-            max_retries = data["max_retries"]
+            slippage = data.get("slippage", 0.5)
+            max_retries = data.get("max_retries", 3)
 
             result = await self.solana_kit.buy_token(
                 mint, bonding_curve, associated_bonding_curve, amount, slippage, max_retries
@@ -1831,7 +2019,7 @@ class SolanaBuyTokenTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
 class SolanaSellTokenTool(BaseTool):
@@ -1858,19 +2046,24 @@ class SolanaSellTokenTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
-            required_keys = ["mint", "bonding_curve", "associated_bonding_curve", "amount", "slippage", "max_retries"]
-            for key in required_keys:
-                if key not in data:
-                    raise ValueError(f"Missing '{key}' in input.")
+        try:    
+            data = toJSON(input)
+            schema = {
+                "mint": {"type": str, "required": True},
+                "bonding_curve": {"type": str, "required": True},
+                "associated_bonding_curve": {"type": str, "required": True},
+                "amount": {"type": int, "required": True, "min": 1},
+                "slippage": {"type": float, "required": False, "min": 0, "max": 100},
+                "max_retries": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
 
             mint = Pubkey(data["mint"])
             bonding_curve = Pubkey(data["bonding_curve"])
             associated_bonding_curve = Pubkey(data["associated_bonding_curve"])
             amount = data["amount"]
-            slippage = data["slippage"]
-            max_retries = data["max_retries"]
+            slippage = data.get("slippage", 0.5)
+            max_retries = data.get("max_retries", 3)
 
             result = await self.solana_kit.sell_token(
                 mint, bonding_curve, associated_bonding_curve, amount, slippage, max_retries
@@ -1885,7 +2078,7 @@ class SolanaSellTokenTool(BaseTool):
                 "message": str(e),
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
 class SolanaSNSResolveTool(BaseTool):
@@ -1908,7 +2101,12 @@ class SolanaSNSResolveTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "domain": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             domain = data["domain"]
             if not domain:
                 raise ValueError("Domain is required.")
@@ -1924,7 +2122,7 @@ class SolanaSNSResolveTool(BaseTool):
                 "message": f"Error resolving domain: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -1954,16 +2152,23 @@ class SolanaSNSRegisterDomainTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "domain": {"type": str, "required": True},
+                "buyer": {"type": str, "required": True},
+                "buyer_token_account": {"type": str, "required": True},
+                "space": {"type": int, "required": True, "min": 1},
+                "mint": {"type": str, "required": False},
+                "referrer_key": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             domain = data["domain"]
             buyer = data["buyer"]
             buyer_token_account = data["buyer_token_account"]
             space = data["space"]
             mint = data.get("mint")
             referrer_key = data.get("referrer_key")
-
-            if not all([domain, buyer, buyer_token_account, space]):
-                raise ValueError("Domain, buyer, buyer_token_account, and space are required.")
 
             transaction = await self.solana_kit.get_registration_transaction(
                 domain, buyer, buyer_token_account, space, mint, referrer_key
@@ -1978,7 +2183,7 @@ class SolanaSNSRegisterDomainTool(BaseTool):
                 "message": f"Error preparing registration transaction: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2003,7 +2208,12 @@ class SolanaSNSGetFavouriteDomainTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "owner": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             owner = data["owner"]
             if not owner:
                 raise ValueError("Owner address is required.")
@@ -2019,7 +2229,7 @@ class SolanaSNSGetFavouriteDomainTool(BaseTool):
                 "message": f"Error fetching favorite domain: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2044,11 +2254,14 @@ class SolanaSNSGetAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            owner = data["owner"]
-            if not owner:
-                raise ValueError("Owner address is required.")
+            data = toJSON(input)
+            schema = {
+                "owner": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
+            owner = data["owner"]
+            
             domains = await self.solana_kit.get_all_domains_for_owner(owner)
             return {
                 "domains": domains or [],
@@ -2060,7 +2273,7 @@ class SolanaSNSGetAllDomainsTool(BaseTool):
                 "message": f"Error fetching domains: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2089,14 +2302,19 @@ class SolanaDeployCollectionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "name": {"type": str, "required": True},
+                "uri": {"type": str, "required": True},
+                "royalty_basis_points": {"type": int, "required": True, "min": 0, "max": 10000},
+                "creator_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             name = data["name"]
             uri = data["uri"]
             royalty_basis_points = data["royalty_basis_points"]
             creator_address = data["creator_address"]
-
-            if not all([name, uri, royalty_basis_points, creator_address]):
-                raise ValueError("All input fields are required.")
 
             result = await self.solana_kit.deploy_collection(
                 name=name,
@@ -2132,11 +2350,13 @@ class SolanaGetMetaplexAssetTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            asset_id = data["asset_id"]
+            data = toJSON(input)
+            schema = {
+                "asset_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
 
-            if not asset_id:
-                raise ValueError("Asset ID is required.")
+            asset_id = data["asset_id"]
 
             result = await self.solana_kit.get_metaplex_asset(asset_id)
             return result
@@ -2145,7 +2365,7 @@ class SolanaGetMetaplexAssetTool(BaseTool):
 
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-    
+
 class SolanaGetMetaplexAssetsByCreatorTool(BaseTool):
     name: str = "solana_get_metaplex_assets_by_creator"
     description: str = """
@@ -2172,16 +2392,23 @@ class SolanaGetMetaplexAssetsByCreatorTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "creator": {"type": str, "required": True},
+                "only_verified": {"type": bool, "required": False},
+                "sort_by": {"type": str, "required": False},
+                "sort_direction": {"type": str, "required": False},
+                "limit": {"type": int, "required": False, "min": 1},
+                "page": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
+
             creator = data["creator"]
             only_verified = data.get("only_verified", False)
             sort_by = data.get("sort_by")
             sort_direction = data.get("sort_direction")
             limit = data.get("limit")
             page = data.get("page")
-
-            if not creator:
-                raise ValueError("Creator address is required.")
 
             result = await self.solana_kit.get_metaplex_assets_by_creator(
                 creator=creator,
@@ -2197,7 +2424,6 @@ class SolanaGetMetaplexAssetsByCreatorTool(BaseTool):
 
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-
 
 class SolanaGetMetaplexAssetsByAuthorityTool(BaseTool):
     name: str = "solana_get_metaplex_assets_by_authority"
@@ -2224,15 +2450,21 @@ class SolanaGetMetaplexAssetsByAuthorityTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "authority": {"type": str, "required": True},
+                "sort_by": {"type": str, "required": False},
+                "sort_direction": {"type": str, "required": False},
+                "limit": {"type": int, "required": False, "min": 1},
+                "page": {"type": int, "required": False, "min": 1}
+            }
+            validate_input(data, schema)
+
             authority = data["authority"]
             sort_by = data.get("sort_by")
             sort_direction = data.get("sort_direction")
             limit = data.get("limit")
             page = data.get("page")
-
-            if not authority:
-                raise ValueError("Creator address is required.")
 
             result = await self.solana_kit.get_metaplex_assets_by_authority(
                 authority=authority,
@@ -2275,17 +2507,25 @@ class SolanaMintMetaplexCoreNFTTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "collection_mint": {"type": str, "required": True},
+                "name": {"type": str, "required": True},
+                "uri": {"type": str, "required": True},
+                "seller_fee_basis_points": {"type": int, "required": True, "min": 0, "max": 10000},
+                "address": {"type": str, "required": True},
+                "share": {"type": str, "required": True},
+                "recipient": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             collection_mint = data["collection_mint"]
             name = data["name"]
             uri = data["uri"]
-            seller_fee_basis_points = data.get("seller_fee_basis_points")
-            address = data.get("address")
-            share = data.get("share")
-            recipient = data.get("recipient")
-
-            if not all([collection_mint, name, uri]):
-                raise ValueError("Collection mint, name, and URI are required.")
+            seller_fee_basis_points = data["seller_fee_basis_points"]
+            address = data["address"]
+            share = data["share"]
+            recipient = data["recipient"]
 
             result = await self.solana_kit.mint_metaplex_core_nft(
                 collectionMint=collection_mint,
@@ -2334,7 +2574,23 @@ class SolanaDeBridgeCreateTransactionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "src_chain_id": {"type": str, "required": True},
+                "src_chain_token_in": {"type": str, "required": True},
+                "src_chain_token_in_amount": {"type": str, "required": True},
+                "dst_chain_id": {"type": str, "required": True},
+                "dst_chain_token_out": {"type": str, "required": True},
+                "dst_chain_token_out_recipient": {"type": str, "required": True},
+                "src_chain_order_authority_address": {"type": str, "required": True},
+                "dst_chain_order_authority_address": {"type": str, "required": True},
+                "affiliate_fee_percent": {"type": str, "required": False},
+                "affiliate_fee_recipient": {"type": str, "required": False},
+                "prepend_operating_expenses": {"type": bool, "required": False},
+                "dst_chain_token_out_amount": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
+
             transaction_data = await self.solana_kit.create_debridge_transaction(
                 src_chain_id=data["src_chain_id"],
                 src_chain_token_in=data["src_chain_token_in"],
@@ -2384,10 +2640,13 @@ class SolanaDeBridgeExecuteTransactionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "transaction_data": {"type": dict, "required": True}
+            }
+            validate_input(data, schema)
+
             transaction_data = data["transaction_data"]
-            if not transaction_data:
-                raise ValueError("Transaction data is required.")
 
             result = await self.solana_kit.execute_debridge_transaction(transaction_data)
             return {
@@ -2425,10 +2684,13 @@ class SolanaDeBridgeCheckTransactionStatusTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "tx_hash": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             tx_hash = data["tx_hash"]
-            if not tx_hash:
-                raise ValueError("Transaction hash is required.")
 
             status = await self.solana_kit.check_transaction_status(tx_hash)
             return {
@@ -2445,7 +2707,7 @@ class SolanaDeBridgeCheckTransactionStatusTool(BaseTool):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-    
+
 class SolanaCybersCreateCoinTool(BaseTool):
     name: str = "cybers_create_coin"
     description: str = """
@@ -2470,15 +2732,21 @@ class SolanaCybersCreateCoinTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "name": {"type": str, "required": True},
+                "symbol": {"type": str, "required": True},
+                "image_path": {"type": str, "required": True},
+                "tweet_author_id": {"type": str, "required": True},
+                "tweet_author_username": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             name = data["name"]
             symbol = data["symbol"]
             image_path = data["image_path"]
             tweet_author_id = data["tweet_author_id"]
             tweet_author_username = data["tweet_author_username"]
-
-            if not all([name, symbol, image_path, tweet_author_id, tweet_author_username]):
-                raise ValueError("All fields (name, symbol, image_path, tweet_author_id, tweet_author_username) are required.")
 
             coin_id = await self.solana_kit.cybers_create_coin(
                 name=name,
@@ -2513,8 +2781,8 @@ class SolanaGetTipAccounts(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
-    async def _arun(self, input: str):
+
+    async def _arun(self):
         try:
             result = await self.solana_kit.get_tip_accounts()
             return {
@@ -2524,12 +2792,12 @@ class SolanaGetTipAccounts(BaseTool):
             return {
                 "accounts": None
             }
-    
+
     def _run(self, input: str):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaGetRandomTipAccount(BaseTool):
     name: str = "get_random_tip_account"
     description: str = """
@@ -2541,8 +2809,8 @@ class SolanaGetRandomTipAccount(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
-    async def _arun(self, input: str):
+
+    async def _arun(self):
         try:
             result = await self.solana_kit.get_random_tip_account()
             return {
@@ -2552,16 +2820,21 @@ class SolanaGetRandomTipAccount(BaseTool):
             return {
                 "account": None
             }
-    
-    def _run(self, input: str):
+
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaGetBundleStatuses(BaseTool):
     name: str = "get_bundle_statuses"
     description: str = """
     Get the current statuses of specified Jito bundles.
+
+    Input: A JSON string with:
+    {
+        "bundle_uuids": "List of bundle UUIDs"
+    }
 
     Output:
     {
@@ -2569,10 +2842,16 @@ class SolanaGetBundleStatuses(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            bundle_uuids = input["bundle_uuids"]
+            data = toJSON(input)
+            schema = {
+                "bundle_uuids": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
+
+            bundle_uuids = data["bundle_uuids"]
             result = await self.solana_kit.get_bundle_statuses(bundle_uuids)
             return {
                 "statuses": result
@@ -2581,16 +2860,21 @@ class SolanaGetBundleStatuses(BaseTool):
             return {
                 "statuses": None
             }
-    
-    def _run(self, input: str):
+
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaSendBundle(BaseTool):
     name: str = "send_bundle"
     description: str = """
     Send a bundle of transactions to the Jito network for processing.
+
+    Input: A JSON string with:
+    {
+        "txn_signatures": "List of transaction signatures"
+    }
 
     Output:
     {
@@ -2598,11 +2882,17 @@ class SolanaSendBundle(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            params = input["txn_signatures"]
-            result = await self.solana_kit.send_bundle(params)
+            data = toJSON(input)
+            schema = {
+                "txn_signatures": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
+
+            txn_signatures = data["txn_signatures"]
+            result = await self.solana_kit.send_bundle(txn_signatures)
             return {
                 "bundle_ids": result
             }
@@ -2610,16 +2900,21 @@ class SolanaSendBundle(BaseTool):
             return {
                 "bundle_ids": None
             }
-    
-    def _run(self, input: str):
+
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaGetInflightBundleStatuses(BaseTool):
     name: str = "get_inflight_bundle_statuses"
     description: str = """
     Get the statuses of bundles that are currently in flight.
+
+    Input: A JSON string with:
+    {
+        "bundle_uuids": "List of bundle UUIDs"
+    }
 
     Output:
     {
@@ -2627,10 +2922,16 @@ class SolanaGetInflightBundleStatuses(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            bundle_uuids = input["bundle_uuids"]
+            data = toJSON(input)
+            schema = {
+                "bundle_uuids": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
+
+            bundle_uuids = data["bundle_uuids"]
             result = await self.solana_kit.get_inflight_bundle_statuses(bundle_uuids)
             return {
                 "statuses": result
@@ -2639,16 +2940,22 @@ class SolanaGetInflightBundleStatuses(BaseTool):
             return {
                 "statuses": None
             }
-    
-    def _run(self, input: str):
+
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
-        
+
 class SolanaSendTxn(BaseTool):
     name: str = "send_txn"
     description: str = """
     Send an individual transaction to the Jito network for processing.
+
+    Input: A JSON string with:
+    {
+        "txn_signature": "string, the transaction signature",
+        "bundleOnly": "boolean, whether to send the transaction as a bundle"
+    }
 
     Output:
     {
@@ -2656,12 +2963,19 @@ class SolanaSendTxn(BaseTool):
     }
     """
     solana_kit: SolanaAgentKit
-    
+
     async def _arun(self, input: str):
         try:
-            params = [input["txn_signature"]]
-            bundleOnly = input["bundleOnly"]
-            result = await self.solana_kit.send_txn(params, bundleOnly)
+            data = toJSON(input)
+            schema = {
+                "txn_signature": {"type": str, "required": True},
+                "bundleOnly": {"type": bool, "required": True}
+            }
+            validate_input(data, schema)
+
+            txn_signature = data["txn_signature"]
+            bundleOnly = data["bundleOnly"]
+            result = await self.solana_kit.send_txn(txn_signature, bundleOnly)
             return {
                 "status": result
             }
@@ -2669,8 +2983,8 @@ class SolanaSendTxn(BaseTool):
             return {
                 "status": None
             }
-    
-    def _run(self, input: str):
+
+    def _run(self):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
@@ -2727,7 +3041,7 @@ class BackpackGetAccountBalancesTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             balances = await self.solana_kit.get_account_balances()
             return {
@@ -2740,7 +3054,7 @@ class BackpackGetAccountBalancesTool(BaseTool):
                 "message": f"Error fetching account balances: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackRequestWithdrawalTool(BaseTool):
@@ -2766,7 +3080,16 @@ class BackpackRequestWithdrawalTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "address": {"type": str, "required": True},
+                "blockchain": {"type": str, "required": True},
+                "quantity": {"type": str, "required": True},
+                "symbol": {"type": str, "required": True},
+                "additional_params": {"type": dict, "required": False}
+            }
+            validate_input(data, schema)
+
             result = await self.solana_kit.request_withdrawal(
                 address=data["address"],
                 blockchain=data["blockchain"],
@@ -2801,7 +3124,7 @@ class BackpackGetAccountSettingsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             settings = await self.solana_kit.get_account_settings()
             return {
@@ -2862,7 +3185,7 @@ class BackpackGetBorrowLendPositionsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             positions = await self.solana_kit.get_borrow_lend_positions()
             return {
@@ -2899,7 +3222,14 @@ class BackpackExecuteBorrowLendTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "quantity": {"type": str, "required": True},
+                "side": {"type": str, "required": True},
+                "symbol": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             result = await self.solana_kit.execute_borrow_lend(
                 quantity=data["quantity"],
                 side=data["side"],
@@ -2915,7 +3245,7 @@ class BackpackExecuteBorrowLendTool(BaseTool):
                 "message": f"Error executing borrow/lend operation: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetFillHistoryTool(BaseTool):
@@ -3273,7 +3603,7 @@ class BackpackGetSupportedAssetsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             assets = await self.solana_kit.get_supported_assets()
             return {
@@ -3334,7 +3664,7 @@ class BackpackGetMarketsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             markets = await self.solana_kit.get_markets()
             return {
@@ -3395,7 +3725,7 @@ class BackpackGetTickersTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             tickers = await self.solana_kit.get_tickers()
             return {
@@ -3408,7 +3738,7 @@ class BackpackGetTickersTool(BaseTool):
                 "message": f"Error fetching tickers: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetDepthTool(BaseTool):
@@ -3430,7 +3760,12 @@ class BackpackGetDepthTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            data = toJSON(input)
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
             symbol = data["symbol"]
             depth = await self.solana_kit.get_depth(symbol)
             return {
@@ -3443,7 +3778,7 @@ class BackpackGetDepthTool(BaseTool):
                 "message": f"Error fetching depth: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetKlinesTool(BaseTool):
@@ -3468,7 +3803,15 @@ class BackpackGetKlinesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "interval": {"type": str, "required": True},
+                "start_time": {"type": int, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            
             klines = await self.solana_kit.get_klines(
                 symbol=data["symbol"],
                 interval=data["interval"],
@@ -3507,7 +3850,12 @@ class BackpackGetMarkPriceTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
             symbol = data["symbol"]
             mark_price_data = await self.solana_kit.get_mark_price(symbol)
             return {
@@ -3520,7 +3868,7 @@ class BackpackGetMarkPriceTool(BaseTool):
                 "message": f"Error fetching mark price: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetOpenInterestTool(BaseTool):
@@ -3542,7 +3890,12 @@ class BackpackGetOpenInterestTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
             symbol = data["symbol"]
             open_interest = await self.solana_kit.get_open_interest(symbol)
             return {
@@ -3555,7 +3908,7 @@ class BackpackGetOpenInterestTool(BaseTool):
                 "message": f"Error fetching open interest: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetFundingIntervalRatesTool(BaseTool):
@@ -3579,11 +3932,22 @@ class BackpackGetFundingIntervalRatesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "limit": {"type": int, "required": False},
+                "offset": {"type": int, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            symbol = data["symbol"]
+            limit = data.get("limit", 100)
+            offset = data.get("offset", 0)
+
             funding_rates = await self.solana_kit.get_funding_interval_rates(
-                symbol=data["symbol"],
-                limit=data.get("limit", 100),
-                offset=data.get("offset", 0)
+                symbol=symbol,
+                limit=limit,
+                offset=offset
             )
             return {
                 "funding_rates": funding_rates,
@@ -3595,7 +3959,7 @@ class BackpackGetFundingIntervalRatesTool(BaseTool):
                 "message": f"Error fetching funding interval rates: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetStatusTool(BaseTool):
@@ -3612,7 +3976,7 @@ class BackpackGetStatusTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             status = await self.solana_kit.get_status()
             return {
@@ -3625,7 +3989,7 @@ class BackpackGetStatusTool(BaseTool):
                 "message": f"Error fetching system status: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackSendPingTool(BaseTool):
@@ -3642,7 +4006,7 @@ class BackpackSendPingTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             response = await self.solana_kit.send_ping()
             return {
@@ -3672,7 +4036,7 @@ class BackpackGetSystemTimeTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             system_time = await self.solana_kit.get_system_time()
             return {
@@ -3685,7 +4049,7 @@ class BackpackGetSystemTimeTool(BaseTool):
                 "message": f"Error fetching system time: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetRecentTradesTool(BaseTool):
@@ -3708,10 +4072,19 @@ class BackpackGetRecentTradesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "limit": {"type": int, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            symbol = data["symbol"]
+            limit = data.get("limit", 100)
+
             recent_trades = await self.solana_kit.get_recent_trades(
-                symbol=data["symbol"],
-                limit=data.get("limit", 100)
+                symbol=symbol,
+                limit=limit
             )
             return {
                 "recent_trades": recent_trades,
@@ -3723,7 +4096,7 @@ class BackpackGetRecentTradesTool(BaseTool):
                 "message": f"Error fetching recent trades: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetHistoricalTradesTool(BaseTool):
@@ -3747,11 +4120,22 @@ class BackpackGetHistoricalTradesTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "limit": {"type": int, "required": False},
+                "offset": {"type": int, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            symbol = data["symbol"]
+            limit = data.get("limit", 100)
+            offset = data.get("offset", 0)
+
             historical_trades = await self.solana_kit.get_historical_trades(
-                symbol=data["symbol"],
-                limit=data.get("limit", 100),
-                offset=data.get("offset", 0)
+                symbol=symbol,
+                limit=limit,
+                offset=offset
             )
             return {
                 "historical_trades": historical_trades,
@@ -3763,7 +4147,7 @@ class BackpackGetHistoricalTradesTool(BaseTool):
                 "message": f"Error fetching historical trades: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetCollateralInfoTool(BaseTool):
@@ -3785,7 +4169,12 @@ class BackpackGetCollateralInfoTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "sub_account_id": {"type": int, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
             collateral_info = await self.solana_kit.get_collateral_info(
                 sub_account_id=data.get("sub_account_id")
             )
@@ -3799,7 +4188,7 @@ class BackpackGetCollateralInfoTool(BaseTool):
                 "message": f"Error fetching collateral information: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetAccountDepositsTool(BaseTool):
@@ -3818,8 +4207,16 @@ class BackpackGetAccountDepositsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            deposits = await self.solana_kit.get_account_deposits(**data)
+            schema = {
+                "sub_account_id": {"type": int, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            sub_account_id = data.get("sub_account_id")
+            deposits = await self.solana_kit.get_account_deposits(
+                sub_account_id=sub_account_id
+            )
             return {
                 "deposits": deposits,
                 "message": "Success"
@@ -3847,7 +4244,7 @@ class BackpackGetOpenPositionsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             open_positions = await self.solana_kit.get_open_positions()
             return {
@@ -3860,7 +4257,7 @@ class BackpackGetOpenPositionsTool(BaseTool):
                 "message": f"Error fetching open positions: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class BackpackGetBorrowHistoryTool(BaseTool):
@@ -3922,7 +4319,7 @@ class BackpackGetInterestHistoryTool(BaseTool):
                 "message": f"Error fetching interest history: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class ClosePerpTradeShortTool(BaseTool):
@@ -3945,10 +4342,19 @@ class ClosePerpTradeShortTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "price": {"type": float, "required": True},
+                "trade_mint": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            price = data["price"]
+            trade_mint = data["trade_mint"]
+            
             transaction = await self.solana_kit.close_perp_trade_short(
-                price=data["price"],
-                trade_mint=data["trade_mint"]
+                price=price,
+                trade_mint=trade_mint
             )
             return {
                 "transaction": transaction,
@@ -3960,8 +4366,8 @@ class ClosePerpTradeShortTool(BaseTool):
                 "message": f"Error closing perp short trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class ClosePerpTradeLongTool(BaseTool):
     name: str = "close_perp_trade_long"
@@ -3983,10 +4389,19 @@ class ClosePerpTradeLongTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "price": {"type": float, "required": True},
+                "trade_mint": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            price = data["price"]
+            trade_mint = data["trade_mint"]
+            
             transaction = await self.solana_kit.close_perp_trade_long(
-                price=data["price"],
-                trade_mint=data["trade_mint"]
+                price=price,
+                trade_mint=trade_mint
             )
             return {
                 "transaction": transaction,
@@ -3998,8 +4413,8 @@ class ClosePerpTradeLongTool(BaseTool):
                 "message": f"Error closing perp long trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class OpenPerpTradeLongTool(BaseTool):
     name: str = "open_perp_trade_long"
@@ -4024,8 +4439,20 @@ class OpenPerpTradeLongTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
+        try:    
+            schema = {
+                "price": {"type": float, "required": True},
+                "collateral_amount": {"type": float, "required": True},
+                "collateral_mint": {"type": str, "required": False},
+                "leverage": {"type": float, "required": False},
+                "trade_mint": {"type": str, "required": False},
+                "slippage": {"type": float, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
+            
+           
             transaction = await self.solana_kit.open_perp_trade_long(
                 price=data["price"],
                 collateral_amount=data["collateral_amount"],
@@ -4044,8 +4471,8 @@ class OpenPerpTradeLongTool(BaseTool):
                 "message": f"Error opening perp long trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class OpenPerpTradeShortTool(BaseTool):
     name: str = "open_perp_trade_short"
@@ -4071,8 +4498,18 @@ class OpenPerpTradeShortTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
-            transaction = await self.solana_kit.open_perp_trade_short(
+            schema = {
+                "price": {"type": float, "required": True},
+                "collateral_amount": {"type": float, "required": True},
+                "collateral_mint": {"type": str, "required": False},
+                "leverage": {"type": float, "required": False},
+                "trade_mint": {"type": str, "required": False},
+                "slippage": {"type": float, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            transaction = await self.solana_kit.open_perp_trade_short(  
                 price=data["price"],
                 collateral_amount=data["collateral_amount"],
                 collateral_mint=data.get("collateral_mint"),
@@ -4080,6 +4517,7 @@ class OpenPerpTradeShortTool(BaseTool):
                 trade_mint=data.get("trade_mint"),
                 slippage=data.get("slippage")
             )
+           
             return {
                 "transaction": transaction,
                 "message": "Success"
@@ -4090,8 +4528,8 @@ class OpenPerpTradeShortTool(BaseTool):
                 "message": f"Error opening perp short trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class Create3LandCollectionTool(BaseTool):
     name: str = "create_3land_collection"
@@ -4117,7 +4555,19 @@ class Create3LandCollectionTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "collection_symbol": {"type": str, "required": True},
+                "collection_name": {"type": str, "required": True},
+                "collection_description": {"type": str, "required": True},
+                "main_image_url": {"type": str, "required": False},
+                "cover_image_url": {"type": str, "required": False},
+                "is_devnet": {"type": bool, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            
+            
             transaction = await self.solana_kit.create_3land_collection(
                 collection_symbol=data["collection_symbol"],
                 collection_name=data["collection_name"],
@@ -4136,8 +4586,8 @@ class Create3LandCollectionTool(BaseTool):
                 "message": f"Error creating 3land collection: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class Create3LandNFTTool(BaseTool):
     name: str = "create_3land_nft"
@@ -4170,7 +4620,26 @@ class Create3LandNFTTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "item_name": {"type": str, "required": True},
+                "seller_fee": {"type": float, "required": True},
+                "item_amount": {"type": int, "required": True},
+                "item_symbol": {"type": str, "required": True},
+                "item_description": {"type": str, "required": True},
+                "traits": {"type": str, "required": True},
+                "price": {"type": float, "required": False},
+                "main_image_url": {"type": str, "required": False},
+                "cover_image_url": {"type": str, "required": False},
+                "spl_hash": {"type": str, "required": False},
+                "pool_name": {"type": str, "required": False},
+                "is_devnet": {"type": bool, "required": False},
+                "with_pool": {"type": bool, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+           
+            
             transaction = await self.solana_kit.create_3land_nft(
                 item_name=data["item_name"],
                 seller_fee=data["seller_fee"],
@@ -4196,7 +4665,7 @@ class Create3LandNFTTool(BaseTool):
                 "message": f"Error creating 3land NFT: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class CreateDriftUserAccountTool(BaseTool):
@@ -4219,7 +4688,12 @@ class CreateDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "deposit_amount": {"type": float, "required": True},
+                "deposit_symbol": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
             transaction = await self.solana_kit.create_drift_user_account(
                 deposit_amount=data["deposit_amount"],
                 deposit_symbol=data["deposit_symbol"],
@@ -4234,8 +4708,8 @@ class CreateDriftUserAccountTool(BaseTool):
                 "message": f"Error creating Drift user account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class DepositToDriftUserAccountTool(BaseTool):
     name: str = "deposit_to_drift_user_account"
@@ -4258,7 +4732,16 @@ class DepositToDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "is_repayment": {"type": bool, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+           
+            
             transaction = await self.solana_kit.deposit_to_drift_user_account(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -4274,8 +4757,8 @@ class DepositToDriftUserAccountTool(BaseTool):
                 "message": f"Error depositing to Drift user account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class WithdrawFromDriftUserAccountTool(BaseTool):
     name: str = "withdraw_from_drift_user_account"
@@ -4298,7 +4781,15 @@ class WithdrawFromDriftUserAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "is_borrow": {"type": bool, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+          
+
             transaction = await self.solana_kit.withdraw_from_drift_user_account(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -4314,8 +4805,8 @@ class WithdrawFromDriftUserAccountTool(BaseTool):
                 "message": f"Error withdrawing from Drift user account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class TradeUsingDriftPerpAccountTool(BaseTool):
     name: str = "trade_using_drift_perp_account"
@@ -4340,7 +4831,15 @@ class TradeUsingDriftPerpAccountTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "action": {"type": str, "required": True},
+                "trade_type": {"type": str, "required": True},
+                "price": {"type": float, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
             transaction = await self.solana_kit.trade_using_drift_perp_account(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -4358,8 +4857,8 @@ class TradeUsingDriftPerpAccountTool(BaseTool):
                 "message": f"Error trading using Drift perp account: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class CheckIfDriftAccountExistsTool(BaseTool):
     name: str = "check_if_drift_account_exists"
@@ -4375,7 +4874,7 @@ class CheckIfDriftAccountExistsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             exists = await self.solana_kit.check_if_drift_account_exists()
             return {
@@ -4388,7 +4887,7 @@ class CheckIfDriftAccountExistsTool(BaseTool):
                 "message": f"Error checking Drift account existence: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class DriftUserAccountInfoTool(BaseTool):
@@ -4405,7 +4904,7 @@ class DriftUserAccountInfoTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             account_info = await self.solana_kit.drift_user_account_info()
             return {
@@ -4418,7 +4917,7 @@ class DriftUserAccountInfoTool(BaseTool):
                 "message": f"Error fetching Drift user account info: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class GetAvailableDriftMarketsTool(BaseTool):
@@ -4435,7 +4934,7 @@ class GetAvailableDriftMarketsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             markets = await self.solana_kit.get_available_drift_markets()
             return {
@@ -4448,7 +4947,7 @@ class GetAvailableDriftMarketsTool(BaseTool):
                 "message": f"Error fetching available Drift markets: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class StakeToDriftInsuranceFundTool(BaseTool):
@@ -4471,7 +4970,15 @@ class StakeToDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+            
+            
             transaction = await self.solana_kit.stake_to_drift_insurance_fund(
                 amount=data["amount"],
                 symbol=data["symbol"]
@@ -4486,8 +4993,8 @@ class StakeToDriftInsuranceFundTool(BaseTool):
                 "message": f"Error staking to Drift insurance fund: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
     name: str = "request_unstake_from_drift_insurance_fund"
@@ -4509,7 +5016,14 @@ class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+         
             transaction = await self.solana_kit.request_unstake_from_drift_insurance_fund(
                 amount=data["amount"],
                 symbol=data["symbol"]
@@ -4524,8 +5038,8 @@ class RequestUnstakeFromDriftInsuranceFundTool(BaseTool):
                 "message": f"Error requesting unstake from Drift insurance fund: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class UnstakeFromDriftInsuranceFundTool(BaseTool):
     name: str = "unstake_from_drift_insurance_fund"
@@ -4546,7 +5060,13 @@ class UnstakeFromDriftInsuranceFundTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+
+           
             transaction = await self.solana_kit.unstake_from_drift_insurance_fund(
                 symbol=data["symbol"]
             )
@@ -4560,8 +5080,8 @@ class UnstakeFromDriftInsuranceFundTool(BaseTool):
                 "message": f"Error unstaking from Drift insurance fund: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class DriftSwapSpotTokenTool(BaseTool):
     name: str = "drift_swap_spot_token"
@@ -4586,7 +5106,15 @@ class DriftSwapSpotTokenTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "from_symbol": {"type": str, "required": True},
+                "to_symbol": {"type": str, "required": True},
+                "slippage": {"type": float, "required": False},
+                "to_amount": {"type": float, "required": False},
+                "from_amount": {"type": float, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)           
             transaction = await self.solana_kit.drift_swap_spot_token(
                 from_symbol=data["from_symbol"],
                 to_symbol=data["to_symbol"],
@@ -4604,8 +5132,8 @@ class DriftSwapSpotTokenTool(BaseTool):
                 "message": f"Error swapping spot token on Drift: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetDriftPerpMarketFundingRateTool(BaseTool):
     name: str = "get_drift_perp_market_funding_rate"
@@ -4627,7 +5155,12 @@ class GetDriftPerpMarketFundingRateTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True},
+                "period": {"type": str, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)            
             funding_rate = await self.solana_kit.get_drift_perp_market_funding_rate(
                 symbol=data["symbol"],
                 period=data.get("period", "year"),
@@ -4642,8 +5175,8 @@ class GetDriftPerpMarketFundingRateTool(BaseTool):
                 "message": f"Error getting Drift perp market funding rate: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
     name: str = "get_drift_entry_quote_of_perp_trade"
@@ -4666,7 +5199,13 @@ class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "action": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
             entry_quote = await self.solana_kit.get_drift_entry_quote_of_perp_trade(
                 amount=data["amount"],
                 symbol=data["symbol"],
@@ -4682,8 +5221,8 @@ class GetDriftEntryQuoteOfPerpTradeTool(BaseTool):
                 "message": f"Error getting Drift entry quote of perp trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetDriftLendBorrowApyTool(BaseTool):
     name: str = "get_drift_lend_borrow_apy"
@@ -4704,7 +5243,12 @@ class GetDriftLendBorrowApyTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "symbol": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+               
             apy_data = await self.solana_kit.get_drift_lend_borrow_apy(
                 symbol=data["symbol"]
             )
@@ -4718,8 +5262,8 @@ class GetDriftLendBorrowApyTool(BaseTool):
                 "message": f"Error getting Drift lend/borrow APY: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class CreateDriftVaultTool(BaseTool):
     name: str = "create_drift_vault"
@@ -4748,7 +5292,20 @@ class CreateDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "name": {"type": str, "required": True},
+                "market_name": {"type": str, "required": True},
+                "redeem_period": {"type": int, "required": True},
+                "max_tokens": {"type": int, "required": True},
+                "min_deposit_amount": {"type": float, "required": True},
+                "management_fee": {"type": float, "required": True},
+                "profit_share": {"type": float, "required": True},
+                "hurdle_rate": {"type": float, "required": False},
+                "permissioned": {"type": bool, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             vault_details = await self.solana_kit.create_drift_vault(
                 name=data["name"],
                 market_name=data["market_name"],
@@ -4770,8 +5327,8 @@ class CreateDriftVaultTool(BaseTool):
                 "message": f"Error creating Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class UpdateDriftVaultDelegateTool(BaseTool):
     name: str = "update_drift_vault_delegate"
@@ -4793,7 +5350,13 @@ class UpdateDriftVaultDelegateTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "vault": {"type": str, "required": True},
+                "delegate_address": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             transaction = await self.solana_kit.update_drift_vault_delegate(
                 vault=data["vault"],
                 delegate_address=data["delegate_address"],
@@ -4808,8 +5371,8 @@ class UpdateDriftVaultDelegateTool(BaseTool):
                 "message": f"Error updating Drift vault delegate: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class UpdateDriftVaultTool(BaseTool):
     name: str = "update_drift_vault"
@@ -4839,7 +5402,21 @@ class UpdateDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "vault_address": {"type": str, "required": True},
+                "name": {"type": str, "required": True},
+                "market_name": {"type": str, "required": True},
+                "redeem_period": {"type": int, "required": True},
+                "max_tokens": {"type": int, "required": True},
+                "min_deposit_amount": {"type": float, "required": True},
+                "management_fee": {"type": float, "required": True},
+                "profit_share": {"type": float, "required": True},
+                "hurdle_rate": {"type": float, "required": False},
+                "permissioned": {"type": bool, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             vault_update = await self.solana_kit.update_drift_vault(
                 vault_address=data["vault_address"],
                 name=data["name"],
@@ -4862,7 +5439,7 @@ class UpdateDriftVaultTool(BaseTool):
                 "message": f"Error updating Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class GetDriftVaultInfoTool(BaseTool):
@@ -4884,7 +5461,12 @@ class GetDriftVaultInfoTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "vault_name": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             vault_info = await self.solana_kit.get_drift_vault_info(
                 vault_name=data["vault_name"]
             )
@@ -4898,8 +5480,8 @@ class GetDriftVaultInfoTool(BaseTool):
                 "message": f"Error retrieving Drift vault info: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class DepositIntoDriftVaultTool(BaseTool):
     name: str = "deposit_into_drift_vault"
@@ -4921,7 +5503,13 @@ class DepositIntoDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "amount": {"type": float, "required": True},
+                "vault": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             transaction = await self.solana_kit.deposit_into_drift_vault(
                 amount=data["amount"],
                 vault=data["vault"]
@@ -4936,8 +5524,8 @@ class DepositIntoDriftVaultTool(BaseTool):
                 "message": f"Error depositing into Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class RequestWithdrawalFromDriftVaultTool(BaseTool):
     name: str = "request_withdrawal_from_drift_vault"
@@ -4958,8 +5546,14 @@ class RequestWithdrawalFromDriftVaultTool(BaseTool):
     solana_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
+        try:    
+            schema = {
+                "amount": {"type": float, "required": True},
+                "vault": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             transaction = await self.solana_kit.request_withdrawal_from_drift_vault(
                 amount=data["amount"],
                 vault=data["vault"]
@@ -4974,8 +5568,8 @@ class RequestWithdrawalFromDriftVaultTool(BaseTool):
                 "message": f"Error requesting withdrawal from Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class WithdrawFromDriftVaultTool(BaseTool):
     name: str = "withdraw_from_drift_vault"
@@ -4996,7 +5590,12 @@ class WithdrawFromDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "vault": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             transaction = await self.solana_kit.withdraw_from_drift_vault(
                 vault=data["vault"]
             )
@@ -5010,8 +5609,8 @@ class WithdrawFromDriftVaultTool(BaseTool):
                 "message": f"Error withdrawing from Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class DeriveDriftVaultAddressTool(BaseTool):
     name: str = "derive_drift_vault_address"
@@ -5032,7 +5631,12 @@ class DeriveDriftVaultAddressTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "name": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             vault_address = await self.solana_kit.derive_drift_vault_address(
                 name=data["name"]
             )
@@ -5046,8 +5650,8 @@ class DeriveDriftVaultAddressTool(BaseTool):
                 "message": f"Error deriving Drift vault address: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class TradeUsingDelegatedDriftVaultTool(BaseTool):
     name: str = "trade_using_delegated_drift_vault"
@@ -5073,7 +5677,17 @@ class TradeUsingDelegatedDriftVaultTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "vault": {"type": str, "required": True},
+                "amount": {"type": float, "required": True},
+                "symbol": {"type": str, "required": True},
+                "action": {"type": str, "required": True},
+                "trade_type": {"type": str, "required": True},
+                "price": {"type": float, "required": False}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             transaction = await self.solana_kit.trade_using_delegated_drift_vault(
                 vault=data["vault"],
                 amount=data["amount"],
@@ -5092,8 +5706,8 @@ class TradeUsingDelegatedDriftVaultTool(BaseTool):
                 "message": f"Error trading using delegated Drift vault: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class FlashOpenTradeTool(BaseTool):
     name: str = "flash_open_trade"
@@ -5117,7 +5731,15 @@ class FlashOpenTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "token": {"type": str, "required": True},
+                "side": {"type": str, "required": True},
+                "collateralUsd": {"type": float, "required": True},
+                "leverage": {"type": float, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+           
             transaction = await self.solana_kit.flash_open_trade(
                 token=data["token"],
                 side=data["side"],
@@ -5134,7 +5756,7 @@ class FlashOpenTradeTool(BaseTool):
                 "message": f"Error opening flash trade: {str(e)}"
             }
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun.")
 
 class FlashCloseTradeTool(BaseTool):
@@ -5157,7 +5779,12 @@ class FlashCloseTradeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "token": {"type": str, "required": True},
+                "side": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)         
             transaction = await self.solana_kit.flash_close_trade(
                 token=data["token"],
                 side=data["side"]
@@ -5172,8 +5799,8 @@ class FlashCloseTradeTool(BaseTool):
                 "message": f"Error closing flash trade: {str(e)}"
             }
 
-    def _run(self, input: str):
-        raise NotImplementedError("This tool only supports async execution via _arun.")
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class ResolveAllDomainsTool(BaseTool):
     name: str = "resolve_all_domains"
@@ -5194,13 +5821,18 @@ class ResolveAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "domain": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
+            
             domain_tld = await self.solana_kit.resolve_all_domains(data["domain"])
             return {"tld": domain_tld, "message": "Success"} if domain_tld else {"message": "Domain resolution failed"}
         except Exception as e:
             return {"message": f"Error resolving domain: {str(e)}"}
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetOwnedDomainsForTLDTool(BaseTool):
@@ -5222,7 +5854,11 @@ class GetOwnedDomainsForTLDTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "tld": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
             owned_domains = await self.solana_kit.get_owned_domains_for_tld(data["tld"])
             return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
         except Exception as e:
@@ -5245,14 +5881,14 @@ class GetAllDomainsTLDsTool(BaseTool):
     """
     solana_kit: SolanaAgentKit
 
-    async def _arun(self, input: str):
+    async def _arun(self):
         try:
             tlds = await self.solana_kit.get_all_domains_tlds()
             return {"tlds": tlds, "message": "Success"} if tlds else {"message": "No TLDs found"}
         except Exception as e:
             return {"message": f"Error fetching TLDs: {str(e)}"}
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class GetOwnedAllDomainsTool(BaseTool):
@@ -5274,13 +5910,17 @@ class GetOwnedAllDomainsTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            data = json.loads(input)
+            schema = {
+                "owner": {"type": str, "required": True}
+            }
+            data = toJSON(input)
+            validate_input(data, schema)
             owned_domains = await self.solana_kit.get_owned_all_domains(data["owner"])
             return {"domains": owned_domains, "message": "Success"} if owned_domains else {"message": "No owned domains found"}
         except Exception as e:
             return {"message": f"Error fetching owned domains: {str(e)}"}
 
-    def _run(self, input: str):
+    def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
     
 class LightProtocolSendCompressedAirdropTool(BaseTool):
