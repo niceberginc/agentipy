@@ -805,11 +805,24 @@ class SolanaBuyUsingMoonshotTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
+            required_keys = [
+                "mint_str",
+                "collateral_amount",
+                "slippage_bps"
+            ]
             data = toJSON(input)
+            
+            for key in required_keys:
+                if key not in data:
+                    raise ValueError(f"Missing required key: {key}")
+            if not isinstance(data["collateral_amount"], float) or data["collateral_amount"] <= 0:
+                raise ValueError("collateral_amount must be a positive float")
+            if not isinstance(data["slippage_bps"], int) or data["slippage_bps"] < 0:
+                raise ValueError("slippage_bps must be a non-negative integer")
+            
             mint_str = data["mint_str"]
             collateral_amount = data.get("collateral_amount", 0.01)
             slippage_bps = data.get("slippage_bps", 500)
-            
             result = await self.solana_kit.buy_using_moonshot(mint_str, collateral_amount, slippage_bps)
 
             return {

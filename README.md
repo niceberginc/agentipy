@@ -108,7 +108,6 @@ agent = SolanaAgentKit(
 )
 
 signature = await agent.trade(
-    agent,
     output_mint=Pubkey.from_string("target-token-mint"),
     input_amount=100,  # amount
     input_mint=Pubkey.from_string("source-token-mint"),
