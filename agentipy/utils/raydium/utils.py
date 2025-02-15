@@ -85,8 +85,22 @@ def bytes_of(value):
     return struct.pack('<Q', value)
 
 def get_pair_address_from_api(mint):
-    url = f"https://api-v3.raydium.io/pools/info/mint?mint1={mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=1&page=1"
+    """
+    Fetches pair address from Raydium API.
+    
+    Args:
+        mint: Token mint address
+        
+    Returns:
+        Optional[str]: Pair address if found, None otherwise
+    """
+    schema = {
+        "mint": {"type": str, "required": True}
+    }
+    
     try:
+        validate_input({"mint": mint}, schema)
+        url = f"https://api-v3.raydium.io/pools/info/mint?mint1={mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=1&page=1"
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
@@ -144,7 +158,30 @@ def make_swap_instruction(
         accounts: PoolKeys,
         owner:Keypair
 ) -> Instruction:
+    """
+    Creates a swap instruction for Raydium.
+    
+    Args:
+        amount_in: Amount of input token
+        minimum_amount_out: Minimum amount of output token
+        token_account_in: Input token account
+        token_account_out: Output token account
+        accounts: Pool keys
+        owner: Owner keypair
+        
+    Returns:
+        Optional[Instruction]: Swap instruction if successful, None otherwise
+    """
+    schema = {
+        "amount_in": {"type": int, "required": True},
+        "minimum_amount_out": {"type": int, "required": True},
+    }
     try:
+        validate_input({
+            "amount_in": amount_in,
+            "minimum_amount_out": minimum_amount_out
+        }, schema)
+        
         keys = [
             AccountMeta(pubkey=TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
             AccountMeta(pubkey=accounts.amm_id, is_signer=False, is_writable=True),
@@ -178,7 +215,21 @@ def make_swap_instruction(
         return None
 
 def get_token_balance(agent: SolanaAgentKit, mint_str: str) -> float | None:
+    """
+    Gets token balance for a given mint.
+    
+    Args:
+        agent: SolanaAgentKit instance
+        mint_str: Token mint address
+        
+    Returns:
+        Optional[float]: Token balance if found, None otherwise
+    """
+    schema = {
+        "mint_str": {"type": str, "required": True}
+    }
     try:
+        validate_input({"mint_str": mint_str}, schema)
         mint = PublicKey.from_string(mint_str)
         response = agent.connection.get_account_info_json_parsed(
             agent.wallet_address,
