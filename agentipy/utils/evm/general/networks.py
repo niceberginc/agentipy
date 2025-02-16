@@ -23,13 +23,7 @@ class Network:
 
 EthereumRPC = Network(
     name='Ethereum',
-    rpc=[
-        'https://rpc.ankr.com/eth',
-        'https://ethereum.publicnode.com',
-        'https://rpc.flashbots.net',
-        'https://1rpc.io/eth',
-        'https://eth.drpc.org'
-    ],
+    rpc='https://rpc.ankr.com/eth',
     chain_id=1,
     eip1559_support=True,
     token='ETH',
@@ -38,9 +32,7 @@ EthereumRPC = Network(
 
 BaseRPC = Network(
     name='Base',
-    rpc=[
-        'https://mainnet.base.org',
-    ],
+    rpc='https://mainnet.base.org',
     chain_id=8453,
     eip1559_support=False,
     token='ETH',
@@ -49,9 +41,7 @@ BaseRPC = Network(
 
 ArbitrumRPC = Network(
     name="Arbitrum",
-    rpc=[
-        'https://rpc.ankr.com/arbitrum/',
-    ],
+    rpc='https://rpc.ankr.com/arbitrum/',
     chain_id=42161,
     eip1559_support=True,
     token="ETH",

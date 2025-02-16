@@ -1,0 +1,79 @@
+
+import asyncio
+from pydantic_ai import Agent, RunContext
+from agentipy import SolanaAgentKit, create_solana_tools
+from pydantic_ai.models.openai import OpenAIModel
+from dataclasses import dataclass
+
+
+model = OpenAIModel('gpt-4o-mini', api_key='openai-api-key')
+
+# Initialize the Solana Agent Kit
+solana_agent = SolanaAgentKit(
+    private_key="your-wallet-private-key-as-base58",
+    rpc_url="https://api.mainnet-beta.solana.com"
+)
+
+
+@dataclass
+class Deps:
+    solana_agent: SolanaAgentKit
+
+
+# Create a PydanticAI Agent
+chat_agent = Agent(
+    model=model,
+    system_prompt=(
+        "You are an assistant that interacts with the Solana blockchain. "
+        "You can perform actions like checking token balances, fetching prices, and more. "
+        "Use the provided tools to fetch and return accurate information."
+    ),
+    deps_type=Deps,
+)
+
+
+def register_tools(agent: Agent, solana_agent_class: type):
+    methods = inspect.getmembers(
+        solana_agent_class, predicate=inspect.iscoroutinefunction)
+    for method_name, method in methods:
+        # Skip private methods and those not meant for user interaction
+        if method_name.startswith("_"):
+            continue
+
+        # Capture the correct method for each tool using a closure
+        def create_tool(method_name, method):
+            async def tool_function(ctx: RunContext[Deps], *args, **kwargs):
+                """Wrapper to call SolanaAgentKit methods dynamically."""
+                bound_method: Callable = getattr(
+                    ctx.deps.solana_agent, method_name)
+                return await bound_method(*args, **kwargs)
+
+            tool_function.__name__ = method_name
+            tool_function.__doc__ = inspect.getdoc(
+                method) or f"Invoke {method_name} method."
+            return tool_function
+
+        # Register the tool dynamically
+        agent.tool(create_tool(method_name, method))
+
+
+# Register SolanaAgentKit methods as tools
+register_tools(chat_agent, SolanaAgentKit)
+
+
+# Main function to handle chat
+async def main():
+    deps = Deps(solana_agent=solana_agent)
+
+    # Sample chat queries
+    user_query_1 = "What is the current TPS on the Solana network?"
+    response_1 = await chat_agent.run(user_query_1, deps=deps)
+    print(f"User: {user_query_1}\nResponse: {response_1.data}\n")
+
+    user_query_2 = "What is the price of this token: SENDdRQtYMWaQrBroBrJ2Q53fgVuq95CV9UPGEvpCxa ?"
+    response_2 = await chat_agent.run(user_query_2, deps=deps)
+    print(f"User: {user_query_2}\nResponse: {response_2.data}\n")
+
+# Run the main function
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -36,3 +36,7 @@ SYSTEM_PROGRAM = Pubkey.from_string("11111111111111111111111111111111")
 SYSTEM_TOKEN_PROGRAM = Pubkey.from_string("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
 SYSTEM_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM = Pubkey.from_string("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
 SYSTEM_RENT = Pubkey.from_string("SysvarRent111111111111111111111111111111111")
+
+BASE_PROXY_URL = "https://api.agentipy.fun"
+API_VERSION = "v1"
+DEBRIDGE_API_URL = "https://dln.debridge.finance/v1.0"

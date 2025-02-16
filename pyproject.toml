@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "agentipy"
-version = "1.3.5"
-description = "A Python toolkit for Solana agents"
+version = "1.4.2"
+description = "A Python toolkit for on chain agents"
 authors = ["Muhammed Talha Korkmaz <kriptovekediler@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/niceberginc/agentipy"
 repository = "https://github.com/niceberginc/agentipy"
-keywords = ["solana", "sdk", "blockchain", "tools"]
+keywords = ["solana", "sdk", "blockchain", "tools", "evm", "ai", "agent"]
 
 
 [tool.poetry.dependencies]
@@ -32,7 +32,11 @@ solders = "^0.21.0,<0.24.0"
 solana = "^0.35.0"
 anchorpy = "^0.20.1"
 pythclient = "^0.2.0"
-web3 = "^7.6.1"
+pydantic-ai = ">=0.0.19"
+cryptography = "^44.0.0"
+pynacl = "^1.5.0"
+backpack-exchange-sdk = "^1.0.24"
+web3 = "^7.8.0"
 
 [build-system]
 requires = ["poetry-core"]
