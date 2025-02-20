@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="agentipy",
-    version="1.4.2",
+    version="2.0.1.post1",
     author="Utilify",
     author_email="hello@getutilify.com",
     description="A Python toolkit for on chain agents",

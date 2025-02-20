@@ -55,24 +55,12 @@ class EvmAgentKit:
                 raise AgentKitError("A valid private key must be provided.")
             self.wallet_address = self.web3.eth.account.from_key(self.private_key).address
 
-        self.evm_wallet_client = Web3EVMClient(self.web3)
+        self.evm_wallet_client = Web3EVMClient(self.web3,self.private_key)
 
-        if not self.web3.is_connected():
+        if not self.evm_wallet_client:
             raise AgentKitError(f"Failed to connect to {network.name} via {self.rpc_url}")
 
         logger.info(f"Connected to {network.name} (Chain ID: {self.chain_id}) - RPC: {self.rpc_url}")
-
-    def _select_best_rpc(self, rpc_list):
-        """
-        Selects the best available RPC from the provided list.
-        If one fails, it moves to the next one.
-        """
-        for rpc in rpc_list:
-            web3_test = Web3(Web3.HTTPProvider(rpc))
-            if web3_test.is_connected():
-                logger.info(f"Using RPC: {rpc}")
-                return rpc
-        raise AgentKitError("All provided RPC endpoints failed to connect.")
 
     @staticmethod
     def generate_wallet():
