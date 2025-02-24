@@ -45,6 +45,8 @@ class SolanaAgentKit:
         jito_block_engine_url: Optional[str] = None,
         jito_uuid: Optional[str] = None,
         stork_api_key: Optional[str] = None,
+        coingecko_api_key: Optional[str] = None,
+        coingecko_demo_api_key: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -71,6 +73,8 @@ class SolanaAgentKit:
         self.jito_block_engine_url = jito_block_engine_url or os.getenv("JITO_BLOCK_ENGINE_URL", "")
         self.jito_uuid = jito_uuid or os.getenv("JITO_UUID", None)
         self.stork_api_key = stork_api_key or os.getenv("STORK_API_KEY", "")
+        self.coingecko_api_key = coingecko_api_key or os.getenv("COINGECKO_PRO_API_KEY", "")
+        self.coingecko_demo_api_key = coingecko_demo_api_key or os.getenv("COINGECKO_DEMO_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
@@ -1879,3 +1883,98 @@ class SolanaAgentKit:
             return await OrcaManager.open_single_sided_position(self, whirlpool_address, distance_from_current_price_bps, width_bps, input_token_mint, input_amount)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to open single sided position: {e}")
+
+    async def get_trending_tokens(self):
+        """
+        Get trending tokens from CoinGecko.
+
+        Returns:
+            dict: Trending tokens data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_trending_tokens(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch trending tokens: {e}")
+
+
+    async def get_trending_pools(self, duration: str = "24h"):
+        """
+        Get trending pools from CoinGecko for the Solana network.
+
+        Args:
+            duration (str): Duration filter for trending pools. Allowed values: "5m", "1h", "6h", "24h". Default is "24h".
+
+        Returns:
+            dict: Trending pools data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_trending_pools(self, duration)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch trending pools: {e}")
+
+
+    async def get_top_gainers(self, duration: str = "24h", top_coins: int | str = "all"):
+        """
+        Get top gainers from CoinGecko.
+
+        Args:
+            duration (str): Duration filter for top gainers. Default is "24h".
+            top_coins (int or str): The number of top coins to return. Default is "all".
+
+        Returns:
+            dict: Top gainers data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_top_gainers(self, duration, top_coins)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch top gainers: {e}")
+
+
+    async def get_token_price_data(self, token_addresses: list[str]):
+        """
+        Get token price data for a list of token addresses from CoinGecko.
+
+        Args:
+            token_addresses (list[str]): A list of token contract addresses.
+
+        Returns:
+            dict: Token price data from CoinGecko.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_token_price_data(self, token_addresses)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch token price data: {e}")
+
+    async def get_token_info(self, token_address: str):
+        """
+        Get token info for a given token address from CoinGecko.
+
+        Args:
+            token_address (str): The token's contract address.
+
+        Returns:
+            dict: Token info data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_token_info(self, token_address)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch token info: {e}")
+
+
+    async def get_latest_pools(self):
+        """
+        Get the latest pools from CoinGecko for the Solana network.
+
+        Returns:
+            dict: Latest pools data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_latest_pools(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch latest pools: {e}")
