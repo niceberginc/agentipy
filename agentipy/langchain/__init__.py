@@ -5947,6 +5947,16 @@ class LightProtocolSendCompressedAirdropTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "mint_address": {"type": str, "required": True},
+                "amount": {"type": float, "required": True},
+                "decimals": {"type": int, "required": True},
+                "recipients": {"type": list, "required": True},
+                "priority_fee_in_lamports": {"type": int, "required": True},
+                "should_log": {"type": bool, "required": False}
+            }
+            validate_input(data, schema)
+            
             transaction_ids = await self.solana_kit.send_compressed_airdrop(
                 mint_address=data["mint_address"],
                 amount=data["amount"],
@@ -5989,6 +5999,11 @@ class ManifestCreateMarketTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "base_mint": {"type": str, "required": True},
+                "quote_mint": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             market_data = await self.solana_kit.create_manifest_market(
                 base_mint=data["base_mint"],
                 quote_mint=data["quote_mint"]
@@ -6029,6 +6044,13 @@ class ManifestPlaceLimitOrderTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "market_id": {"type": str, "required": True},
+                "quantity": {"type": float, "required": True},
+                "side": {"type": str, "required": True},
+                "price": {"type": float, "required": True}
+            }
+            validate_input(data, schema)
             order_details = await self.solana_kit.place_limit_order(
                 market_id=data["market_id"],
                 quantity=data["quantity"],
@@ -6069,6 +6091,11 @@ class ManifestPlaceBatchOrdersTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "market_id": {"type": str, "required": True},
+                "orders": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
             batch_order_details = await self.solana_kit.place_batch_orders(
                 market_id=data["market_id"],
                 orders=data["orders"]
@@ -6106,6 +6133,10 @@ class ManifestCancelAllOrdersTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "market_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             cancellation_result = await self.solana_kit.cancel_all_orders(
                 market_id=data["market_id"]
             )
@@ -6142,6 +6173,10 @@ class ManifestWithdrawAllTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "market_id": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             withdrawal_result = await self.solana_kit.withdraw_all(
                 market_id=data["market_id"]
             )
@@ -6181,6 +6216,12 @@ class OpenBookCreateMarketTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "base_mint": {"type": str, "required": True},
+                "quote_mint": {"type": str, "required": True},
+                "lot_size": {"type": float, "required": False},
+                "tick_size": {"type": float, "required": False}
+            }
             market_data = await self.solana_kit.create_openbook_market(
                 base_mint=data["base_mint"],
                 quote_mint=data["quote_mint"],
@@ -6220,6 +6261,10 @@ class OrcaClosePositionTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "position_mint_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             closure_result = await self.solana_kit.close_position(
                 position_mint_address=data["position_mint_address"]
             )
@@ -6259,6 +6304,13 @@ class OrcaCreateClmmTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "mint_deploy": {"type": str, "required": True},
+                "mint_pair": {"type": str, "required": True},
+                "initial_price": {"type": float, "required": True},
+                "fee_tier": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             clmm_data = await self.solana_kit.create_clmm(
                 mint_deploy=data["mint_deploy"],
                 mint_pair=data["mint_pair"],
@@ -6303,6 +6355,15 @@ class OrcaCreateLiquidityPoolTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "deposit_token_amount": {"type": float, "required": True},
+                "deposit_token_mint": {"type": str, "required": True},
+                "other_token_mint": {"type": str, "required": True},
+                "initial_price": {"type": float, "required": True},
+                "max_price": {"type": float, "required": True},
+                "fee_tier": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             pool_data = await self.solana_kit.create_liquidity_pool(
                 deposit_token_amount=data["deposit_token_amount"],
                 deposit_token_mint=data["deposit_token_mint"],
@@ -6377,6 +6438,13 @@ class OrcaOpenCenteredPositionTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "whirlpool_address": {"type": str, "required": True},
+                "price_offset_bps": {"type": int, "required": True},
+                "input_token_mint": {"type": str, "required": True},
+                "input_amount": {"type": float, "required": True}
+            }
+            validate_input(data, schema)
             position_data = await self.solana_kit.open_centered_position(
                 whirlpool_address=data["whirlpool_address"],
                 price_offset_bps=data["price_offset_bps"],
@@ -6420,6 +6488,14 @@ class OrcaOpenSingleSidedPositionTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "whirlpool_address": {"type": str, "required": True},
+                "distance_from_current_price_bps": {"type": int, "required": True},
+                "width_bps": {"type": int, "required": True},
+                "input_token_mint": {"type": str, "required": True},
+                "input_amount": {"type": float, "required": True}
+            }
+            validate_input(data, schema)
             position_data = await self.solana_kit.open_single_sided_position(
                 whirlpool_address=data["whirlpool_address"],
                 distance_from_current_price_bps=data["distance_from_current_price_bps"],
@@ -6490,6 +6566,10 @@ class CoingeckoGetTrendingPoolsTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "duration": {"type": str, "required": False}
+            }
+            validate_input(data, schema)
             trending_pools = await self.agent_kit.get_trending_pools(
                 duration=data.get("duration", "24h")
             )
@@ -6527,6 +6607,11 @@ class CoingeckoGetTopGainersTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "duration": {"type": str, "required": False},
+                "top_coins": {"type": (int, str), "required": False}
+            }
+            validate_input(data, schema)
             top_gainers = await self.agent_kit.get_top_gainers(
                 duration=data.get("duration", "24h"),
                 top_coins=data.get("top_coins", "all")
@@ -6564,6 +6649,10 @@ class CoingeckoGetTokenPriceDataTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "token_addresses": {"type": list, "required": True}
+            }
+            validate_input(data, schema)
             price_data = await self.agent_kit.get_token_price_data(
                 token_addresses=data["token_addresses"]
             )
@@ -6600,6 +6689,10 @@ class CoingeckoGetTokenInfoTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "token_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
             token_info = await self.agent_kit.get_token_info(
                 token_address=data["token_address"]
             )
