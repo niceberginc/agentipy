@@ -47,3 +47,5 @@ DEBRIDGE_API_URL = "https://dln.debridge.finance/v1.0"
 ELFA_AI_BASE_URL = "https://api.elfa.ai"
 # FluxBeam Base URI
 FLUXBEAM_BASE_URI = "https://api.fluxbeam.xyz/v1"
+# FlexLend BASE URL
+FLEXLEND_BASE_URL = "https://api.flexlend.fi/generate/account"
