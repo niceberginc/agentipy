@@ -93,712 +93,396 @@ AgentiPy supports a diverse set of protocols, each with specific actions. This t
 
 ## 🚀 Quick Start Example
 
-This example demonstrates transferring SOL on Solana.  **Replace the placeholder values with your actual wallet details.**
-
-```python
-from agentipy.solana import SolanaClient
-```
-### Replace with your private key (DO NOT HARDCODE IN PRODUCTION - use environment variables!)
-```python
-solana = SolanaClient(private_key="your_private_key_here")
-```
-# Get your wallet's SOL balance
-```python
-balance = solana.get_balance("your_wallet_address")
-print(f"Balance: {balance} SOL")
-```
-
-# Transfer 1 SOL to a recipient
-```python
-solana.transfer_sol(to_address="recipient_wallet_address", amount=1.0)
-print("Transfer successful!")
-```
 
 Important Security Note: Never hardcode your private key directly into your code. Use environment variables or secure key management systems in a production environment.
 
 
 ## Transfer SOL/SPL: Easily send tokens.
-
-```python 
-
+```python
+from agentipy.agent import SolanaAgentKit
 from agentipy.tools.transfer import TokenTransferManager
 import asyncio
-from agentipy.agent import SolanaAgentKit
 
 async def main():
+    """
+    Quick Start Example: Transfer SOL on Mainnet.
+    """
+    # **!!! IMPORTANT SECURITY WARNING !!!**
+    # NEVER hardcode your private key directly into your code, ESPECIALLY for Mainnet.
+    # This is for demonstration purposes ONLY.
+    # In a real application, use environment variables, secure key vaults, or other
+    # secure key management practices.  Compromising your private key can lead to
+    # loss of funds.
+
+    PRIVATE_KEY = ""  # ⚠️ REPLACE THIS SECURELY! ⚠️
+    RECIPIENT_WALLET_ADDRESS = "" # 👤 REPLACE THIS WITH RECIPIENT ADDRESS 👤
+
     agent = SolanaAgentKit(
-        private_key="",  # Replace with your private key
-        rpc_url="https://api.devnet.solana.com" #example URL
+        private_key=PRIVATE_KEY,
+        rpc_url="https://api.mainnet-beta.solana.com"  # Mainnet RPC endpoint
     )
+
+    TRANSFER_AMOUNT_SOL = 0.0001 # A very small amount of SOL for testing.  Adjust as needed.
 
     try:
         transfer_signature = await TokenTransferManager.transfer(
-        agent=agent, 
-        to="C9K1BwJgCb35n8r1wW5xJpDq533mY6W845sK68S7yJGN", 
-        amount=0.0001)
-        print(f"Transfer successful, see transaction {transfer_signature}")
-    except RuntimeError as e:
-        print(f"Something didn't go right: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## Jupiter Trade: Powerful token swapping.
-```python
-from agentipy.tools.trade import TradeManager
-from solders.pubkey import Pubkey
-import asyncio
-from agentipy.agent import SolanaAgentKit
-
-async def main():
-    agent = SolanaAgentKit(
-        private_key="",  # Replace with your private key
-        rpc_url="https://api.devnet.solana.com" #example URL
-    )
-    try:
-        usdc_mint = Pubkey.from_string("Gh9ZwEmdLJ8DscKzPWuJZ9REHzCwkgQMTrnCHy3PWTWp") #devnet USDC
-        signature = await TradeManager.trade(
             agent=agent,
-            output_mint=usdc_mint,
-            input_amount=0.001,
-            input_mint = Pubkey.from_string("So11111111111111111111111111111111111111112"), #solana
-            slippage_bps=1000
+            to=RECIPIENT_WALLET_ADDRESS,
+            amount=TRANSFER_AMOUNT_SOL
         )
-        print(f"Trade signature: {signature}")
+        print(f"Transfer successful!")
+        print(f"Transaction Signature: https://explorer.solana.com/tx/{transfer_signature}")
+
     except RuntimeError as e:
-        print(f"Something didn't go right: {e}")
+        print(f"Error: Transfer failed: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 ```
-
-## Get Token Data: Useful for data analysis.
+## Checking Sol Balance Using Agentipy
 ```python
-from agentipy.tools.get_token_data import TokenDataManager
-from solders.pubkey import Pubkey
-
-usdc_mint = Pubkey.from_string("Gh9ZwEmdLJ8DscKzPWuJZ9REHzCwkgQMTrnCHy3PWTWp")
-
-token_data = TokenDataManager.get_token_data_by_address(usdc_mint)
-
-print(token_data) #Token(mint=' EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol='USDC', name='USD Coin')
-```
-
-## Fetch Token Prices: To keep up with trends.
-```python
-import asyncio
 from agentipy.agent import SolanaAgentKit
-from agentipy.tools.fetch_price import TokenPriceFetcher
-async def main():
-    agent = SolanaAgentKit(
-        private_key="",  # Replace with your private key
-        rpc_url="https://api.devnet.solana.com" #example URL
-    )
-    price = await TokenPriceFetcher.fetch_price("Gh9ZwEmdLJ8DscKzPWuJZ9REHzCwkgQMTrnCHy3PWTWp")
-    print(price) #Prints the price of the ticker that you specify
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## Coingecko API: to easily fetch any token prices using its integration.
-```python
-import asyncio
-import aiohttp
-from agentipy.agent import SolanaAgentKit
-from agentipy.tools.use_coingecko import CoingeckoManager
-
-async def coingecko_example():
-    #Replace these with your actual values and keys
-    PRIVATE_KEY = ""  
-    RPC_URL = "https://api.mainnet-beta.solana.com"
-    COINGECKO_API_KEY = "your_valid_pro_api_key_here"  
-    COINGECKO_DEMO_API_KEY = "" 
-   
-
-    agent = SolanaAgentKit(
-        private_key=PRIVATE_KEY,
-        rpc_url=RPC_URL,
-        coingecko_api_key=COINGECKO_API_KEY,
-        coingecko_demo_api_key=COINGECKO_DEMO_API_KEY
-    )
-
-    token_address = "So11111111111111111111111111111111111111112"
-    token_address_list = [token_address]
-
-    try:
-        trending_tokens_data = await CoingeckoManager.get_trending_tokens(agent)
-        print("\nTrending Tokens Data:")
-        print(trending_tokens_data)
-    except Exception as e:
-        print(f"Error with trending tokens: {e}")
-
-    try:
-        token_price_data = await CoingeckoManager.get_token_price_data(agent, token_address_list)
-        print("\nToken Price Data:")
-        print(token_price_data)
-    except Exception as e:
-        print(f"Error with token price data: {e}")
-
-    try:
-        trending_pools_data = await CoingeckoManager.get_trending_pools(agent)
-        print("\nTrending Pools Data:")
-        print(trending_pools_data)
-    except Exception as e:
-        print(f"Error with trending pools: {e}")
-
-    try:
-        top_gainers_data = await CoingeckoManager.get_top_gainers(agent)
-        print("\nTop Gainers Data:")
-        print(top_gainers_data)
-    except Exception as e:
-        print(f"Error with top gainers: {e}")
-
-    try:
-        token_info_data = await CoingeckoManager.get_token_info(agent, token_address)
-        print("\nToken Info Data:")
-        print(token_info_data)
-    except Exception as e:
-        print(f"Error with token info: {e}")
-
-    try:
-        latest_pools_data = await CoingeckoManager.get_latest_pools(agent)
-        print("\nLatest Pools Data:")
-        print(latest_pools_data)
-    except Exception as e:
-        print(f"Error with latest pools: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(coingecko_example())
-```
-
-## All Domains: Get any domain for user.
-```python
-import asyncio
-from agentipy.agent import SolanaAgentKit
-from agentipy.tools.use_alldomains import AllDomainsManager
-
-async def main():
-    agent = SolanaAgentKit(
-        private_key="YOUR_PRIVATE_KEY",
-        rpc_url="https://api.mainnet-beta.solana.com" #example URL
-    )
-
-    # Example usage: Resolve a domain
-    domain_to_resolve = "bonfida.sol"
-    resolved_domain = AllDomainsManager.resolve_all_domains(agent, domain_to_resolve)
-
-    if resolved_domain:
-        print(f"Domain {domain_to_resolve} resolves to: {resolved_domain}")
-    else:
-        print(f"Could not resolve domain {domain_to_resolve}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## Helius NFT support: Get rich information using Helius
-```python
-import asyncio
-from agentipy.agent import SolanaAgentKit
-from agentipy.tools.use_helius import HeliusManager
-import json
-
-async def main():
-        PRIVATE_KEY = ""  # DO NOT commit this to version control!
-        RPC_URL = "https://api.devnet.solana.com"
-        HELIUS_API_KEY = "YOUR_VALID_HELIUS_KEY"  
-        quicknode_rpc_url = ""
-        openai_api_key = ""  
-
-        agent = SolanaAgentKit(
-            private_key=PRIVATE_KEY,
-            rpc_url=RPC_URL,
-            helius_api_key=HELIUS_API_KEY,
-            quicknode_rpc_url = quicknode_rpc_url,
-            openai_api_key = openai_api_key
-        )
-
-        # Sample list of mint accounts to fetch metadata for
-        mint_accounts = [
-            "6Q5mU3m6yE38tD6G5y664j7Q3Q5yS96Y819573k9zJ9R" #Example
-        ]
-
-        try:
-            # Get NFT metadata
-            nft_metadata_result = HeliusManager.get_nft_metadata(agent, mint_accounts)
-            print("\nNFT Metadata:")
-            print(json.dumps(nft_metadata_result, indent=4)) 
-        except Exception as e:
-            print(f"Error getting NFT metadata: {e}")
-
-if __name__ == "__main__":
-        asyncio.run(main())
-```
-
-## Request Faucet Funds: Useful for testing purposes.
-```python
-import asyncio
-from agentipy.tools.request_faucet_funds import FaucetManager
-from agentipy.agent import SolanaAgentKit
-
-async def request_devnet_funds():
-    agent = SolanaAgentKit(
-        private_key="",  # Replace with your private key
-        rpc_url="https://api.devnet.solana.com" #example URL
-    )
-
-    txn_sig = await FaucetManager.request_faucet_funds(agent)
-    print(f"TX: {txn_sig}")
-
-if __name__ == "__main__":
-        asyncio.run(request_devnet_funds())
-```
-
-## Authenticate Wallet on CyberProtocol and create a Coin: A easy example.
-```python
-import asyncio
-from agentipy.agent import SolanaAgentKit
-from agentipy.tools.use_cybers import CybersManager
-
-async def main():
-    private_key = ""  # Replace with your private key (DO NOT COMMIT!)
-
-    agent = SolanaAgentKit(private_key=private_key, rpc_url="https://api.devnet.solana.com") #example URL
-
-    try:
-        #Authenticate
-        jwt_token = CybersManager.authenticate_wallet(agent)
-        if jwt_token:
-            print(f"Successfully authenticated with Cybers. JWT token: {jwt_token[:50]}...")  #Show that authentication is working
-        else:
-            print("Failed to authenticate with Cybers.")
-            return
-
-        # Creating Coin
-        image_path = ""
-
-        create_coin_response = CybersManager.create_coin(
-            agent=agent,
-            name="test_coin", 
-            symbol="TEST",
-            image_path=image_path, 
-            tweet_author_id="1234567890", 
-            tweet_author_username="Test_account"
-        )
-
-        if create_coin_response:
-            print(f"Coin creation successful. Mint address: {create_coin_response.get('mintAddress')}")
-        else:
-            print("Failed to create coin.")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## Drift Protocol User Creation Example: Useful to automate actions related to drift on testnet.
-```python
-import asyncio
-from agentipy.agent import SolanaAgentKit
-from agentipy.tools.use_drift import DriftManager
-
-async def create_drift_account():
-    # Replace with your actual values and keys
-    PRIVATE_KEY = "" # Your Mainnet-beta private key
-    RPC_URL = "https://api.mainnet-beta.solana.com" #example URL
-    DRIFT_PROGRAM_ID = "your_drift_program_id" #replace with drift program id.
-    OPEN_API_KEY = "" # replace with Open-AI Key
-
-    agent = SolanaAgentKit(private_key=PRIVATE_KEY, rpc_url=RPC_URL, drift_program_id = DRIFT_PROGRAM_ID, openai_api_key = OPEN_API_KEY)
-
-    DEPOSIT_AMOUNT = 0.01 # Deposit amount in USDC
-    DEPOSIT_SYMBOL = "USDC" # Deposit symbol
-
-    try:
-        #Create a Drift user account
-        create_account_result = DriftManager.create_drift_user_account(agent, DEPOSIT_AMOUNT, DEPOSIT_SYMBOL)
-
-        if create_account_result["success"]:
-            print(f"Drift account created successfully!")
-            print(f"Transaction: {create_account_result['transaction']}")
-        else:
-            print("Failed to create Drift account:")
-            print(f"Error: {create_account_result['error']}")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(create_drift_account())
-```
-
-
-## 🆕 New Tool Examples
-
-This section provides examples of how to use the new `CoingeckoManager` and `token_price_trader` tools.
-
-### Example 1: Using `CoingeckoManager` to Fetch Market Data
-
-This example demonstrates fetching trending tokens, token price data, and other market metrics using the `CoingeckoManager`.
-
-```python
-# coingecko_example.py
-import aiohttp
-import asyncio
-from agentipy.agent import SolanaAgentKit
-from agentipy.tools.use_coingecko import CoingeckoManager
-
-async def coingecko_example():
-    #Replace these with your actual values and keys
-    PRIVATE_KEY = ""
-    RPC_URL = "https://api.mainnet-beta.solana.com"
-    COINGECKO_API_KEY = "your_valid_pro_api_key_here"
-    COINGECKO_DEMO_API_KEY = ""
-
-    agent = SolanaAgentKit(
-        private_key=PRIVATE_KEY,
-        rpc_url=RPC_URL,
-        coingecko_api_key=COINGECKO_API_KEY,
-        coingecko_demo_api_key=COINGECKO_DEMO_API_KEY
-    )
-
-    token_address = "So11111111111111111111111111111111111111112"  # SOL
-    token_address_list = [token_address]
-
-    try:
-        trending_tokens_data = await CoingeckoManager.get_trending_tokens(agent)
-        print("\nTrending Tokens Data:")
-        print(trending_tokens_data)
-    except Exception as e:
-        print(f"Error with trending tokens: {e}")
-
-    try:
-        token_price_data = await CoingeckoManager.get_token_price_data(agent, token_address_list)
-        print("\nToken Price Data:")
-        print(token_price_data)
-    except Exception as e:
-        print(f"Error with token price data: {e}")
-
-    try:
-        trending_pools_data = await CoingeckoManager.get_trending_pools(agent)
-        print("\nTrending Pools Data:")
-        print(trending_pools_data)
-    except Exception as e:
-        print(f"Error with trending pools: {e}")
-
-    try:
-        top_gainers_data = await CoingeckoManager.get_top_gainers(agent)
-        print("\nTop Gainers Data:")
-        print(top_gainers_data)
-    except Exception as e:
-        print(f"Error with top gainers: {e}")
-
-    try:
-        token_info_data = await CoingeckoManager.get_token_info(agent, token_address)
-        print("\nToken Info Data:")
-        print(token_info_data)
-    except Exception as e:
-        print(f"Error with token info: {e}")
-
-    try:
-        latest_pools_data = await CoingeckoManager.get_latest_pools(agent)
-        print("\nLatest Pools Data:")
-        print(latest_pools_data)
-    except Exception as e:
-        print(f"Error with latest pools: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(coingecko_example())
-```
-
-Brief Explanation: This example uses CoingeckoManager to fetch and print data. It uses SolanaAgentKit to abstract away the underlying RPC calls. Replace the placeholder API keys with your actual CoinGecko API keys (free and/or pro).
-
-### Example 2: Using token_price_trader for Automated Trading
-
-This example provides a more comprehensive, self-contained demo to illustrate the TokenTrader tool. It includes:
-
-Price Fetching: Fetches token prices from Jupiter, Raydium, and DEX Screener.
-
-Balance Check: Checks SOL and token balances.
-
-Trade Execution: Allows the user to buy or sell tokens based on fetched prices, using the TradeManager and Jupiter.
-
-```python
-# token_price_trader.py
-import asyncio
-import aiohttp
-from solders.pubkey import Pubkey
-from agentipy.agent import SolanaAgentKit
-from agentipy.tools.get_token_data import TokenDataManager
-from agentipy.tools.trade import TradeManager
 from agentipy.tools.get_balance import BalanceFetcher
-from spl.token.async_client import AsyncToken
-from spl.token.constants import TOKEN_PROGRAM_ID
-
-# Known Solana Mint Addresses
-SOL_MINT = Pubkey.from_string("So11111111111111111111111111111111111111112")  # Wrapped SOL
-USDC_MINT = Pubkey.from_string("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")  # USDC on Solana
-WBTC_MINT = Pubkey.from_string("3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh")  # Wrapped BTC on Solana
-JUP_MINT = Pubkey.from_string("JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN")  # JUP token
-
-JUP_API = "https://quote-api.jup.ag/v6"  #
-RAYDIUM_API = "https://api.raydium.io/v2/main/price"
-DEXSCREENER_API = "https://api.dexscreener.com/latest/dex/tokens/"
-SLIPPAGE_BPS = 50
-PROBE_AMOUNT = 1 * 10**8  # 0.1 SOL in lamports for smaller probes
-PROBE_AMOUNT_JUP = 1 * 10**6  # 0.000001 SOL (very small for JUP liquidity)
-
-# Initialize SolanaAgentKit for mainnet
-agent = SolanaAgentKit(
-    private_key="",  # Replace with your mainnet private key
-    rpc_url="https://api.mainnet-beta.solana.com"  # Mainnet RPC endpoint
-)
-
-async def get_jupiter_quote(session, input_mint, output_mint, amount, retries=3):
-    """Fetch price quote from Jupiter v6 API."""
-    url = (
-        f"{JUP_API}/quote?"
-        f"inputMint={input_mint}&outputMint={output_mint}&amount={amount}"
-        f"&slippageBps={SLIPPAGE_BPS}"
-    )
-    for attempt in range(retries):
-        try:
-            async with session.get(url) as response:
-                # print(f"Jupiter Quote URL: {url}")
-                if response.status == 404:
-                    print(f"Jupiter: No quote available for {input_mint} -> {output_mint}")
-                    return None
-                if response.status != 200:
-                    # print(f"Jupiter: Error fetching quote: HTTP {response.status}")
-                    return None
-                data = await response.json()
-                # print(f"Jupiter Quote response: {data}")
-                return data
-        except Exception as e:
-            # print(f"Jupiter: Network error on attempt {attempt + 1}: {e}")
-            if attempt < retries - 1:
-                await asyncio.sleep(1)
-    return None
-
-async def get_raydium_price(session, token_mint):
-    """Fetch price from Raydium’s price endpoint."""
-    try:
-        async with session.get(RAYDIUM_API) as response:
-            if response.status != 200:
-                print(f"Raydium: Error fetching price: HTTP {response.status}")
-                return None
-            data = await response.json()
-            price = data.get(str(token_mint))
-            if price:
-                print(f"Raydium: Found price for {token_mint}: {price} SOL")
-                return float(price)
-            print(f"Raydium: No price found for {token_mint}")
-            return None
-    except Exception as e:
-        print(f"Raydium: Network error fetching price: {e}")
-        return None
-
-async def get_dexscreener_price(session, token_mint):
-    """Fetch price from DEX Screener for Solana pairs, focusing on Orca and Raydium."""
-    url = f"{DEXSCREENER_API}{token_mint}"
-    try:
-        async with session.get(url) as response:
-            if response.status != 200:
-                print(f"DEX Screener: Error fetching price: HTTP {response.status}")
-                return None
-            data = await response.json()
-            if not data.get("pairs"):
-                print(f"DEX Screener: No pairs found for {token_mint}")
-                return None
-            sol_pairs = [pair for pair in data["pairs"] if pair["chainId"] == "solana" and pair["quoteToken"]["address"] == str(SOL_MINT)]
-            prices = {}
-            for pair in sol_pairs:
-                dex = pair.get("dexId", "Unknown")
-                if dex in ["raydium", "orca"]:
-                    price_sol = float(pair.get("priceNative", 0))
-                    if price_sol > 0 and 0.001 < price_sol < 10:
-                        prices[dex] = price_sol
-            return prices if prices else None
-    except Exception as e:
-        print(f"DEX Screener: Network error fetching price: {e}")
-        return None
-
-async def get_token_decimals(mint):
-    """Fetch token decimals from RPC, defaulting to 9 if unavailable."""
-    decimals = 9  # Default for Wrapped SOL
-    if str(mint) != str(SOL_MINT):
-        try:
-            token = AsyncToken(agent.connection, mint, TOKEN_PROGRAM_ID, agent.wallet)
-            mint_info = await token.get_mint_info()
-            if mint_info is not None:
-                decimals = mint_info.decimals
-            else:
-                print(f"No mint info for {mint}, assuming 9 decimals")
-        except Exception as e:
-            print(f"Failed to fetch decimals for {mint}: {e}, assuming 9 decimals")
-    return decimals
-
-async def fetch_token_prices(ticker):
-    """Fetch current prices for a token across Jupiter, Raydium, and DEX Screener (Orca, Raydium)."""
-    ticker = ticker.upper()
-    if ticker == "SOL":
-        print("SOL is the native currency. Price is 1 SOL per SOL.")
-        return {"N/A": 1.0}, SOL_MINT, 9
-    elif ticker == "USDC":
-        token_mint = USDC_MINT
-    elif ticker == "BTC":
-        token_mint = WBTC_MINT
-    elif ticker == "JUP":
-        token_mint = JUP_MINT
-    else:
-        try:
-            token_data = TokenDataManager.get_token_data_by_ticker(ticker)
-            if token_data and token_data.address:
-                token_mint = Pubkey.from_string(token_data.address)
-                print(f"Resolved mint for {ticker}: {token_mint}")
-            else:
-                print(f"No Solana token found for '{ticker}'. Try SOL, USDC, BTC, or JUP.")
-                return None, None, None
-        except Exception as e:
-            print(f"Error resolving '{ticker}': {e}")
-            return None, None, None
-
-    decimals = await get_token_decimals(token_mint)
-    print(f"Decimals fetched: {decimals}")
-
-    prices = {}
-    async with aiohttp.ClientSession() as session:
-        # Jupiter Price (SOL -> Token)
-        amount = PROBE_AMOUNT if ticker not in ["JUP"] else PROBE_AMOUNT_JUP
-        jupiter_quote = await get_jupiter_quote(session, SOL_MINT, token_mint, amount)
-        if jupiter_quote and "outAmount" in jupiter_quote:
-            token_amount = int(jupiter_quote["outAmount"]) / 10**decimals
-            prices["Jupiter"] = (PROBE_AMOUNT if ticker not in ["JUP"] else PROBE_AMOUNT_JUP) / 10**9 / token_amount
-
-        # Raydium Price
-        raydium_price = await get_raydium_price(session, token_mint)
-        if raydium_price:
-            prices["Raydium"] = raydium_price
-
-        # DEX Screener Prices (Orca and Raydium only)
-        dexscreener_prices = await get_dexscreener_price(session, token_mint)
-        if dexscreener_prices:
-            prices.update(dexscreener_prices)
-
-    return prices, token_mint, decimals
-
-async def check_balance(token_mint=None):
-    """Check wallet balances, handling missing token accounts."""
-    sol_balance = await BalanceFetcher.get_balance(agent)
-    token_balance = 0
-    if token_mint:
-        if str(token_mint) == str(SOL_MINT):
-            token_balance = sol_balance
-        else:
-            try:
-                token_balance = await BalanceFetcher.get_balance(agent, token_mint)
-            except Exception as e:
-                print(f"Error fetching token balance: {e}")
-                token_balance = 0
-    print(f"Wallet Balances: SOL = {sol_balance or 0:.7f}, Token = {token_balance or 0:.7f}")
-    return sol_balance, token_balance
-
-async def trade_token(ticker):
-    """Handle trading logic for a given token ticker."""
-    print(f"\nFetching prices for {ticker}...")
-    prices, token_mint, decimals = await fetch_token_prices(ticker)
-
-    if not prices:
-        print(f"No prices available for {ticker} on Solana DEXs.")
-    else:
-        print("\nCurrent Prices (SOL per token):")
-        for dex, price in prices.items():
-            print(f"  {dex}: {price:.7f} SOL")
-
-    sol_balance, token_balance = await check_balance(token_mint)
-
-    action = input("\nEnter action (buy/sell/exit): ").lower()
-    if action == "exit":
-        return
-    elif action not in ["buy", "sell"]:
-        print("Invalid action.")
-        return
-
-    dex = input("Enter DEX (e.g., Jupiter, Raydium, Orca): ").capitalize()
-    if dex not in prices:
-        print(f"No price available on {dex}.")
-        return
-
-    amount = float(input("Enter amount (in tokens): "))
-    if amount <= 0:
-        print("Invalid amount.")
-        return
-
-    if action == "buy":
-        sol_amount = amount * prices[dex]
-        if sol_balance < sol_amount:
-            print("Insufficient SOL balance.")
-            return
-        print(f"Buying {amount:.7f} {ticker} for {sol_amount:.7f} SOL on {dex}")
-        signature = await TradeManager.trade(
-            agent=agent,
-            output_mint=token_mint,
-            input_amount=sol_amount,
-            input_mint=SOL_MINT,
-            slippage_bps=SLIPPAGE_BPS
-        )
-        print(f"Trade successful: https://explorer.solana.com/tx/{signature}")
-    elif action == "sell":
-        if token_balance < amount:
-            print("Insufficient token balance.")
-            return
-        expected_sol = prices[dex] * amount
-        print(f"Selling {amount:.7f} {ticker} for ~{expected_sol:.7f} SOL on {dex}")
-        signature = await TradeManager.trade(
-            agent=agent,
-            output_mint=SOL_MINT,
-            input_amount=amount,
-            input_mint=token_mint,
-            slippage_bps=SLIPPAGE_BPS
-        )
-        print(f"Trade successful: https://explorer.solana.com/tx/{signature}")
-
-    await check_balance(token_mint)
+import asyncio
 
 async def main():
-    print("Starting Solana Token Price Trader on Mainnet...")
-    while True:
-        ticker = input("\nEnter token ticker (or 'quit' to exit): ").upper()
-        if ticker == "QUIT":
-            break
-        await trade_token(ticker)
+    """
+    Quick Start Example: Get SOL Balance on Mainnet.
+    """
+    # **Important Security Note:**
+    # NEVER hardcode your private key directly into your code.
+    # Use environment variables or secure key management systems in production.
+    PRIVATE_KEY = "YOUR_PRIVATE_KEY_HERE"  # Replace with your actual private key (securely!)
+    WALLET_ADDRESS = "YOUR_WALLET_ADDRESS_HERE" # Replace with your actual wallet address
+
+    agent = SolanaAgentKit(
+        private_key=PRIVATE_KEY,
+        rpc_url="https://api.mainnet-beta.solana.com"  # Mainnet RPC endpoint
+    )
+
+    try:
+        balance_sol = await BalanceFetcher.get_balance(agent)
+        print(f"Wallet Balance for {WALLET_ADDRESS}: {balance_sol:.4f} SOL")
+        print("Successfully retrieved SOL balance!")
+
+    except Exception as e:
+        print(f"Error: Could not retrieve SOL balance: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+```
+## CoinGecko Market Data Metrics & Trending Tokens
+```python
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.use_coingecko import CoingeckoManager
+from agentipy.tools.get_token_data import TokenDataManager
+from solders.pubkey import Pubkey
+import asyncio
+
+async def main():
+    """
+    Quick Start Example:
+    1. Fetch Trending Tokens from CoinGecko.
+    2. Fetch and display data metrics for a user-specified token ticker.
+    """
+
+    agent = SolanaAgentKit(
+        private_key="",  # Private key not needed for this example
+        rpc_url="https://api.mainnet-beta.solana.com"
+    )
+
+    # -------------------------------------------------------------
+    # Section 1: Fetch and Display Trending Tokens (No API key needed)
+    # -------------------------------------------------------------
+    try:
+        trending_tokens_data = await CoingeckoManager.get_trending_tokens(agent)
+
+        if trending_tokens_data and 'coins' in trending_tokens_data:
+            print("Trending Tokens on CoinGecko:")
+            for token in trending_tokens_data['coins']:
+                print(f"- {token['item']['symbol']} ({token['item']['name']})")
+            print("\nSuccessfully fetched trending tokens!\n" + "-" * 40)
+        else:
+            print("No trending tokens data received.\n" + "-" * 40)
+
+    except Exception as e:
+        print(f"Error fetching trending tokens: {e}\n" + "-" * 40)
+
+    # -------------------------------------------------------------
+    # Section 2: Fetch and Display Data Metrics for User-Specified Ticker
+    # -------------------------------------------------------------
+    token_ticker = input("Enter a Token Ticker (e.g., SOL, USDC) to get its metrics: ").strip()
+
+    if token_ticker:
+        token_address = None
+        try:
+            resolved_address = TokenDataManager.get_token_address_from_ticker(token_ticker)
+            if resolved_address:
+                token_address = resolved_address
+                print(f"Resolved ticker '{token_ticker}' to Contract Address: {token_address}")
+            else:
+                raise ValueError(f"Could not resolve ticker '{token_ticker}' to a Contract Address.")
+
+            if token_address:
+                price_data = await CoingeckoManager.get_token_price_data(agent, [token_address])
+
+                if token_address in price_data and price_data[token_address]:
+                    token_info = price_data[token_address]
+
+                    print(f"\nData Metrics for {token_ticker.upper()} from CoinGecko:")
+                    print(f"- Current Price (USD): ${token_info['usd']:.4f}")
+                    print(f"- Market Cap (USD): ${token_info['usd_market_cap']:.2f}")
+                    print(f"- 24h Volume (USD): ${token_info['usd_24h_vol']:.2f}")
+                    print(f"- 24h Change (%): {token_info['usd_24h_change']:.2f}%")
+                    print(f"- Last Updated: {token_info['last_updated_at']}")
+                    print("\nSuccessfully fetched token data metrics!\n" + "-" * 40)
+
+                else:
+                    print(f"Could not retrieve price data for ticker: {token_ticker}.\n" + "-" * 40)
+
+            else:
+                print(f"Could not get token address for ticker: {token_ticker}.\n" + "-" * 40)
+
+
+        except Exception as e:
+            print(f"Error fetching data metrics for ticker '{token_ticker}': {e}\n" + "-" * 40)
+    else:
+        print("No token ticker entered.\n" + "-" * 40)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+## Jupiter Exchange SOL - USDC
+```python
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.trade import TradeManager
+from solders.pubkey import Pubkey
+import asyncio
+
+async def main():
+    """
+    Quick Start Example: Swap SOL for USDC on Jupiter Exchange .
+    """
+    # **!!! IMPORTANT SECURITY WARNING !!!**
+    # NEVER hardcode your private key directly into your code, ESPECIALLY for Mainnet.
+    # This is for demonstration purposes ONLY.
+    # In a real application, use environment variables, secure key vaults, or other
+    # secure key management practices.
+
+    PRIVATE_KEY = "YOUR_PRIVATE_KEY_HERE"  # ⚠️ REPLACE THIS SECURELY! ⚠️
+
+    agent = SolanaAgentKit(
+        private_key=PRIVATE_KEY,
+        rpc_url="https://api.mainnet-beta.solana.com"  # Mainnet RPC endpoint
+    )
+
+    # Mainnet Token Mint Addresses:
+    USDC_MINT = Pubkey.from_string("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+    SOL_MINT = Pubkey.from_string("So11111111111111111111111111111111111111112")
+
+    SWAP_AMOUNT_SOL = 0.0001
+
+    try:
+        print(f"Attempting to swap {SWAP_AMOUNT_SOL} SOL for USDC on Jupiter...")
+        transaction_signature = await TradeManager.trade(
+            agent=agent,
+            output_mint=USDC_MINT,
+            input_amount=SWAP_AMOUNT_SOL,
+            input_mint=SOL_MINT
+        )
+
+        print(f"Swap successful!")
+        print(f"Transaction Signature: https://explorer.solana.com/tx/{transaction_signature}")
+
+        await asyncio.sleep(1)  # 1-second delay to help with rate limits due to RPC Delay
+
+    except Exception as e:
+        print(f"Error: Swap failed: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+## Jupiter Exchange  USDC - SOL 
+```python
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.trade import TradeManager
+from solders.pubkey import Pubkey
+import asyncio
+
+async def main():
+    """
+    Quick Start Example: Swap SOL for USDC on Jupiter Exchange using AgentiPy.
+    """
+    # **!!! IMPORTANT SECURITY WARNING !!!**
+    # NEVER hardcode your private key directly into your code, ESPECIALLY for Mainnet.
+    # This is for demonstration purposes ONLY.
+    # In a real application, use environment variables, secure key vaults, or other
+    # secure key management practices.  Compromising your private key can lead to
+    # loss of funds.
+
+    PRIVATE_KEY = "YOUR_PRIVATE_KEY_HERE"  # ⚠️ REPLACE THIS SECURELY! ⚠️
+
+    agent = SolanaAgentKit(
+        private_key=PRIVATE_KEY,
+        rpc_url="https://api.mainnet-beta.solana.com"  # Mainnet RPC endpoint
+    )
+
+    USDC_MINT = Pubkey.from_string("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")  # Mainnet USDC
+    SOL_MINT = Pubkey.from_string("So11111111111111111111111111111111111111112")   # Mainnet SOL
+
+    SWAP_AMOUNT_SOL = 0.0001  # A tiny amount of SOL to swap for USDC (adjust as needed)
+
+    try:
+        print(f"Attempting to swap {SWAP_AMOUNT_SOL} SOL for USDC on Jupiter...")
+        transaction_signature = await TradeManager.trade(
+            agent=agent,
+            output_mint=USDC_MINT,  # output token is USDC (what you receive)
+            input_amount=SWAP_AMOUNT_SOL, # Amount of input token (SOL)
+            input_mint=SOL_MINT      # input token is SOL (what you send/give)
+        )
+
+        print(f"Swap successful!")
+        print(f"Transaction Signature: https://explorer.solana.com/tx/{transaction_signature}")
+
+    except Exception as e:
+        print(f"Error: Swap failed: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## 💡 Advanced Features and Best Practices
-
-AgentiPy supports custom protocol creation, as well as integrations with Langchain and Base tools, enabling you to extend functionality and build powerful AI-driven dApps.
-
-**1. Custom Protocol Creation:**
-
+---
+## Swap User-Specified Amount of SOL for User-Specified Token (Ticker or CA) 
 ```python
-from agentipy.base import ProtocolBase
-from agentipy.solana import SolanaClient
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.trade import TradeManager
+from agentipy.tools.use_coingecko import CoingeckoManager
+from agentipy.tools.get_token_data import TokenDataManager
+from solders.pubkey import Pubkey
+import asyncio
 
-class MyProtocol(ProtocolBase):
-    def custom_action(self):
-        pass
+async def main():
+    """
+    Quick Start Example:
+    1. Swap User-Specified Amount of SOL for User-Specified Token (Ticker or CA) on Jupiter.
+    2. Fetch and display token data metrics from CoinGecko before swap confirmation.
+    """
+    # **!!! IMPORTANT SECURITY WARNING !!!**
+    # NEVER hardcode your private key directly into your code, ESPECIALLY for Mainnet.
+    # This is for demonstration purposes ONLY.
+    # In a real application, use environment variables, secure key vaults, or other
+    # secure key management practices.
 
-solana = SolanaClient(private_key="your_private_key_here")  # Replace with secure key management
-solana.add_protocol(MyProtocol())
+    PRIVATE_KEY = "YOUR_PRIVATE_KEY_HERE"  # ⚠️ REPLACE THIS SECURELY! ⚠️
+
+    agent = SolanaAgentKit(
+        private_key=PRIVATE_KEY,
+        rpc_url="https://api.mainnet-beta.solana.com"  # Mainnet RPC endpoint
+    )
+
+    USDC_MINT = Pubkey.from_string("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")  # Mainnet USDC
+    SOL_MINT = Pubkey.from_string("So11111111111111111111111111111111111111112")   # Mainnet SOL
+
+    # -------------------------------------------------------------
+    # Section 1: Get User Input for Target Token and Swap Amount
+    # -------------------------------------------------------------
+    target_token_input = input("Enter Target Token Ticker (e.g., USDC, BONK) or Contract Address: ").strip()
+    swap_amount_sol_input = input("Enter Amount of SOL to Swap: ").strip()
+
+    target_token_address = None
+    target_token_symbol = None
+    swap_amount_sol = None
+
+    try:
+        swap_amount_sol = float(swap_amount_sol_input)
+        if swap_amount_sol <= 0:
+            raise ValueError("Swap amount must be greater than zero.")
+    except ValueError:
+        print("Invalid SOL amount entered. Please enter a positive number.")
+        return  # Exit if swap amount is invalid
+
+
+    try:
+        # Try to parse as a Pubkey (Contract Address)
+        Pubkey.from_string(target_token_input)
+        target_token_address = target_token_input
+        print(f"Interpreting input as Contract Address: {target_token_address}")
+    except ValueError:
+        # If not a valid Pubkey, assume it's a Ticker
+        print(f"Interpreting input as Token Ticker: {target_token_input}")
+        try:
+            resolved_address = TokenDataManager.get_token_address_from_ticker(target_token_input)
+            if resolved_address:
+                target_token_address = resolved_address
+                token_data = TokenDataManager.get_token_data_by_address(Pubkey.from_string(target_token_address))
+                if token_data:
+                    target_token_symbol = token_data.symbol
+                else:
+                    target_token_symbol = target_token_input.upper() # Fallback to ticker
+                print(f"Resolved ticker '{target_token_input}' to Contract Address: {target_token_address}")
+            else:
+                raise ValueError(f"Could not resolve ticker '{target_token_input}' to a Contract Address.")
+        except Exception as resolve_error:
+            print(f"Error resolving ticker: {resolve_error}")
+            print("Please ensure you entered a valid Token Ticker or Contract Address.")
+            return  # Exit if ticker resolution fails
+
+    if target_token_address and swap_amount_sol is not None:
+        # -------------------------------------------------------------
+        # Section 2: Fetch and Display Token Data Metrics from CoinGecko
+        # -------------------------------------------------------------
+        try:
+            price_data = await CoingeckoManager.get_token_price_data(agent, [target_token_address])
+
+            if target_token_address in price_data and price_data[target_token_address]:
+                token_info = price_data[target_token_address]
+                display_symbol = target_token_symbol if target_token_symbol else target_token_input.upper()
+
+                print(f"\nData Metrics for {display_symbol} ({target_token_address}) from CoinGecko:")
+                print(f"- Current Price (USD): ${token_info['usd']:.4f}")
+                print(f"- Market Cap (USD): ${token_info['usd_market_cap']:.2f}")
+                print(f"- 24h Volume (USD): ${token_info['usd_24h_vol']:.2f}")
+                print(f"- 24h Change (%): {token_info['usd_24h_change']:.2f}%")
+                print(f"- Last Updated: {token_info['last_updated_at']}")
+                print("-" * 40)
+
+                # -------------------------------------------------------------
+                # Section 3: Confirm Swap with User
+                # -------------------------------------------------------------
+                confirmation = input(f"\nConfirm swap of {swap_amount_sol} SOL for {display_symbol}? (yes/no): ").lower()
+                if confirmation == "yes":
+                    try:
+                        print(f"Attempting to swap {swap_amount_sol} SOL for {display_symbol} on Jupiter...")
+                        transaction_signature = await TradeManager.trade(
+                            agent=agent,
+                            output_mint=Pubkey.from_string(target_token_address), 
+                            input_amount=swap_amount_sol, 
+                            input_mint=SOL_MINT
+                        )
+
+                        print(f"Swap successful!")
+                        print(f"Transaction Signature: https://explorer.solana.com/tx/{transaction_signature}")
+                        await asyncio.sleep(1) 
+
+                    except Exception as swap_error:
+                        print(f"Error: Swap failed: {swap_error}")
+                else:
+                    print("Swap cancelled by user.")
+
+            else:
+                print(f"Could not retrieve price data for {target_token_input} from CoinGecko.")
+        except Exception as e:
+            print(f"Error fetching token data metrics: {e}")
+    else:
+        print("No valid Token Ticker or Contract Address provided, or invalid swap amount.")
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-**2. Langchain Integration:**
+# 2. Langchain Integration:**
 AgentiPy can be seamlessly integrated with Langchain, a powerful framework for building language model-powered applications. This enables you to create intelligent agents that can understand natural language instructions, reason about blockchain data, and execute complex on-chain actions.
 
 * Natural Language Command Interpretation: Use Langchain's language models (LLMs) to parse user instructions and map them to AgentiPy tool calls.
@@ -807,7 +491,7 @@ AgentiPy can be seamlessly integrated with Langchain, a powerful framework for b
 
 * Enhanced Decision-Making: Leverage LLMs to analyze blockchain data (e.g., token prices, market conditions) and make intelligent trading or DeFi decisions.
 
-Example (Illustrative):
+**Example:**
 ```python
 from langchain.llms import OpenAI  # Or any other Langchain LLM
 from agentipy.agent import SolanaAgentKit
@@ -823,7 +507,7 @@ agent = SolanaAgentKit(
 # Define a trading prompt
 prompt = "Buy 1 SOL of USDC"
 
-# Example - Basic text prompt (replace with more sophisticated agent logic)
+# Example - Basic text prompt 
 action = llm(prompt)  # Get action from the language model
 
 # Simplified trade example
