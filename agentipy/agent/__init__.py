@@ -2119,3 +2119,29 @@ class SolanaAgentKit:
             return await ElfaAiManager.get_smart_twitter_account_stats(self, username)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to get smart Twitter account stats: {e}")
+    
+    async def fluxbeam_create_pool(
+        self,
+        token_a: Pubkey,
+        token_a_amount: float,
+        token_b: Pubkey,
+        token_b_amount: float
+    ) -> str:
+        """
+        Create a new pool using FluxBeam.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            token_a (Pubkey): Token mint address of the first token.
+            token_a_amount (float): Amount to swap (in token decimals).
+            token_b (Pubkey): Token mint address of the second token.
+            token_b_amount (float): Amount to swap (in token decimals).
+
+        Returns:
+            str: Transaction signature.
+        """
+        from agentipy.tools.use_fluxbeam import FluxBeamManager
+        try:
+            return await FluxBeamManager.fluxbeam_create_pool(self, token_a, token_a_amount, token_b, token_b_amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create pool using FluxBeam: {e}")
