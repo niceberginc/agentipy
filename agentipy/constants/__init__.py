@@ -40,3 +40,4 @@ SYSTEM_RENT = Pubkey.from_string("SysvarRent111111111111111111111111111111111")
 BASE_PROXY_URL = "https://api.agentipy.fun"
 API_VERSION = "v1"
 DEBRIDGE_API_URL = "https://dln.debridge.finance/v1.0"
+ELFA_AI_BASE_URL = "https://api.elfa.ai"
