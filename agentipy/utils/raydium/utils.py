@@ -14,6 +14,7 @@ from solders.pubkey import Pubkey as PublicKey  # type: ignore
 from solders.signature import Signature  # type: ignore
 
 from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
 
 from .constants import (OPEN_BOOK_PROGRAM, RAY_AUTHORITY_V4, RAY_V4,
                         TOKEN_PROGRAM_ID, WSOL)
@@ -24,12 +25,30 @@ from .types import AccountMeta, PoolKeys
 logger = logging.getLogger(__name__)
 
 def fetch_pool_keys(client: AsyncClient, pair_address: str) -> Optional[PoolKeys]:
+    """
+    Fetches pool keys for a given Raydium pair address.
+    
+    Args:
+        client: AsyncClient instance for RPC connection
+        pair_address: Address of the Raydium pair
+        
+    Returns:
+        Optional[PoolKeys]: Pool keys if successful, None otherwise
+    """
+    schema = {
+        "pair_address": {"type": str, "required": True}
+    }
     try:
+        validate_input({"pair_address": pair_address}, schema)
         amm_id = PublicKey.from_string(pair_address)
         amm_data = client.get_account_info_json_parsed(amm_id, commitment=Processed)
+        if not amm_data:
+            raise ValueError(f"No AMM data found for pair address: {pair_address}")
         amm_data_decoded = LIQUIDITY_STATE_LAYOUT_V4.parse(amm_data)
         marketId = PublicKey.from_bytes(amm_data_decoded.serumMarket)
         marketInfo = client.get_account_info_json_parsed(marketId, commitment=Processed)
+        if not marketInfo:
+            raise ValueError(f"No market data found for market ID: {marketId}")
         market_decoded = MARKET_STATE_LAYOUT_V3.parse(marketInfo)
         vault_signer_nonce = market_decoded.vault_signer_nonce
 
@@ -66,8 +85,22 @@ def bytes_of(value):
     return struct.pack('<Q', value)
 
 def get_pair_address_from_api(mint):
-    url = f"https://api-v3.raydium.io/pools/info/mint?mint1={mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=1&page=1"
+    """
+    Fetches pair address from Raydium API.
+    
+    Args:
+        mint: Token mint address
+        
+    Returns:
+        Optional[str]: Pair address if found, None otherwise
+    """
+    schema = {
+        "mint": {"type": str, "required": True}
+    }
+    
     try:
+        validate_input({"mint": mint}, schema)
+        url = f"https://api-v3.raydium.io/pools/info/mint?mint1={mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=1&page=1"
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
@@ -125,7 +158,30 @@ def make_swap_instruction(
         accounts: PoolKeys,
         owner:Keypair
 ) -> Instruction:
+    """
+    Creates a swap instruction for Raydium.
+    
+    Args:
+        amount_in: Amount of input token
+        minimum_amount_out: Minimum amount of output token
+        token_account_in: Input token account
+        token_account_out: Output token account
+        accounts: Pool keys
+        owner: Owner keypair
+        
+    Returns:
+        Optional[Instruction]: Swap instruction if successful, None otherwise
+    """
+    schema = {
+        "amount_in": {"type": int, "required": True},
+        "minimum_amount_out": {"type": int, "required": True},
+    }
     try:
+        validate_input({
+            "amount_in": amount_in,
+            "minimum_amount_out": minimum_amount_out
+        }, schema)
+        
         keys = [
             AccountMeta(pubkey=TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
             AccountMeta(pubkey=accounts.amm_id, is_signer=False, is_writable=True),
@@ -159,7 +215,21 @@ def make_swap_instruction(
         return None
 
 def get_token_balance(agent: SolanaAgentKit, mint_str: str) -> float | None:
+    """
+    Gets token balance for a given mint.
+    
+    Args:
+        agent: SolanaAgentKit instance
+        mint_str: Token mint address
+        
+    Returns:
+        Optional[float]: Token balance if found, None otherwise
+    """
+    schema = {
+        "mint_str": {"type": str, "required": True}
+    }
     try:
+        validate_input({"mint_str": mint_str}, schema)
         mint = PublicKey.from_string(mint_str)
         response = agent.connection.get_account_info_json_parsed(
             agent.wallet_address,
@@ -201,6 +271,19 @@ def confirm_txn(client: AsyncClient, txn_sig: Signature, max_retries: int = 20, 
     return None
 
 def get_token_reserves(client: AsyncClient, pool_keys: PoolKeys) -> tuple:
+    """
+    Gets token reserves for a Raydium pool.
+    
+    Args:
+        client: AsyncClient instance for RPC connection
+        pool_keys: PoolKeys instance containing pool information
+        
+    Returns:
+        tuple: (base_reserve, quote_reserve, token_decimal) or (None, None, None) on error
+        
+    Raises:
+        ValueError: If pool_keys is invalid
+    """
     try:
         base_vault = pool_keys.base_vault
         quote_vault = pool_keys.quote_vault
