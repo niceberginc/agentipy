@@ -6913,6 +6913,48 @@ class ElfaAiGetSmartTwitterAccountStatsTool(BaseTool):
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
+class FluxBeamCreatePoolTool(BaseTool):
+    name: str = "fluxbeam_create_pool"
+    description: str = """
+    Creates a new pool using FluxBeam with FluxBeamManager.
+
+    Input: A JSON string with:
+    {
+        "token_a": "string, the mint address of the first token",
+        "token_a_amount": "float, the amount to swap (in token decimals)",
+        "token_b": "string, the mint address of the second token",
+        "token_b_amount": "float, the amount to swap (in token decimals)"
+    }
+    Output:
+    {
+        "transaction_signature": "string, the transaction signature",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction_signature = await self.agent_kit.fluxbeam_create_pool(
+                token_a=Pubkey.from_string(data["token_a"]),
+                token_a_amount=data["token_a_amount"],
+                token_b=Pubkey.from_string(data["token_b"]),
+                token_b_amount=data["token_b_amount"]
+            )
+            return {
+                "transaction_signature": transaction_signature,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction_signature": None,
+                "message": f"Error creating pool using FluxBeam: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
 
 def create_solana_tools(solana_kit: SolanaAgentKit):
     return [
@@ -7074,6 +7116,7 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         ElfaAiGetTopMentionsByTickerTool(agent_kit=solana_kit),
         ElfaAiSearchMentionsByKeywordsTool(agent_kit=solana_kit),
         ElfaAiGetTrendingTokensTool(agent_kit=solana_kit),
-        ElfaAiGetSmartTwitterAccountStatsTool(agent_kit=solana_kit)
+        ElfaAiGetSmartTwitterAccountStatsTool(agent_kit=solana_kit),
+        FluxBeamCreatePoolTool(agent_kit=solana_kit)
     ]
 

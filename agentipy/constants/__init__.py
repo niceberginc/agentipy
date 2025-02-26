@@ -37,7 +37,13 @@ SYSTEM_TOKEN_PROGRAM = Pubkey.from_string("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss62
 SYSTEM_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM = Pubkey.from_string("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
 SYSTEM_RENT = Pubkey.from_string("SysvarRent111111111111111111111111111111111")
 
+# Agentipy Antidote Base URL
 BASE_PROXY_URL = "https://api.agentipy.fun"
+# Agentipy Antidote Api Version
 API_VERSION = "v1"
+# Debridge API URL
 DEBRIDGE_API_URL = "https://dln.debridge.finance/v1.0"
+# Elfa AI Base URL
 ELFA_AI_BASE_URL = "https://api.elfa.ai"
+# FluxBeam Base URI
+FLUXBEAM_BASE_URI = "https://api.fluxbeam.xyz/v1"
