@@ -48,6 +48,7 @@ class SolanaAgentKit:
         coingecko_api_key: Optional[str] = None,
         coingecko_demo_api_key: Optional[str] = None,
         elfa_ai_api_key: Optional[str] = None,
+        flexland_api_key : Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -77,6 +78,7 @@ class SolanaAgentKit:
         self.coingecko_api_key = coingecko_api_key or os.getenv("COINGECKO_PRO_API_KEY", "")
         self.coingecko_demo_api_key = coingecko_demo_api_key or os.getenv("COINGECKO_DEMO_API_KEY", "")
         self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
+        self.flexland_api_key = flexland_api_key or os.getenv("FLEXLAND_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
@@ -145,12 +147,48 @@ class SolanaAgentKit:
             raise SolanaAgentKitError(f"Failed to trade: {e}")
 
     async def lend_assets(self, amount: float):
-        from agentipy.tools.lend import AssetLender
+        from agentipy.tools.use_lulo import LuloManager
         try:
-            return await AssetLender.lend_asset(self, amount)
+            return await LuloManager.lend_asset(self, amount)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to lend asset: {e}")
+    
+    async def lulo_lend(self, mint_address: Pubkey, amount: float) -> str:
+        """
+        Lend tokens for yields using Lulo.
 
+        Args:
+            agent (SolanaAgentKit): SolanaAgentKit instance.
+            mint_address (Pubkey): SPL Mint address.
+            amount (float): Amount to lend.
+
+        Returns:
+            str: Transaction signature.
+        """
+        from agentipy.tools.use_lulo import LuloManager
+        try:
+            return await LuloManager.lulo_lend(self, mint_address, amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to lend asset: {e}")
+        
+    async def lulo_withdraw(self, mint_address: Pubkey, amount: float) -> str:
+        """
+        Withdraw tokens for yields using Lulo.
+
+        Args:
+            agent (SolanaAgentKit): SolanaAgentKit instance.
+            mint_address (Pubkey): SPL Mint address.
+            amount (float): Amount to withdraw.
+
+        Returns:
+            str: Transaction signature.
+        """
+        from agentipy.tools.use_lulo import LuloManager
+        try:
+            return await LuloManager.lulo_withdraw(self, mint_address, amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to withdraw asset: {e}")
+        
     async def get_tps(self):
         from agentipy.tools.get_tps import SolanaPerformanceTracker
         try:
