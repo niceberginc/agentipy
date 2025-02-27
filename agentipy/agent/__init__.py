@@ -47,6 +47,8 @@ class SolanaAgentKit:
         stork_api_key: Optional[str] = None,
         coingecko_api_key: Optional[str] = None,
         coingecko_demo_api_key: Optional[str] = None,
+        elfa_ai_api_key: Optional[str] = None,
+        flexland_api_key : Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -75,6 +77,8 @@ class SolanaAgentKit:
         self.stork_api_key = stork_api_key or os.getenv("STORK_API_KEY", "")
         self.coingecko_api_key = coingecko_api_key or os.getenv("COINGECKO_PRO_API_KEY", "")
         self.coingecko_demo_api_key = coingecko_demo_api_key or os.getenv("COINGECKO_DEMO_API_KEY", "")
+        self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
+        self.flexland_api_key = flexland_api_key or os.getenv("FLEXLAND_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
@@ -143,12 +147,48 @@ class SolanaAgentKit:
             raise SolanaAgentKitError(f"Failed to trade: {e}")
 
     async def lend_assets(self, amount: float):
-        from agentipy.tools.lend import AssetLender
+        from agentipy.tools.use_lulo import LuloManager
         try:
-            return await AssetLender.lend_asset(self, amount)
+            return await LuloManager.lend_asset(self, amount)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to lend asset: {e}")
+    
+    async def lulo_lend(self, mint_address: Pubkey, amount: float) -> str:
+        """
+        Lend tokens for yields using Lulo.
 
+        Args:
+            agent (SolanaAgentKit): SolanaAgentKit instance.
+            mint_address (Pubkey): SPL Mint address.
+            amount (float): Amount to lend.
+
+        Returns:
+            str: Transaction signature.
+        """
+        from agentipy.tools.use_lulo import LuloManager
+        try:
+            return await LuloManager.lulo_lend(self, mint_address, amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to lend asset: {e}")
+        
+    async def lulo_withdraw(self, mint_address: Pubkey, amount: float) -> str:
+        """
+        Withdraw tokens for yields using Lulo.
+
+        Args:
+            agent (SolanaAgentKit): SolanaAgentKit instance.
+            mint_address (Pubkey): SPL Mint address.
+            amount (float): Amount to withdraw.
+
+        Returns:
+            str: Transaction signature.
+        """
+        from agentipy.tools.use_lulo import LuloManager
+        try:
+            return await LuloManager.lulo_withdraw(self, mint_address, amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to withdraw asset: {e}")
+        
     async def get_tps(self):
         from agentipy.tools.get_tps import SolanaPerformanceTracker
         try:
@@ -1978,3 +2018,168 @@ class SolanaAgentKit:
             return await CoingeckoManager.get_latest_pools(self)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to fetch latest pools: {e}")
+        
+    async def ping_elfa_ai_api(self) -> dict :
+        """
+        Ping the Elfa AI API.
+
+        Returns:
+            dict: API response.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.ping_elfa_ai_api(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to ping Elfa AI API: {e}")
+        
+    async def get_elfa_ai_api_key_status(self) -> dict :
+        """
+        Get the Elfa AI API key status.
+
+        Returns:
+            dict: API key status.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_elfa_ai_api_key_status(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get Elfa AI API key status: {e}")
+        
+    async def get_smart_mentions(self, limit: int = 100, offset: int = 0) -> dict:
+        """
+        Get smart mentions from Elfa AI.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            limit (int): Number of mentions to retrieve.
+            offset (int): Offset for pagination.
+
+        Returns:
+            dict: Mentions data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_smart_mentions(self, limit, offset)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get smart mentions: {e}")
+        
+    async def get_top_mentions_by_ticker(self, ticker: str,
+        time_window: str = "1h",
+        page: int = 1,
+        page_size: int = 10,
+        include_account_details: bool = False
+        ) -> dict:
+        """
+        Get top mentions by ticker.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            ticker (str): The ticker symbol.
+            time_window (str): The time window for mentions.
+            page (int): Page number.
+            page_size (int): Number of results per page.
+            include_account_details (bool): Whether to include account details.
+
+        Returns:
+            dict: Mentions data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_top_mentions_by_ticker(self, ticker, time_window, page, page_size, include_account_details)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get top mentions by ticker: {e}")
+        
+    async def search_mentions_by_keywords(
+        self,keywords: str,
+        from_timestamp: int,
+        to_timestamp: int,
+        limit: int = 20,
+        cursor: str = None) -> dict:
+        """
+        Search mentions by keywords.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            keywords (str): Keywords for search.
+            from_timestamp (int): Start timestamp.
+            to_timestamp (int): End timestamp.
+            limit (int): Number of results to fetch.
+            cursor (str): Optional cursor for pagination.
+
+        Returns:
+            dict: Search results.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.search_mentions_by_keywords(self, keywords, from_timestamp, to_timestamp, limit, cursor)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to search mentions by keywords: {e}")
+        
+    async def get_trending_tokens_using_elfa_ai(
+        self,
+        time_window: str = "24h",
+        page: int = 1,
+        page_size: int = 50,
+        min_mentions: int = 5
+    ) -> dict:
+        """
+        Get trending tokens using Elfa AI.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            time_window (str): Time window for trending tokens.
+            page (int): Page number.
+            page_size (int): Number of results per page.
+            min_mentions (int): Minimum number of mentions required.
+
+        Returns:
+            dict: Trending tokens data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_trending_tokens_using_elfa_ai(self, time_window, page, page_size, min_mentions)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get trending tokens using Elfa AI: {e}")
+        
+    async def get_smart_twitter_account_stats(self, username: str) -> dict:
+        """
+        Get smart Twitter account stats.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            username (str): The Twitter username.
+
+        Returns:
+            dict: Account statistics data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_smart_twitter_account_stats(self, username)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get smart Twitter account stats: {e}")
+    
+    async def fluxbeam_create_pool(
+        self,
+        token_a: Pubkey,
+        token_a_amount: float,
+        token_b: Pubkey,
+        token_b_amount: float
+    ) -> str:
+        """
+        Create a new pool using FluxBeam.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            token_a (Pubkey): Token mint address of the first token.
+            token_a_amount (float): Amount to swap (in token decimals).
+            token_b (Pubkey): Token mint address of the second token.
+            token_b_amount (float): Amount to swap (in token decimals).
+
+        Returns:
+            str: Transaction signature.
+        """
+        from agentipy.tools.use_fluxbeam import FluxBeamManager
+        try:
+            return await FluxBeamManager.fluxbeam_create_pool(self, token_a, token_a_amount, token_b, token_b_amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create pool using FluxBeam: {e}")
