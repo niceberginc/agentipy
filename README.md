@@ -67,6 +67,8 @@ agent = SolanaAgentKit(
 
 # Create LangChain tools
 tools = create_solana_tools(agent)
+
+# Note: LangChain currently supports a maximum of 126 tools.
 ```
 
 ## Usage Examples
