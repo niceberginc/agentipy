@@ -99,9 +99,40 @@ Important Security Note: Never hardcode your private key directly into your code
 
 ## Transfer SOL/SPL: Easily send tokens.
 ```python
-from agentipy.agent import SolanaAgentKit
+from agentipy import SolanaAgentKit, create_solana_tools
 from agentipy.tools.transfer import TokenTransferManager
+
+# Initialize with private key and optional RPC URL
+agent = SolanaAgentKit(
+    "your-wallet-private-key-as-base58",
+    "https://api.mainnet-beta.solana.com",
+    "your-openai-api-key"
+)
+
+# Create LangChain tools
+tools = create_solana_tools(agent)
+
+# Note: LangChain currently supports a maximum of 126 tools.
+
+## Usage Examples
+
+### Fetch price of a token
+
+async def main():
+    # Initialize the SolanaAgentKit
+    agent = SolanaAgentKit(
+        "your-wallet-private-key-as-base58",
+        "https://api.mainnet-beta.solana.com",
+        "your-openai-api-key"
+    )
+
+    # Fetch price
+    price = await agent.fetch_price("FKMKctiJnbZKL16pCmR7ig6bvjcMJffuUMjB97YD7LJs")
+    print(f"Price: {price} SOL")
+
+# Run the async function
 import asyncio
+asyncio.run(main())
 
 async def main():
     """
