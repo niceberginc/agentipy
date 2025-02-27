@@ -2,7 +2,7 @@
 
 AgentiPy is a Python toolkit designed to empower AI agents to interact seamlessly with blockchain applications, focusing on Solana and Base. It simplifies the development of decentralized applications (dApps) by providing tools for token management, NFT handling, and more. With a focus on ease of use and powerful functionality, AgentiPy allows developers to create robust and sophisticated blockchain-based solutions, leveraging AI-driven workflows.
 
-[<img src="https://img.shields.io/github.com/niceberginc/agentipy/agentipy?style=social" alt="GitHub Stars">](hhttps://github.com/niceberginc/agentipy/agentipy)
+[<img src="https://img.shields.io/github/stars/niceberginc/agentipy?style=social" alt="GitHub Stars">](hhttps://github.com/niceberginc/agentipy/agentipy)
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">](https://github.com/niceberginc/agentipy/agentipy/blob/main/LICENSE)
 
 ## 🚀 Introduction
@@ -482,7 +482,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-# 2. Langchain Integration:**
+# 2. Langchain Integration:
 AgentiPy can be seamlessly integrated with Langchain, a powerful framework for building language model-powered applications. This enables you to create intelligent agents that can understand natural language instructions, reason about blockchain data, and execute complex on-chain actions.
 
 * Natural Language Command Interpretation: Use Langchain's language models (LLMs) to parse user instructions and map them to AgentiPy tool calls.
@@ -522,34 +522,6 @@ except Exception as e:
     print(f"Error processing trade: {e}")
 ```
 
-**3. Using Base Tools:**
-* Use Base tools and functions to have a better management
-```python
-from agentipy.base import BaseClient
-
-# Replace with your private key (DO NOT HARDCODE IN PRODUCTION - use environment variables!)
-base = BaseClient()
-
-#Create a wallet
-new_wallet = base.create_wallet()
-print(f"Wallet address: {new_wallet.address} and Private Key: {new_wallet.privateKey}")
-
-# Get base balance
-balance = base.get_balance("your_wallet_address")
-print(f"Balance: {balance} base")
-
-# Transfer 1 base to a recipient
-transaction = base.transfer_base(to_address="recipient_wallet_address", amount=1.0)
-print("Transaction Successful {transaction.hash}")
-```
-
-Error handling is crucial for robust applications:
-```python
-try:
-    solana.transfer_sol(to_address="invalid_address", amount=1.0)
-except ValueError as e:
-    print(f"Error: {e}")
-```
 
 ### 🤝  Community Engagement and Contribution
 AgentiPy encourages community contributions, with developers invited to fork the repository at [github.com/niceberginc/agentipy/](https://github.com/niceberginc/agentipy/), submit pull requests, and report issues via GitHub Issues. This collaborative approach fosters continuous improvement and innovation within the ecosystem.
