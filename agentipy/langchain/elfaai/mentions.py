@@ -1,68 +1,8 @@
 import json
-from agentipy.agent import SolanaAgentKit
 from langchain.tools import BaseTool
-
+from agentipy.agent import SolanaAgentKit
 from agentipy.helpers import validate_input
 
-class ElfaAiPingApiTool(BaseTool):
-    name: str = "elfa_ai_ping_api"
-    description: str = """
-    Pings the Elfa AI API using ElfaAiManager.
-
-    Input: None
-    Output:
-    {
-        "api_response": "dict, the response from Elfa AI API",
-        "message": "string, if an error occurs"
-    }
-    """
-    agent_kit: SolanaAgentKit
-
-    async def _arun(self):
-        try:
-            api_response = await self.agent_kit.ping_elfa_ai_api()
-            return {
-                "api_response": api_response,
-                "message": "Success"
-            }
-        except Exception as e:
-            return {
-                "api_response": None,
-                "message": f"Error pinging Elfa AI API: {str(e)}"
-            }
-
-    def _run(self):
-        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-
-class ElfaAiGetApiKeyStatusTool(BaseTool):
-    name: str = "elfa_ai_get_api_key_status"
-    description: str = """
-    Retrieves the status of the Elfa AI API key using ElfaAiManager.
-
-    Input: None
-    Output:
-    {
-        "api_key_status": "dict, the status of the API key",
-        "message": "string, if an error occurs"
-    }
-    """
-    agent_kit: SolanaAgentKit
-
-    async def _arun(self):
-        try:
-            api_key_status = await self.agent_kit.get_elfa_ai_api_key_status()
-            return {
-                "api_key_status": api_key_status,
-                "message": "Success"
-            }
-        except Exception as e:
-            return {
-                "api_key_status": None,
-                "message": f"Error fetching Elfa AI API key status: {str(e)}"
-            }
-
-    def _run(self):
-        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class ElfaAiGetSmartMentionsTool(BaseTool):
     name: str = "elfa_ai_get_smart_mentions"
@@ -106,6 +46,7 @@ class ElfaAiGetSmartMentionsTool(BaseTool):
 
     def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
 
 class ElfaAiGetTopMentionsByTickerTool(BaseTool):
     name: str = "elfa_ai_get_top_mentions_by_ticker"
@@ -211,105 +152,3 @@ class ElfaAiSearchMentionsByKeywordsTool(BaseTool):
 
     def _run(self):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-
-class ElfaAiGetTrendingTokensTool(BaseTool):
-    name: str = "elfa_ai_get_trending_tokens"
-    description: str = """
-    Fetches trending tokens using Elfa AI with ElfaAiManager.
-
-    Input: A JSON string with:
-    {
-        "time_window": "string, optional, the time window for trending tokens (default: '24h')",
-        "page": "int, optional, the page number (default: 1)",
-        "page_size": "int, optional, the number of results per page (default: 50)",
-        "min_mentions": "int, optional, the minimum number of mentions required (default: 5)"
-    }
-    Output:
-    {
-        "trending_tokens": "dict, the trending tokens data",
-        "message": "string, if an error occurs"
-    }
-    """
-    agent_kit: SolanaAgentKit
-
-    async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
-            schema = {
-                "time_window": {"type": str, "required": False},
-                "page": {"type": int, "required": False},
-                "page_size": {"type": int, "required": False},
-                "min_mentions": {"type": int, "required": False}
-            }
-            validate_input(data, schema)
-            trending_tokens = await self.agent_kit.get_trending_tokens_using_elfa_ai(
-                time_window=data.get("time_window", "24h"),
-                page=data.get("page", 1),
-                page_size=data.get("page_size", 50),
-                min_mentions=data.get("min_mentions", 5)
-            )
-            return {
-                "trending_tokens": trending_tokens,
-                "message": "Success"
-            }
-        except Exception as e:
-            return {
-                "trending_tokens": None,
-                "message": f"Error fetching trending tokens using Elfa AI: {str(e)}"
-            }
-
-    def _run(self):
-        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-
-class ElfaAiGetSmartTwitterAccountStatsTool(BaseTool):
-    name: str = "elfa_ai_get_smart_twitter_account_stats"
-    description: str = """
-    Retrieves smart Twitter account statistics using ElfaAiManager.
-
-    Input: A JSON string with:
-    {
-        "username": "string, the Twitter username"
-    }
-    Output:
-    {
-        "account_stats": "dict, the Twitter account statistics",
-        "message": "string, if an error occurs"
-    }
-    """
-    agent_kit: SolanaAgentKit
-
-    async def _arun(self, input: str):
-        try:
-            data = json.loads(input)
-            schema = {
-                "username": {"type": str, "required": True}
-            }
-            validate_input(data, schema)
-            account_stats = await self.agent_kit.get_smart_twitter_account_stats(
-                username=data["username"]
-            )
-            return {
-                "account_stats": account_stats,
-                "message": "Success"
-            }
-        except Exception as e:
-            return {
-                "account_stats": None,
-                "message": f"Error fetching smart Twitter account stats: {str(e)}"
-            }
-
-    def _run(self):
-        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
-
-
-def get_elfaai_tools(solana_kit: SolanaAgentKit):
-    return [
-        ElfaAiPingApiTool(solana_kit=solana_kit),
-        ElfaAiGetApiKeyStatusTool(solana_kit=solana_kit),
-        ElfaAiGetSmartMentionsTool(solana_kit=solana_kit),
-        ElfaAiGetTopMentionsByTickerTool(solana_kit=solana_kit),
-        ElfaAiSearchMentionsByKeywordsTool(solana_kit=solana_kit),
-        ElfaAiGetTrendingTokensTool(solana_kit=solana_kit),
-        ElfaAiGetSmartTwitterAccountStatsTool(solana_kit=solana_kit)
-    ]
-
