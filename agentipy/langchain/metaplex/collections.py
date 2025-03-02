@@ -118,3 +118,54 @@ class SolanaGetMetaplexAssetsByAuthorityTool(BaseTool):
 
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class SolanaDeployCollectionTool(BaseTool):
+    name: str = "solana_deploy_collection"
+    description: str = """
+    Deploys an NFT collection using the Metaplex program.
+
+    Input: A JSON string with:
+    {
+        "name": "string, the name of the NFT collection",
+        "uri": "string, the metadata URI",
+        "royalty_basis_points": "int, royalty percentage in basis points (e.g., 500 for 5%)",
+        "creator_address": "string, the creator's public key"
+    }
+
+    Output:
+    {
+        "success": "bool, whether the operation was successful",
+        "value": "string, the transaction signature if successful",
+        "message": "string, additional details or error information"
+    }
+    """
+    solana_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            schema = {
+                "name": {"type": str, "required": True},
+                "uri": {"type": str, "required": True},
+                "royalty_basis_points": {"type": int, "required": True, "min": 0, "max": 10000},
+                "creator_address": {"type": str, "required": True}
+            }
+            validate_input(data, schema)
+
+            name = data["name"]
+            uri = data["uri"]
+            royalty_basis_points = data["royalty_basis_points"]
+            creator_address = data["creator_address"]
+
+            result = await self.solana_kit.deploy_collection(
+                name=name,
+                uri=uri,
+                royalty_basis_points=royalty_basis_points,
+                creator_address=creator_address,
+            )
+            return result
+        except Exception as e:
+            return {"success": False, "message": f"Error deploying collection: {str(e)}"}
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")

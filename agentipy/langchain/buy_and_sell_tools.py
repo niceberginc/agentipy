@@ -122,3 +122,8 @@ class SolanaSellTokenTool(BaseTool):
     def _run(self):
         raise NotImplementedError("This tool only supports async execution.")
 
+def get_buy_and_sell_tools(solana_kit: SolanaAgentKit):
+    return [
+        SolanaBuyTokenTool(solana_kit=solana_kit),
+        SolanaSellTokenTool(solana_kit=solana_kit),
+    ]
