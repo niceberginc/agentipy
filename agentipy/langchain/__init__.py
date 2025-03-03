@@ -7142,7 +7142,7 @@ class AlloraGetPricePredictionTool(BaseTool):
         "message": "string, if an error occurs"
     }
     """
-    agent_kit: AgentKit
+    agent_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
         try:
@@ -7180,7 +7180,7 @@ class AlloraGetInferenceByTopicIdTool(BaseTool):
         "message": "string, if an error occurs"
     }
     """
-    agent_kit: AgentKit
+    agent_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
         try:
@@ -7213,7 +7213,7 @@ class AlloraGetAllTopicsTool(BaseTool):
         "message": "string, if an error occurs"
     }
     """
-    agent_kit: AgentKit
+    agent_kit: SolanaAgentKit
 
     async def _arun(self, input: str):
         try:
@@ -7226,6 +7226,42 @@ class AlloraGetAllTopicsTool(BaseTool):
             return {
                 "topics": None,
                 "message": f"Error fetching all topics: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class SolayerRestakeTool(BaseTool):
+    name: str = "solayer_restake"
+    description: str = """
+    Restakes all rewards using SolayerManager.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, the amount to restake"
+    }
+    Output:
+    {
+        "transaction_signature": "string, the transaction signature",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction_signature = await self.agent_kit.restake(
+                amount=data["amount"]
+            )
+            return {
+                "transaction_signature": transaction_signature,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction_signature": None,
+                "message": f"Error restaking rewards using Solayer: {str(e)}"
             }
 
     def _run(self, input: str):
@@ -7395,6 +7431,10 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         ElfaAiGetSmartTwitterAccountStatsTool(agent_kit=solana_kit),
         FluxBeamCreatePoolTool(agent_kit=solana_kit),
         LuloLendTool(agent_kit=solana_kit),
-        LuloWithdrawTool(agent_kit=solana_kit)
+        LuloWithdrawTool(agent_kit=solana_kit),
+        AlloraGetPricePredictionTool(agent_kit=solana_kit),
+        AlloraGetInferenceByTopicIdTool(agent_kit=solana_kit),
+        AlloraGetAllTopicsTool(agent_kit=solana_kit),
+        SolayerRestakeTool(agent_kit=solana_kit)
     ]
 

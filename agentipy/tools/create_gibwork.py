@@ -28,9 +28,9 @@ class GibworkManager:
                 "content": content,
                 "requirements": requirements,
                 "tags": tags,
-                "payer": PublicKey.from_string(agent.wallet_address),
+                "payer": str(agent.wallet_address),
                 "token": {
-                    "mintAddress": PublicKey.from_string(token_mint_address),
+                    "mintAddress": str(token_mint_address),
                     "amount": token_amount,
                 },
             }
