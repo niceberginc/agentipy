@@ -1,8 +1,12 @@
 from agentipy.agent import SolanaAgentKit
 
 from agentipy.langchain.core.balance import SolanaBalanceTool
+from agentipy.langchain.core.burn_and_close import SolanaBurnAndCloseTool
+from agentipy.langchain.core.burn_and_close_multiple import SolanaBurnAndCloseMultipleTool
+from agentipy.langchain.core.buy_token import SolanaBuyTokenTool
 from agentipy.langchain.core.create_image import SolanaCreateImageTool
 from agentipy.langchain.core.deploy_token import SolanaDeployTokenTool
+from agentipy.langchain.core.sell_token import SolanaSellTokenTool
 from agentipy.langchain.core.trade import SolanaTradeTool
 
 from agentipy.langchain.core.stake import SolanaStakeTool
@@ -40,5 +44,9 @@ def get_all_core_tools(solana_kit: SolanaAgentKit) -> list:
         SolanaTokenDataByTickerTool(solana_kit=solana_kit),
         SolanaFetchTokenReportSummaryTool(solana_kit=solana_kit),
         SolanaFetchTokenDetailedReportTool(solana_kit=solana_kit),
-        SolanaTransferTool(solana_kit=solana_kit)
+        SolanaTransferTool(solana_kit=solana_kit),
+        SolanaBurnAndCloseTool(solana_kit=solana_kit),
+        SolanaBurnAndCloseMultipleTool(solana_kit=solana_kit),
+        SolanaBuyTokenTool(solana_kit=solana_kit),
+        SolanaSellTokenTool(solana_kit=solana_kit)
     ]
