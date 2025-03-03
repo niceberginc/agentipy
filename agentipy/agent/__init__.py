@@ -3,6 +3,8 @@ import os
 from typing import Any, Dict, List, Optional
 
 import base58
+from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
+                                      PriceInferenceToken, SignatureFormat)
 from solana.rpc.api import Client
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
@@ -49,6 +51,7 @@ class SolanaAgentKit:
         coingecko_demo_api_key: Optional[str] = None,
         elfa_ai_api_key: Optional[str] = None,
         flexland_api_key : Optional[str] = None,
+        allora_api_key: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -79,6 +82,7 @@ class SolanaAgentKit:
         self.coingecko_demo_api_key = coingecko_demo_api_key or os.getenv("COINGECKO_DEMO_API_KEY", "")
         self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
         self.flexland_api_key = flexland_api_key or os.getenv("FLEXLAND_API_KEY", "")
+        self.allora_api_key = allora_api_key or os.getenv("ALLORA_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
@@ -2183,3 +2187,45 @@ class SolanaAgentKit:
             return await FluxBeamManager.fluxbeam_create_pool(self, token_a, token_a_amount, token_b, token_b_amount)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to create pool using FluxBeam: {e}")
+    
+    async def get_price_prediction(self, asset: PriceInferenceToken,
+    timeframe: PriceInferenceTimeframe,
+    signature_format: SignatureFormat = SignatureFormat.ETHEREUM_SEPOLIA):
+        """
+        Fetch a future price prediction for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network.
+
+        :param ticker: The crypto asset symbol (e.g., "BTC" or "ETH").
+        :param timeframe: The prediction timeframe ("5m" or "8h").
+        :return: A dictionary containing the predicted price and confidence interval.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_price_prediction(self, asset, timeframe, signature_format)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch price prediction: {e}")
+        
+    async def get_inference_by_topic_id(self, topic_id: int):
+        """
+        Fetch a price inference for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network.
+
+        :param ticker: The crypto asset symbol (e.g., "BTC" or "ETH").
+        :param timeframe: The prediction timeframe ("5m" or "8h").
+        :return: A dictionary containing the predicted price and confidence interval.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_inference_by_topic_id(self, topic_id)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch price inference: {e}")
+    
+    async def get_all_topics(self):
+        """
+        Fetch all topics from the Allora Network.
+
+        :return: A list of topic IDs.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_all_topics(self)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch all topics: {e}")
