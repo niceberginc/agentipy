@@ -1,3 +1,4 @@
+from agentipy.agent import SolanaAgentKit
 from agentipy.langchain.backpack import get_backpack_tools
 from agentipy.langchain.buy_and_sell_tools import get_buy_and_sell_tools
 from agentipy.langchain.curve_tools import get_curve_tools
@@ -16,7 +17,7 @@ from agentipy.langchain.meterora_tools import get_meteora_tools
 from agentipy.langchain.moonshot_tools import get_moonshot_tools
 from agentipy.langchain.fluxbeam_tools import get_fluxbeam_tools
 from agentipy.langchain.gibwork_tools import get_gibwork_tools
-from agentipy.langchain.perp import get_perp_tools
+from agentipy.langchain.perp_tools import get_perp_tools
 from agentipy.langchain.domain_tools import get_domain_tools
 from agentipy.langchain.sns import get_sns_tools
 from agentipy.langchain.coingecko import get_coingecko_tools
