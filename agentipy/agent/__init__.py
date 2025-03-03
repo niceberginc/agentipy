@@ -2229,3 +2229,15 @@ class SolanaAgentKit:
             return await AlloraManager.get_all_topics(self)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to fetch all topics: {e}")
+        
+    async def restake(self, amount: float):
+        """
+        Restake all rewards.
+
+        :return: A dictionary containing the transaction signature.
+        """
+        from agentipy.tools.use_solayer import SolayerManager
+        try:
+            return await SolayerManager.stake_with_solayer(self,amount)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to restake all rewards: {e}")
