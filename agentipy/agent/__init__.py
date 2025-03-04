@@ -451,17 +451,255 @@ class SolanaAgentKit:
     async def fetch_token_report_summary(mint:str):
         from agentipy.tools.rugcheck import RugCheckManager
         try:
-            return RugCheckManager.fetch_token_report_summary(mint)
+            return await RugCheckManager.fetch_token_report_summary(mint)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to {e}")
         
     async def fetch_token_detailed_report(mint:str):
         from agentipy.tools.rugcheck import RugCheckManager
         try:
-            return RugCheckManager.fetch_token_detailed_report(mint)
+            return await RugCheckManager.fetch_token_detailed_report(mint)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to {e}")
+    
+    async def fetch_all_domains(page: int = 1, limit: int = 50, verified: bool = False):
+        """
+        Fetches all registered domains with optional pagination and filtering.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+            verified (bool, optional): Filter for verified domains.
+
+        Returns:
+            list: A list of all registered domains.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_all_domains(page, limit, verified)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch all domains: {e}")
+    
+    async def fetch_domains_csv(verified: bool = False):
+        """
+        Fetches all registered domains in CSV format.
+
+        Args:
+            verified (bool, optional): Filter for verified domains.
+
+        Returns:
+            str: A CSV string with all registered domains.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_domains_csv(verified)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch domains CSV: {e}")
         
+    async def lookup_domain(domain: str):
+        """
+        Looks up a domain by name.
+
+        Args:
+            domain (str): The domain name to look up.
+
+        Returns:
+            dict: The domain details.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.lookup_domain(domain)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to lookup domain: {e}")
+        
+    async def fetch_domain_records(domain: str) :
+        """
+        Fetches all records for a domain.
+
+        Args:
+            domain (str): The domain name.
+
+        Returns:
+            list: A list of all records for the domain.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_domain_records(domain)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch domain records: {e}")
+        
+    async def fetch_leaderboard():
+        """
+        Fetches the leaderboard with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of leaderboard entries.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_leaderboard()
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch leaderboard: {e}")
+        
+    async def fetch_new_tokens():
+        """
+        Fetches new tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of new tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_new_tokens()
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch new tokens: {e}")
+        
+    async def fetch_most_viewed_tokens():
+        """
+        Fetches the most viewed tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of most viewed tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_most_viewed_tokens()
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch most viewed tokens: {e}")
+        
+    async def fetch_trending_tokens():
+        """
+        Fetches trending tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of trending tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_trending_tokens()
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch trending tokens: {e}")
+
+    async def fetch_recently_verified_tokens():
+        """
+        Fetches recently verified tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of recently verified tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_recently_verified_tokens()
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch recently verified tokens: {e}")
+
+    async def fetch_token_lp_lockers(token_id: str):
+        """
+        Fetches token LP lockers with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of token LP lockers.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_token_lp_lockers(token_id)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch token LP lockers: {e}")
+
+    async def fetch_token_flux_lp_lockers(token_id: str):
+        """
+        Fetches token flux LP lockers with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of token flux LP lockers.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_token_flux_lp_lockers(token_id)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch token flux LP lockers: {e}")
+        
+    async def fetch_token_votes(mint: str):
+        """
+        Fetches token votes with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of token votes.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_token_votes(mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to fetch token votes: {e}")
+    
     async def get_pump_curve_state(conn: AsyncClient, curve_address: Pubkey,):
         from agentipy.tools.use_pumpfun import PumpfunManager
         try:
