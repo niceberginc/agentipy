@@ -1,5 +1,7 @@
 import json
 
+from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
+                                      PriceInferenceToken, SignatureFormat)
 from langchain.tools import BaseTool
 from solders.pubkey import Pubkey  # type: ignore
 
@@ -1873,6 +1875,412 @@ class SolanaFetchTokenDetailedReportTool(BaseTool):
         raise NotImplementedError(
             "This tool only supports async execution via _arun. Please use the async interface."
         )
+
+class RugCheckFetchAllDomainsTool(BaseTool):
+    name: str = "rugcheck_fetch_all_domains"
+    description: str = """
+    Fetches all registered domains with optional pagination and filtering using RugCheckManager.
+
+    Input: A JSON string with:
+    {
+        "page": "int, optional, the page number for pagination (default: 1)",
+        "limit": "int, optional, the number of records per page (default: 50)",
+        "verified": "bool, optional, filter for verified domains (default: False)"
+    }
+    Output:
+    {
+        "domains": "list, a list of all registered domains",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            domains = await self.agent_kit.fetch_all_domains(
+                page=data.get("page", 1),
+                limit=data.get("limit", 50),
+                verified=data.get("verified", False)
+            )
+            return {
+                "domains": domains,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "domains": None,
+                "message": f"Error fetching all domains: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchDomainsCSVTool(BaseTool):
+    name: str = "rugcheck_fetch_domains_csv"
+    description: str = """
+    Fetches all registered domains in CSV format using RugCheckManager.
+
+    Input: A JSON string with:
+    {
+        "verified": "bool, optional, filter for verified domains (default: False)"
+    }
+    Output:
+    {
+        "csv_data": "string, the CSV string containing all registered domains",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            csv_data = await self.agent_kit.fetch_domains_csv(
+                verified=data.get("verified", False)
+            )
+            return {
+                "csv_data": csv_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "csv_data": None,
+                "message": f"Error fetching domains CSV: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckLookupDomainTool(BaseTool):
+    name: str = "rugcheck_lookup_domain"
+    description: str = """
+    Looks up a domain by name using RugCheckManager.
+
+    Input: A JSON string with:
+    {
+        "domain": "string, the domain name to look up"
+    }
+    Output:
+    {
+        "domain_details": "dict, the details of the domain",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            domain_details = await self.agent_kit.lookup_domain(
+                domain=data["domain"]
+            )
+            return {
+                "domain_details": domain_details,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "domain_details": None,
+                "message": f"Error looking up domain: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchDomainRecordsTool(BaseTool):
+    name: str = "rugcheck_fetch_domain_records"
+    description: str = """
+    Fetches all records for a domain using RugCheckManager.
+
+    Input: A JSON string with:
+    {
+        "domain": "string, the domain name"
+    }
+    Output:
+    {
+        "records": "list, a list of all records for the domain",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            records = await self.agent_kit.fetch_domain_records(
+                domain=data["domain"]
+            )
+            return {
+                "records": records,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "records": None,
+                "message": f"Error fetching domain records: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchLeaderboardTool(BaseTool):
+    name: str = "rugcheck_fetch_leaderboard"
+    description: str = """
+    Fetches the leaderboard using RugCheckManager.
+
+    Input: None
+    Output:
+    {
+        "leaderboard": "list, a list of leaderboard entries",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            leaderboard = await self.agent_kit.fetch_leaderboard()
+            return {
+                "leaderboard": leaderboard,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "leaderboard": None,
+                "message": f"Error fetching leaderboard: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchNewTokensTool(BaseTool):
+    name: str = "rugcheck_fetch_new_tokens"
+    description: str = """
+    Fetches new tokens using RugCheckManager.
+
+    Input: None
+    Output:
+    {
+        "new_tokens": "list, a list of new tokens",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            new_tokens = await self.agent_kit.fetch_new_tokens()
+            return {
+                "new_tokens": new_tokens,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "new_tokens": None,
+                "message": f"Error fetching new tokens: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchMostViewedTokensTool(BaseTool):
+    name: str = "rugcheck_fetch_most_viewed_tokens"
+    description: str = """
+    Fetches the most viewed tokens using RugCheckManager.
+
+    Input: None
+    Output:
+    {
+        "most_viewed_tokens": "list, a list of the most viewed tokens",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            most_viewed_tokens = await self.agent_kit.fetch_most_viewed_tokens()
+            return {
+                "most_viewed_tokens": most_viewed_tokens,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "most_viewed_tokens": None,
+                "message": f"Error fetching most viewed tokens: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchTrendingTokensTool(BaseTool):
+    name: str = "rugcheck_fetch_trending_tokens"
+    description: str = """
+    Fetches trending tokens using RugCheckManager.
+
+    Input: None
+    Output:
+    {
+        "trending_tokens": "list, a list of trending tokens",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            trending_tokens = await self.agent_kit.fetch_trending_tokens()
+            return {
+                "trending_tokens": trending_tokens,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "trending_tokens": None,
+                "message": f"Error fetching trending tokens: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchRecentlyVerifiedTokensTool(BaseTool):
+    name: str = "rugcheck_fetch_recently_verified_tokens"
+    description: str = """
+    Fetches recently verified tokens using RugCheckManager.
+
+    Input: None
+    Output:
+    {
+        "recently_verified_tokens": "list, a list of recently verified tokens",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            recently_verified_tokens = await self.agent_kit.fetch_recently_verified_tokens()
+            return {
+                "recently_verified_tokens": recently_verified_tokens,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "recently_verified_tokens": None,
+                "message": f"Error fetching recently verified tokens: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchTokenLPLockersTool(BaseTool):
+    name: str = "rugcheck_fetch_token_lp_lockers"
+    description: str = """
+    Fetches token LP lockers using RugCheckManager.
+
+    Input: A JSON string with:
+    {
+        "token_id": "string, the ID of the token"
+    }
+    Output:
+    {
+        "lp_lockers": "list, a list of token LP lockers",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            lp_lockers = await self.agent_kit.fetch_token_lp_lockers(
+                token_id=data["token_id"]
+            )
+            return {
+                "lp_lockers": lp_lockers,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "lp_lockers": None,
+                "message": f"Error fetching token LP lockers: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchTokenFluxLPLockersTool(BaseTool):
+    name: str = "rugcheck_fetch_token_flux_lp_lockers"
+    description: str = """
+    Fetches token flux LP lockers using RugCheckManager.
+
+    Input: A JSON string with:
+    {
+        "token_id": "string, the ID of the token"
+    }
+    Output:
+    {
+        "flux_lp_lockers": "list, a list of token flux LP lockers",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            flux_lp_lockers = await self.agent_kit.fetch_token_flux_lp_lockers(
+                token_id=data["token_id"]
+            )
+            return {
+                "flux_lp_lockers": flux_lp_lockers,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "flux_lp_lockers": None,
+                "message": f"Error fetching token flux LP lockers: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RugCheckFetchTokenVotesTool(BaseTool):
+    name: str = "rugcheck_fetch_token_votes"
+    description: str = """
+    Fetches token votes using RugCheckManager.
+
+    Input: A JSON string with:
+    {
+        "mint": "string, the mint address of the token"
+    }
+    Output:
+    {
+        "token_votes": "list, a list of token votes",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            token_votes = await self.agent_kit.fetch_token_votes(
+                mint=data["mint"]
+            )
+            return {
+                "token_votes": token_votes,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "token_votes": None,
+                "message": f"Error fetching token votes: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 class SolanaGetPumpCurveStateTool(BaseTool):
     name: str = "solana_get_pump_curve_state"
@@ -7122,6 +7530,186 @@ class LuloWithdrawTool(BaseTool):
 
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+    
+class AlloraGetPricePredictionTool(BaseTool):
+    name: str = "allora_get_price_prediction"
+    description: str = """
+    Fetches a future price prediction for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network using AlloraManager.
+
+    Input: A JSON string with:
+    {
+        "asset": "string, the crypto asset symbol (e.g., 'BTC' or 'ETH')",
+        "timeframe": "string, the prediction timeframe ('5m' or '8h')",
+        "signature_format": "string, optional, the signature format (default: 'ETHEREUM_SEPOLIA')"
+    }
+    Output:
+    {
+        "price_prediction": "dict, the predicted price and confidence interval",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            price_prediction = await self.agent_kit.get_price_prediction(
+                asset=PriceInferenceToken[data["asset"]],
+                timeframe=PriceInferenceTimeframe[data["timeframe"]],
+                signature_format=SignatureFormat[data.get("signature_format", "ETHEREUM_SEPOLIA")]
+            )
+            return {
+                "price_prediction": price_prediction,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "price_prediction": None,
+                "message": f"Error fetching price prediction: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class AlloraGetInferenceByTopicIdTool(BaseTool):
+    name: str = "allora_get_inference_by_topic_id"
+    description: str = """
+    Fetches a price inference for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network using AlloraManager.
+
+    Input: A JSON string with:
+    {
+        "topic_id": "int, the topic ID to fetch inference for"
+    }
+    Output:
+    {
+        "inference_data": "dict, the inferred price and confidence interval",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            inference_data = await self.agent_kit.get_inference_by_topic_id(
+                topic_id=data["topic_id"]
+            )
+            return {
+                "inference_data": inference_data,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "inference_data": None,
+                "message": f"Error fetching price inference: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class AlloraGetAllTopicsTool(BaseTool):
+    name: str = "allora_get_all_topics"
+    description: str = """
+    Fetches all topics from the Allora Network using AlloraManager.
+
+    Input: None
+    Output:
+    {
+        "topics": "list, the list of topic IDs",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            topics = await self.agent_kit.get_all_topics()
+            return {
+                "topics": topics,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "topics": None,
+                "message": f"Error fetching all topics: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class SolayerRestakeTool(BaseTool):
+    name: str = "solayer_restake"
+    description: str = """
+    Restakes all rewards using SolayerManager.
+
+    Input: A JSON string with:
+    {
+        "amount": "float, the amount to restake"
+    }
+    Output:
+    {
+        "transaction_signature": "string, the transaction signature",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            transaction_signature = await self.agent_kit.restake(
+                amount=data["amount"]
+            )
+            return {
+                "transaction_signature": transaction_signature,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "transaction_signature": None,
+                "message": f"Error restaking rewards using Solayer: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+
+class RockPaperScissorsTool(BaseTool):
+    name: str = "rock_paper_scissors"
+    description: str = """
+    Plays a game of Rock-Paper-Scissors using RockPaperScissorsManager by Send Arcade.
+
+    Input: A JSON string with:
+    {
+        "amount" "float, The amount of SOL to stake.
+        "choice": "string, the player's choice ('rock', 'paper', or 'scissors')"
+    }
+    Output:
+    {
+        "result": "string, the game result",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            result = await self.agent_kit.rock_paper_scissors(
+                amount=data["amount"],
+                choice=data["choice"]
+            )
+            return {
+                "result": result,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "result": None,
+                "message": f"Error playing Rock-Paper-Scissors: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 def create_solana_tools(solana_kit: SolanaAgentKit):
     return [
@@ -7162,6 +7750,18 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         SolanaHeliusDeleteWebhookTool(solana_kit=solana_kit),
         SolanaFetchTokenReportSummaryTool(solana_kit=solana_kit),
         SolanaFetchTokenDetailedReportTool(solana_kit=solana_kit),
+        RugCheckFetchAllDomainsTool(solana_kit=solana_kit),
+        RugCheckFetchDomainsCSVTool(solana_kit=solana_kit),
+        RugCheckLookupDomainTool(solana_kit=solana_kit),
+        RugCheckFetchDomainRecordsTool(solana_kit=solana_kit),
+        RugCheckFetchLeaderboardTool(solana_kit=solana_kit),
+        RugCheckFetchNewTokensTool(solana_kit=solana_kit),
+        RugCheckFetchMostViewedTokensTool(solana_kit=solana_kit),
+        RugCheckFetchTrendingTokensTool(solana_kit=solana_kit),
+        RugCheckFetchRecentlyVerifiedTokensTool(solana_kit=solana_kit),
+        RugCheckFetchTokenLPLockersTool(solana_kit=solana_kit),
+        RugCheckFetchTokenFluxLPLockersTool(solana_kit=solana_kit),
+        RugCheckFetchTokenVotesTool(solana_kit=solana_kit),
         SolanaGetPumpCurveStateTool(solana_kit=solana_kit),
         SolanaCalculatePumpCurvePriceTool(solana_kit=solana_kit),
         SolanaBuyTokenTool(solana_kit=solana_kit),
@@ -7286,6 +7886,11 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         ElfaAiGetSmartTwitterAccountStatsTool(agent_kit=solana_kit),
         FluxBeamCreatePoolTool(agent_kit=solana_kit),
         LuloLendTool(agent_kit=solana_kit),
-        LuloWithdrawTool(agent_kit=solana_kit)
+        LuloWithdrawTool(agent_kit=solana_kit),
+        AlloraGetPricePredictionTool(agent_kit=solana_kit),
+        AlloraGetInferenceByTopicIdTool(agent_kit=solana_kit),
+        AlloraGetAllTopicsTool(agent_kit=solana_kit),
+        SolayerRestakeTool(agent_kit=solana_kit),
+        RockPaperScissorsTool(agent_kit=solana_kit),
     ]
 

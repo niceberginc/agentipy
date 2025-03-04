@@ -3,6 +3,8 @@ import os
 from typing import Any, Dict, List, Optional
 
 import base58
+from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
+                                      PriceInferenceToken, SignatureFormat)
 from solana.rpc.api import Client
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
@@ -44,6 +46,7 @@ class SolanaAgentKit:
         coingecko_demo_api_key: Optional[str] = None,
         elfa_ai_api_key: Optional[str] = None,
         flexland_api_key : Optional[str] = None,
+        allora_api_key: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -74,6 +77,7 @@ class SolanaAgentKit:
         self.coingecko_demo_api_key = coingecko_demo_api_key or os.getenv("COINGECKO_DEMO_API_KEY", "")
         self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
         self.flexland_api_key = flexland_api_key or os.getenv("FLEXLAND_API_KEY", "")
+        self.allora_api_key = allora_api_key or os.getenv("ALLORA_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
@@ -442,17 +446,255 @@ class SolanaAgentKit:
     async def fetch_token_report_summary(mint:str):
         from agentipy.tools.rugcheck import RugCheckManager
         try:
-            return RugCheckManager.fetch_token_report_summary(mint)
+            return await RugCheckManager.fetch_token_report_summary(mint)
         except Exception as e:
             raise AgentKitError(f"Failed to {e}")
         
     async def fetch_token_detailed_report(mint:str):
         from agentipy.tools.rugcheck import RugCheckManager
         try:
-            return RugCheckManager.fetch_token_detailed_report(mint)
+            return await RugCheckManager.fetch_token_detailed_report(mint)
         except Exception as e:
             raise AgentKitError(f"Failed to {e}")
+    
+    async def fetch_all_domains(page: int = 1, limit: int = 50, verified: bool = False):
+        """
+        Fetches all registered domains with optional pagination and filtering.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+            verified (bool, optional): Filter for verified domains.
+
+        Returns:
+            list: A list of all registered domains.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_all_domains(page, limit, verified)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch all domains: {e}")
+    
+    async def fetch_domains_csv(verified: bool = False):
+        """
+        Fetches all registered domains in CSV format.
+
+        Args:
+            verified (bool, optional): Filter for verified domains.
+
+        Returns:
+            str: A CSV string with all registered domains.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_domains_csv(verified)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch domains CSV: {e}")
         
+    async def lookup_domain(domain: str):
+        """
+        Looks up a domain by name.
+
+        Args:
+            domain (str): The domain name to look up.
+
+        Returns:
+            dict: The domain details.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.lookup_domain(domain)
+        except Exception as e:
+            raise AgentKitError(f"Failed to lookup domain: {e}")
+        
+    async def fetch_domain_records(domain: str) :
+        """
+        Fetches all records for a domain.
+
+        Args:
+            domain (str): The domain name.
+
+        Returns:
+            list: A list of all records for the domain.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_domain_records(domain)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch domain records: {e}")
+        
+    async def fetch_leaderboard():
+        """
+        Fetches the leaderboard with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of leaderboard entries.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_leaderboard()
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch leaderboard: {e}")
+        
+    async def fetch_new_tokens():
+        """
+        Fetches new tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of new tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_new_tokens()
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch new tokens: {e}")
+        
+    async def fetch_most_viewed_tokens():
+        """
+        Fetches the most viewed tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of most viewed tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_most_viewed_tokens()
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch most viewed tokens: {e}")
+        
+    async def fetch_trending_tokens():
+        """
+        Fetches trending tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of trending tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_trending_tokens()
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch trending tokens: {e}")
+
+    async def fetch_recently_verified_tokens():
+        """
+        Fetches recently verified tokens with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of recently verified tokens.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_recently_verified_tokens()
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch recently verified tokens: {e}")
+
+    async def fetch_token_lp_lockers(token_id: str):
+        """
+        Fetches token LP lockers with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of token LP lockers.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_token_lp_lockers(token_id)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch token LP lockers: {e}")
+
+    async def fetch_token_flux_lp_lockers(token_id: str):
+        """
+        Fetches token flux LP lockers with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of token flux LP lockers.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_token_flux_lp_lockers(token_id)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch token flux LP lockers: {e}")
+        
+    async def fetch_token_votes(mint: str):
+        """
+        Fetches token votes with optional pagination.
+
+        Args:
+            page (int): The page number for pagination (default is 1).
+            limit (int): The number of records per page (default is 50).
+
+        Returns:
+            list: A list of token votes.
+
+        Raises:
+            Exception: If the API call fails.
+        """
+        from agentipy.tools.rugcheck import RugCheckManager
+        try:
+            return await RugCheckManager.fetch_token_votes(mint)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch token votes: {e}")
+    
     async def get_pump_curve_state(conn: AsyncClient, curve_address: Pubkey,):
         from agentipy.tools.use_pumpfun import PumpfunManager
         try:
@@ -2178,3 +2420,71 @@ class SolanaAgentKit:
             return await FluxBeamManager.fluxbeam_create_pool(self, token_a, token_a_amount, token_b, token_b_amount)
         except Exception as e:
             raise AgentKitError(f"Failed to create pool using FluxBeam: {e}")
+    
+    async def get_price_prediction(self, asset: PriceInferenceToken,
+    timeframe: PriceInferenceTimeframe,
+    signature_format: SignatureFormat = SignatureFormat.ETHEREUM_SEPOLIA):
+        """
+        Fetch a future price prediction for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network.
+
+        :param ticker: The crypto asset symbol (e.g., "BTC" or "ETH").
+        :param timeframe: The prediction timeframe ("5m" or "8h").
+        :return: A dictionary containing the predicted price and confidence interval.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_price_prediction(self, asset, timeframe, signature_format)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch price prediction: {e}")
+        
+    async def get_inference_by_topic_id(self, topic_id: int):
+        """
+        Fetch a price inference for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network.
+
+        :param ticker: The crypto asset symbol (e.g., "BTC" or "ETH").
+        :param timeframe: The prediction timeframe ("5m" or "8h").
+        :return: A dictionary containing the predicted price and confidence interval.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_inference_by_topic_id(self, topic_id)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch price inference: {e}")
+    
+    async def get_all_topics(self):
+        """
+        Fetch all topics from the Allora Network.
+
+        :return: A list of topic IDs.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_all_topics(self)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch all topics: {e}")
+        
+    async def restake(self, amount: float):
+        """
+        Restake all rewards.
+
+        :return: A dictionary containing the transaction signature.
+        """
+        from agentipy.tools.use_solayer import SolayerManager
+        try:
+            return await SolayerManager.stake_with_solayer(self,amount)
+        except Exception as e:
+            raise AgentKitError(f"Failed to restake all rewards: {e}")
+        
+    async def rock_paper_scissors(self, amount:float, choice: str):
+        """
+        Play rock-paper-scissors with the Solana agent.
+
+        :param choice: The player's choice ("rock", "paper", or "scissors").
+        :param amount: The amount of SOL to stake.
+        :return: A dictionary containing the game result.
+        """
+        from agentipy.tools.use_sendarcade import SendArcadeManager
+        try:
+            return await SendArcadeManager.rock_paper_scissor(self, amount, choice)
+        except Exception as e:
+            raise AgentKitError(f"Failed to play rock-paper-scissors: {e}")
