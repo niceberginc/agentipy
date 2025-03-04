@@ -2479,3 +2479,17 @@ class SolanaAgentKit:
             return await SolayerManager.stake_with_solayer(self,amount)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to restake all rewards: {e}")
+        
+    async def rock_paper_scissors(self, amount:float, choice: str):
+        """
+        Play rock-paper-scissors with the Solana agent.
+
+        :param choice: The player's choice ("rock", "paper", or "scissors").
+        :param amount: The amount of SOL to stake.
+        :return: A dictionary containing the game result.
+        """
+        from agentipy.tools.use_sendarcade import SendArcadeManager
+        try:
+            return await SendArcadeManager.rock_paper_scissor(self, amount, choice)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to play rock-paper-scissors: {e}")

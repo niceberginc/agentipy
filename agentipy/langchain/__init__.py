@@ -2282,7 +2282,6 @@ class RugCheckFetchTokenVotesTool(BaseTool):
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
-
 class SolanaGetPumpCurveStateTool(BaseTool):
     name: str = "solana_get_pump_curve_state"
     description: str = """
@@ -7674,6 +7673,43 @@ class SolayerRestakeTool(BaseTool):
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
+class RockPaperScissorsTool(BaseTool):
+    name: str = "rock_paper_scissors"
+    description: str = """
+    Plays a game of Rock-Paper-Scissors using RockPaperScissorsManager by Send Arcade.
+
+    Input: A JSON string with:
+    {
+        "amount" "float, The amount of SOL to stake.
+        "choice": "string, the player's choice ('rock', 'paper', or 'scissors')"
+    }
+    Output:
+    {
+        "result": "string, the game result",
+        "message": "string, if an error occurs"
+    }
+    """
+    agent_kit: SolanaAgentKit
+
+    async def _arun(self, input: str):
+        try:
+            data = json.loads(input)
+            result = await self.agent_kit.rock_paper_scissors(
+                amount=data["amount"],
+                choice=data["choice"]
+            )
+            return {
+                "result": result,
+                "message": "Success"
+            }
+        except Exception as e:
+            return {
+                "result": None,
+                "message": f"Error playing Rock-Paper-Scissors: {str(e)}"
+            }
+
+    def _run(self, input: str):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
 
 def create_solana_tools(solana_kit: SolanaAgentKit):
     return [
@@ -7714,6 +7750,18 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         SolanaHeliusDeleteWebhookTool(solana_kit=solana_kit),
         SolanaFetchTokenReportSummaryTool(solana_kit=solana_kit),
         SolanaFetchTokenDetailedReportTool(solana_kit=solana_kit),
+        RugCheckFetchAllDomainsTool(solana_kit=solana_kit),
+        RugCheckFetchDomainsCSVTool(solana_kit=solana_kit),
+        RugCheckLookupDomainTool(solana_kit=solana_kit),
+        RugCheckFetchDomainRecordsTool(solana_kit=solana_kit),
+        RugCheckFetchLeaderboardTool(solana_kit=solana_kit),
+        RugCheckFetchNewTokensTool(solana_kit=solana_kit),
+        RugCheckFetchMostViewedTokensTool(solana_kit=solana_kit),
+        RugCheckFetchTrendingTokensTool(solana_kit=solana_kit),
+        RugCheckFetchRecentlyVerifiedTokensTool(solana_kit=solana_kit),
+        RugCheckFetchTokenLPLockersTool(solana_kit=solana_kit),
+        RugCheckFetchTokenFluxLPLockersTool(solana_kit=solana_kit),
+        RugCheckFetchTokenVotesTool(solana_kit=solana_kit),
         SolanaGetPumpCurveStateTool(solana_kit=solana_kit),
         SolanaCalculatePumpCurvePriceTool(solana_kit=solana_kit),
         SolanaBuyTokenTool(solana_kit=solana_kit),
@@ -7842,6 +7890,7 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         AlloraGetPricePredictionTool(agent_kit=solana_kit),
         AlloraGetInferenceByTopicIdTool(agent_kit=solana_kit),
         AlloraGetAllTopicsTool(agent_kit=solana_kit),
-        SolayerRestakeTool(agent_kit=solana_kit)
+        SolayerRestakeTool(agent_kit=solana_kit),
+        RockPaperScissorsTool(agent_kit=solana_kit),
     ]
 
