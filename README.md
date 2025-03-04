@@ -2,9 +2,15 @@
 
 AgentiPy is a Python toolkit designed to empower AI agents to interact seamlessly with blockchain applications, focusing on Solana and Base. It simplifies the development of decentralized applications (dApps) by providing tools for token management, NFT handling, and more. With a focus on ease of use and powerful functionality, AgentiPy allows developers to create robust and sophisticated blockchain-based solutions, leveraging AI-driven workflows.
 
-[<img src="https://img.shields.io/github.com/niceberginc/agentipy/agentipy?style=social" alt="GitHub Stars">](hhttps://github.com/niceberginc/agentipy/agentipy)
-[<img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">](https://github.com/niceberginc/agentipy/agentipy/blob/main/LICENSE)
 
+
+[<img src="https://img.shields.io/github/stars/niceberginc/agentipy?style=social" alt="GitHub Stars">](https://github.com/niceberginc/agentipy)
+[<img src="https://img.shields.io/github/forks/niceberginc/agentipy?style=social" alt="GitHub Forks">](https://github.com/niceberginc/agentipy)
+[<img src="https://static.pepy.tech/personalized-badge/agentipy?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads" alt="Total Downloads">](https://pypi.org/project/agentipy/)
+[<img src="https://img.shields.io/pypi/v/agentipy.svg" alt="PyPI Version">](https://pypi.org/project/agentipy/)
+[<img src="https://img.shields.io/github/issues/niceberginc/agentipy" alt="Open Issues">](https://github.com/niceberginc/agentipy/issues)
+[<img src="https://img.shields.io/badge/python-3.8%2B-blue" alt="Python Version">](https://pypi.org/project/agentipy/)
+[<img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">](https://github.com/niceberginc/agentipy/blob/main/LICENSE)
 ## 🚀 Introduction
 
 AgentiPy bridges the gap between AI agents and blockchain applications. It provides a streamlined development experience for building decentralized applications (dApps) that leverage the power of AI on Solana and Base. From automated trading to complex DeFi interactions, AgentiPy equips developers with the tools needed to build intelligent on-chain solutions.
@@ -58,6 +64,10 @@ Follow these steps to install and set up AgentiPy:
 
 AgentiPy supports a diverse set of protocols, each with specific actions. This table provides a quick reference:
 
+## 🛠️ Supported Protocols and Tools
+
+AgentiPy supports a diverse set of protocols, each with specific actions. This table provides a quick reference:
+
 | Protocol       | Blockchain | Actions                                                        | GitHub Tool Link                                                                            |
 | :------------- | :--------- | :------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
 | Jupiter        | Solana     | Token swaps, direct routing, stake SOL                        | [Jupiter Swap Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/stake_with_jup.py) |
@@ -73,7 +83,7 @@ AgentiPy supports a diverse set of protocols, each with specific actions. This t
 | Drift          | Solana     | Manage user accounts, deposit/withdraw, perp trades, account info  | [Drift Account Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_drift.py) |
 | Flash          | Solana     | Open/close trades                                               | [Flash Trade Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_flash.py) |
 | Jito           | Solana     | Manage tip accounts, bundle transactions                      | [Jito Tip Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_jito.py) |
-| Lulo           | Solana     | Lend assets to earn interest                                  | [Lulo Lend Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_lulo.py) |
+| Lulo           | Solana     | Lend assets to earn interest, Withdraw tokens           | [Lulo Lend Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_lulo.py) |
 | RugCheck       | Solana     | Fetch detailed/summary token reports                           | [RugCheck Report Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_rugcheck.py) |
 | All Domains    | Solana     | Resolve domains, get owned domains                             | [All Domains Resolve Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_alldomains.py) |
 | Orca           | Solana     | Manage liquidity pools, positions                              | [Orca Position Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_orca.py) |
@@ -85,8 +95,11 @@ AgentiPy supports a diverse set of protocols, each with specific actions. This t
 | Stork          | Solana     | Get real-time token price feed                                 | [Stork Price Feed Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_stork.py) |
 | Gibwork        | Solana     | Create tasks with token rewards                                  | [Gibwork Task Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_gibwork.py) |
 | Meteora        | Solana     | Create DLMM pools with configurations                           | [Meteora Pool Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/create_meteora_dlmm_pool.py) |
-|StakeWithJup    | Solana     | Stakes JUP to earn JUP tokens                 | [Stake With Jup tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/stake_with_jup.py) |
+| StakeWithJup    | Solana     | Stakes JUP to earn JUP tokens                 | [Stake With Jup tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/stake_with_jup.py) |
 |ThreeLand    | Solana     | ThreeLand NFT mint and deploy        | [ThreeLand NFT mint tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_3land.py) |
+| ThreeLand    | Solana     | ThreeLand NFT mint and deploy        | [ThreeLand NFT mint tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_3land.py) |
+| Elfa AI       | Solana     | Get trending tokens, mentions, smart account stats              | [Elfa AI Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_elfa_ai.py) |
+| FluxBeam      | Solana     | Create a new pool                                               | [FluxBeam Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_fluxbeam.py) |
 
 
 
@@ -99,40 +112,9 @@ Important Security Note: Never hardcode your private key directly into your code
 
 ## Transfer SOL/SPL: Easily send tokens.
 ```python
-from agentipy import SolanaAgentKit, create_solana_tools
+from agentipy.agent import SolanaAgentKit
 from agentipy.tools.transfer import TokenTransferManager
-
-# Initialize with private key and optional RPC URL
-agent = SolanaAgentKit(
-    "your-wallet-private-key-as-base58",
-    "https://api.mainnet-beta.solana.com",
-    "your-openai-api-key"
-)
-
-# Create LangChain tools
-tools = create_solana_tools(agent)
-
-# Note: LangChain currently supports a maximum of 126 tools.
-
-## Usage Examples
-
-### Fetch price of a token
-
-async def main():
-    # Initialize the SolanaAgentKit
-    agent = SolanaAgentKit(
-        "your-wallet-private-key-as-base58",
-        "https://api.mainnet-beta.solana.com",
-        "your-openai-api-key"
-    )
-
-    # Fetch price
-    price = await agent.fetch_price("FKMKctiJnbZKL16pCmR7ig6bvjcMJffuUMjB97YD7LJs")
-    print(f"Price: {price} SOL")
-
-# Run the async function
 import asyncio
-asyncio.run(main())
 
 async def main():
     """
@@ -513,7 +495,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-# 2. Langchain Integration:**
+# 2. Langchain Integration:
 AgentiPy can be seamlessly integrated with Langchain, a powerful framework for building language model-powered applications. This enables you to create intelligent agents that can understand natural language instructions, reason about blockchain data, and execute complex on-chain actions.
 
 * Natural Language Command Interpretation: Use Langchain's language models (LLMs) to parse user instructions and map them to AgentiPy tool calls.
@@ -553,34 +535,6 @@ except Exception as e:
     print(f"Error processing trade: {e}")
 ```
 
-**3. Using Base Tools:**
-* Use Base tools and functions to have a better management
-```python
-from agentipy.base import BaseClient
-
-# Replace with your private key (DO NOT HARDCODE IN PRODUCTION - use environment variables!)
-base = BaseClient()
-
-#Create a wallet
-new_wallet = base.create_wallet()
-print(f"Wallet address: {new_wallet.address} and Private Key: {new_wallet.privateKey}")
-
-# Get base balance
-balance = base.get_balance("your_wallet_address")
-print(f"Balance: {balance} base")
-
-# Transfer 1 base to a recipient
-transaction = base.transfer_base(to_address="recipient_wallet_address", amount=1.0)
-print("Transaction Successful {transaction.hash}")
-```
-
-Error handling is crucial for robust applications:
-```python
-try:
-    solana.transfer_sol(to_address="invalid_address", amount=1.0)
-except ValueError as e:
-    print(f"Error: {e}")
-```
 
 ### 🤝  Community Engagement and Contribution
 AgentiPy encourages community contributions, with developers invited to fork the repository at [github.com/niceberginc/agentipy/](https://github.com/niceberginc/agentipy/), submit pull requests, and report issues via GitHub Issues. This collaborative approach fosters continuous improvement and innovation within the ecosystem.
@@ -590,3 +544,16 @@ AgentiPy is licensed under the MIT License, ensuring open access and flexibility
 
 
 
+
+
+
+
+
+
+### 👥 Contributors
+
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+[Become a contributor!](https://github.com/niceberginc/agentipy/blob/main/CONTRIBUTING.md) Open an issue or submit a pull request to join us!
