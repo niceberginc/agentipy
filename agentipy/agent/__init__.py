@@ -2729,3 +2729,25 @@ class SolanaAgentKit:
             return SquadsManager.transfer_from_multisig_treasury(self, amount, to, vault_index, mint)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to transfer from multisig treasury: {e}")
+        
+    def simulate_switchboard_feed(
+        self,
+        feed: str,
+        crossbar_url: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Simulate a Switchboard feed.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            feed (str): The feed name.
+            crossbar_url (str): The Crossbar URL.
+
+        Returns:
+            dict: Simulation details.
+        """
+        try:
+            from agentipy.tools.use_switchboard import SwitchboardManager
+            return SwitchboardManager.simulate_switchboard_feed(self, feed, crossbar_url)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to simulate Switchboard feed: {e}")
