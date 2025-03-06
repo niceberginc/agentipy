@@ -2751,3 +2751,45 @@ class SolanaAgentKit:
             return SwitchboardManager.simulate_switchboard_feed(self, feed, crossbar_url)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to simulate Switchboard feed: {e}")
+    
+    def list_nft_for_sale(
+        self,
+        price: float,
+        nft_mint: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        List an NFT for sale.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            price (float): The sale price.
+            nft_mint (str): The NFT mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_tensor import TensorManager
+            return TensorManager.list_nft_for_sale(self, price, nft_mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to list NFT for sale: {e}")
+        
+    def cancel_listing(
+        self,
+        nft_mint: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Cancel an NFT listing.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            nft_mint (str): The NFT mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_tensor import TensorManager
+            return TensorManager.cancel_listing(self, nft_mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to cancel listing: {e}")
