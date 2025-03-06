@@ -1,9 +1,11 @@
 import json
 
-from agentipy.helpers import validate_input
+from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
+                                      PriceInferenceToken, SignatureFormat)
 from langchain.tools import BaseTool
+
 from agentipy.agent import SolanaAgentKit
-from agentipy.langchain.allora.allora_enums import PriceInferenceToken, PriceInferenceTimeframe, SignatureFormat
+from agentipy.helpers import validate_input
 
 
 class AlloraGetPricePredictionTool(BaseTool):

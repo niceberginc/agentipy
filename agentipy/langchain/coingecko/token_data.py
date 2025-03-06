@@ -1,8 +1,10 @@
 import json
 
-from agentipy.langchain.base import BaseTool
-from agentipy.langchain.kits import SolanaAgentKit
+from langchain.tools import BaseTool
+
+from agentipy.agent import SolanaAgentKit
 from agentipy.helpers import validate_input
+
 
 class CoingeckoGetTokenPriceDataTool(BaseTool):
     name: str = "coingecko_get_token_price_data"

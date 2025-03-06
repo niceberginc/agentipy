@@ -2493,3 +2493,87 @@ class SolanaAgentKit:
             return await SendArcadeManager.rock_paper_scissor(self, amount, choice)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to play rock-paper-scissors: {e}")
+        
+    def close_accounts(
+        self,
+        mints: List[str],
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Close accounts for a given list of mints.
+
+        Args:
+            mints (List[str]): List of mint addresses.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.close_accounts(self, mints)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to close accounts: {e}")
+        
+    def burn_tokens(
+        self,
+        mints: List[str],
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Burn tokens for a given list of mints.
+
+        Args:
+            mints (List[str]): List of mint addresses.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.burn_tokens(self, mints)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to burn tokens: {e}")
+        
+    def merge_tokens(
+        self,
+        input_assets: List[Dict[str, Any]],
+        output_mint: str,
+        priority_fee: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Merge tokens for a given list of mints.
+
+        Args:
+            input_assets (List[Dict[str, Any]]): List of input assets.
+            output_mint (str): Output mint address.
+            priority_fee (str): Priority fee.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.merge_tokens(self, input_assets, output_mint, priority_fee)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to merge tokens: {e}")
+        
+    def spread_token(
+        self,
+        input_asset: Dict[str, Any],
+        target_tokens: List[Dict[str, Any]],
+        priority_fee: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Spread token for a given list of mints.
+
+        Args:
+            input_asset (Dict[str, Any]): Input asset.
+            target_tokens (List[Dict[str, Any]]): List of target tokens.
+            priority_fee (str): Priority fee.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.spread_token(self, input_asset, target_tokens, priority_fee)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to spread token: {e}")

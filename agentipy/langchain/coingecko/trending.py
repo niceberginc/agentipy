@@ -1,7 +1,7 @@
-from agentipy.agent import SolanaAgentKit
 from langchain.tools import BaseTool
 
-from agentipy.utils import validate_input
+from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
 
 
 class CoingeckoGetTrendingTokensTool(BaseTool):
@@ -21,6 +21,7 @@ class CoingeckoGetTrendingTokensTool(BaseTool):
     async def _arun(self):
         try:
             trending_tokens = await self.agent_kit.get_trending_tokens()
+            
             return {
                 "trending_tokens": trending_tokens,
                 "message": "Success"

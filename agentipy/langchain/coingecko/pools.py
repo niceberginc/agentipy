@@ -1,7 +1,10 @@
-from agentipy.agent import SolanaAgentKit
-from langchain.tools import BaseTool
 import json
-from agentipy.utils import validate_input
+
+from langchain.tools import BaseTool
+
+from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
+
 
 class CoingeckoGetLatestPoolsTool(BaseTool):
     name: str = "coingecko_get_latest_pools"

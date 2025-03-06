@@ -1,7 +1,11 @@
-from langchain.tools import BaseTool
-from agentipy.agent import SolanaAgentKit
 import json
-from solders.pubkey import Pubkey # type: ignore
+
+from langchain.tools import BaseTool
+from solders.pubkey import Pubkey  # type: ignore
+
+from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
+
 
 class SolanaTradeTool(BaseTool):
     name:str = "solana_trade"

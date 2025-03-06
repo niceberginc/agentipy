@@ -1,7 +1,10 @@
-import json 
-from agentipy.langchain.base import BaseTool
-from agentipy.solana import SolanaAgentKit
-from agentipy.helpers import validate_input 
+import json
+
+from langchain.tools import BaseTool
+
+from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
+
 
 class SolanaSendTxn(BaseTool):
     name: str = "send_txn"

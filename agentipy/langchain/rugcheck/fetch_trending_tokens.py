@@ -1,5 +1,7 @@
 from langchain.tools import BaseTool
 
+from agentipy.agent import SolanaAgentKit
+
 
 class RugCheckFetchTrendingTokensTool(BaseTool):
     name: str = "rugcheck_fetch_trending_tokens"

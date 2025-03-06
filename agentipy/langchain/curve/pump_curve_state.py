@@ -1,8 +1,10 @@
 import json
+
 from langchain.tools import BaseTool
+from solders.pubkey import Pubkey  # type: ignore
+
 from agentipy.agent import SolanaAgentKit
 from agentipy.helpers import validate_input
-from solana.pubkey import Pubkey # type: ignore
 
 
 class SolanaGetPumpCurveStateTool(BaseTool):
