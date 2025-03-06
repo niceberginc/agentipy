@@ -2579,3 +2579,153 @@ class SolanaAgentKit:
             return SolutiofiManager.spread_token(self, input_asset, target_tokens, priority_fee)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to spread token: {e}")
+        
+    def approve_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Approve a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.approve_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to approve multisig proposal: {e}")
+        
+    def create_squads_multisig(
+        self,
+        creator: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a Squads multisig wallet.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            creator (str): The creator's public key.
+
+        Returns:
+            dict: Multisig wallet details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.create_squads_multisig(self, creator)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create Squads multisig wallet: {e}")
+        
+    def create_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Proposal details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.create_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create multisig proposal: {e}")
+        
+    def deposit_to_multisig_treasury(
+        self,
+        amount: float,
+        vault_index: int,
+        mint: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Deposit funds to a multisig treasury.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            amount (float): The amount to deposit.
+            vault_index (int): The vault index.
+            mint (str): The mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.deposit_to_multisig_treasury(self, amount, vault_index, mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to deposit to multisig treasury: {e}")
+        
+    def execute_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Execute a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.execute_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to execute multisig proposal: {e}")
+        
+    def reject_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Reject a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.reject_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to reject multisig proposal: {e}")
+        
+    def transfer_from_multisig_treasury(
+        self,
+        amount: float,
+        to: str,
+        vault_index: int,
+        mint: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Transfer funds from a multisig treasury.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            amount (float): The amount to transfer.
+            to (str): The recipient's public key.
+            vault_index (int): The vault index.
+            mint (str): The mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.transfer_from_multisig_treasury(self, amount, to, vault_index, mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to transfer from multisig treasury: {e}")
