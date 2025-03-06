@@ -52,6 +52,7 @@ class SolanaAgentKit:
         elfa_ai_api_key: Optional[str] = None,
         flexland_api_key : Optional[str] = None,
         allora_api_key: Optional[str] = None,
+        solutiofi_api_key: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -83,6 +84,7 @@ class SolanaAgentKit:
         self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
         self.flexland_api_key = flexland_api_key or os.getenv("FLEXLAND_API_KEY", "")
         self.allora_api_key = allora_api_key or os.getenv("ALLORA_API_KEY", "")
+        self.solutiofi_api_key = solutiofi_api_key or os.getenv("SOLUTIOFI_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
