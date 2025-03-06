@@ -31,6 +31,7 @@ from agentipy.langchain.sendarcade import get_rock_paper_scissors_tools
 from agentipy.langchain.sns import get_sns_tools
 from agentipy.langchain.solayermanager import get_solayer_tools
 from agentipy.langchain.solutiofi import get_solutiofi_tools
+from agentipy.langchain.squads import get_squads_tools
 from agentipy.langchain.stork import get_stork_tools
 
 
@@ -72,5 +73,6 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         *get_solayer_tools(solana_kit=solana_kit),
         *get_rock_paper_scissors_tools(solana_kit=solana_kit),
         *get_allora_tools(solana_kit=solana_kit),
-        *get_solutiofi_tools(solana_kit=solana_kit)
+        *get_solutiofi_tools(solana_kit=solana_kit),
+        *get_squads_tools(solana_kit=solana_kit),
     ]   
