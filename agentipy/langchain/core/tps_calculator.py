@@ -1,6 +1,6 @@
-from agentipy.agent import SolanaAgentKit
 from langchain.tools import BaseTool
 
+from agentipy.agent import SolanaAgentKit
 
 
 class SolanaTPSCalculatorTool(BaseTool):

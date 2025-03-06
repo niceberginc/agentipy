@@ -1,7 +1,10 @@
 import json
-from agentipy.langchain.orca.tools import validate_input
-from agentipy.agent import SolanaAgentKit
+
 from langchain.tools import BaseTool
+
+from agentipy.agent import SolanaAgentKit
+from agentipy.helpers import validate_input
+
 
 class OrcaFetchPositionsTool(BaseTool):
     name: str = "orca_fetch_positions"

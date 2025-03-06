@@ -6,18 +6,18 @@ from agentipy.agent import SolanaAgentKit
 from agentipy.helpers import validate_input
 
 
-class SolayerRestakeTool(BaseTool):
-    name: str = "solayer_restake"
+class SolutiofiCloseAccountsTool(BaseTool):
+    name: str = "solutiofi_close_accounts"
     description: str = """
-    Restakes all rewards using SolayerManager.
+    Closes accounts for a given list of mints using SolutiofiManager.
 
     Input: A JSON string with:
     {
-        "amount": "float, the amount to restake"
+        "mints": "list, a list of mint addresses"
     }
     Output:
     {
-        "transaction_signature": "string, the transaction signature",
+        "transaction_details": "dict, transaction details",
         "message": "string, if an error occurs"
     }
     """
@@ -25,23 +25,24 @@ class SolayerRestakeTool(BaseTool):
 
     async def _arun(self, input: str):
         try:
-            schema = {
-                "amount": {"type": float, "required": True}
-            }
             data = json.loads(input)
+            schema = {
+                "mints": {"type": list, "required": True}
+            }
             validate_input(data, schema)
-            transaction_signature = await self.agent_kit.restake(
-                amount=data["amount"]
+            transaction_details = await self.agent_kit.close_accounts(
+                mints=data["mints"]
             )
             return {
-                "transaction_signature": transaction_signature,
+                "transaction_details": transaction_details,
                 "message": "Success"
             }
         except Exception as e:
             return {
-                "transaction_signature": None,
-                "message": f"Error restaking rewards using Solayer: {str(e)}"
+                "transaction_details": None,
+                "message": f"Error closing accounts: {str(e)}"
             }
 
     def _run(self, input: str):
         raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
+

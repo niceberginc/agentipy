@@ -1,38 +1,38 @@
 from agentipy.agent import SolanaAgentKit
+from agentipy.langchain.allora import get_allora_tools
 from agentipy.langchain.backpack import get_backpack_tools
-
+from agentipy.langchain.coingecko import get_coingecko_tools
+from agentipy.langchain.core import get_all_core_tools
 from agentipy.langchain.curve import get_curve_tools
 from agentipy.langchain.cybersmanager import get_cyber_tools
+from agentipy.langchain.debridge import get_debridge_tools
+from agentipy.langchain.domain import get_domain_tools
 from agentipy.langchain.drift import get_drift_tools
+from agentipy.langchain.elfaai import get_elfaai_tools
 from agentipy.langchain.faucet import get_faucet_tools
-from agentipy.langchain.helius import get_helius_tools
-from agentipy.langchain.core import get_all_core_tools
-from agentipy.langchain.lightprotocolmanager import get_light_protocol_tools
-from agentipy.langchain.lulo import get_lulo_tools
 from agentipy.langchain.flash import get_flash_tools
-from agentipy.langchain.land3 import get_land_tools
-from agentipy.langchain.manifest import get_manifest_tools
-from agentipy.langchain.oracle import get_stork_tools
-from agentipy.langchain.orca import get_orca_tools
-from agentipy.langchain.raydium import get_raydium_tools
-from agentipy.langchain.pumpfun import get_pumpfun_tools
-from agentipy.langchain.meteora import get_meteora_tools
-from agentipy.langchain.moonshot import get_moonshot_tools
 from agentipy.langchain.fluxbeam import get_fluxbeam_tools
 from agentipy.langchain.gibwork import get_gibwork_tools
-from agentipy.langchain.perpetual import get_perp_tools
-from agentipy.langchain.domain import get_domain_tools
-from agentipy.langchain.sns import get_sns_tools
-from agentipy.langchain.coingecko import get_coingecko_tools
-from agentipy.langchain.debridge import get_debridge_tools
-from agentipy.langchain.metaplex import get_metaplex_tools
+from agentipy.langchain.helius import get_helius_tools
 from agentipy.langchain.jito import get_jito_tools
-from agentipy.langchain.elfaai import get_elfaai_tools
+from agentipy.langchain.land3 import get_land_tools
+from agentipy.langchain.lightprotocolmanager import get_light_protocol_tools
+from agentipy.langchain.lulo import get_lulo_tools
+from agentipy.langchain.manifest import get_manifest_tools
+from agentipy.langchain.metaplex import get_metaplex_tools
+from agentipy.langchain.meteora import get_meteora_tools
+from agentipy.langchain.moonshot import get_moonshot_tools
+from agentipy.langchain.orca import get_orca_tools
+from agentipy.langchain.perpetual import get_perp_tools
+from agentipy.langchain.pumpfun import get_pumpfun_tools
+from agentipy.langchain.raydium import get_raydium_tools
 from agentipy.langchain.rugcheck import get_rugcheck_tools
-
+from agentipy.langchain.sendarcade import get_rock_paper_scissors_tools
+from agentipy.langchain.sns import get_sns_tools
 from agentipy.langchain.solayermanager import get_solayer_tools
-from agentipy.langchain.rockpaperscissorsmanager import get_rock_paper_scissors_tools
-from agentipy.langchain.allora import get_allora_tools
+from agentipy.langchain.solutiofi import get_solutiofi_tools
+from agentipy.langchain.stork import get_stork_tools
+
 
 def create_solana_tools(solana_kit: SolanaAgentKit):
     return [
@@ -70,7 +70,7 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         *get_orca_tools(solana_kit=solana_kit),
         *get_rugcheck_tools(solana_kit=solana_kit),
         *get_solayer_tools(solana_kit=solana_kit),
-        *get_rock_paper_scissors_tools(solana_kit=solana_kit)
-        *get_allora_tools(solana_kit=solana_kit)
-
+        *get_rock_paper_scissors_tools(solana_kit=solana_kit),
+        *get_allora_tools(solana_kit=solana_kit),
+        *get_solutiofi_tools(solana_kit=solana_kit)
     ]   
