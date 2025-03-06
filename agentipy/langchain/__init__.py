@@ -34,6 +34,7 @@ from agentipy.langchain.solutiofi import get_solutiofi_tools
 from agentipy.langchain.squads import get_squads_tools
 from agentipy.langchain.stork import get_stork_tools
 from agentipy.langchain.switchboard import get_switchboard_tools
+from agentipy.langchain.tensor import get_tensor_tools
 
 
 def create_solana_tools(solana_kit: SolanaAgentKit):
@@ -77,4 +78,5 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         *get_solutiofi_tools(solana_kit=solana_kit),
         *get_squads_tools(solana_kit=solana_kit),
         *get_switchboard_tools(solana_kit=solana_kit),
+        *get_tensor_tools(solana_kit=solana_kit),
     ]   
