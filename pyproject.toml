@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agentipy"
-version = "2.0.4"
+version = "2.0.5"
 description = "A Python toolkit for on chain agents"
 authors = ["Muhammed Talha Korkmaz <kriptovekediler@gmail.com>"]
 license = "MIT"

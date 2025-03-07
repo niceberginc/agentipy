@@ -40,7 +40,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/sentient-listing",
+                f"{agent.base_proxy_url}/{agent.api_version}/base/virtuals/sentient-listing",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -92,7 +92,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/buy-sentient",
+                f"{agent.base_proxy_url}/{agent.api_version}/base/virtuals/buy-sentient",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -144,7 +144,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/sell-sentient",
+                f"{agent.base_proxy_url}/{agent.api_version}/base/virtuals/sell-sentient",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -199,7 +199,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/buy-prototype",
+                f"{agent.base_proxy_url}/{agent.api_version}/base/virtuals/buy-prototype",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -254,7 +254,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/sell-prototype",
+                f"{agent.base_proxy_url}/{agent.api_version}/base/virtuals/sell-prototype",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -300,7 +300,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/check-sentient-allowance",
+                f"{agent.base_proxy_url}/{agent.api_version}/virtuals/check-sentient-allowance",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -346,7 +346,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/approve-sentient-allowance",
+                f"{agent.base_proxy_url}/{agent.api_version}/virtuals/approve-sentient-allowance",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -392,7 +392,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/check-prototype-allowance",
+                f"{agent.base_proxy_url}/{agent.api_version}/virtuals/check-prototype-allowance",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -438,7 +438,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/approve-prototype-allowance",
+                f"{agent.base_proxy_url}/{agent.api_version}/virtuals/approve-prototype-allowance",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -484,7 +484,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/get-prototype-listing",
+                f"{agent.base_proxy_url}/{agent.api_version}/virtuals/get-prototype-listing",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -542,7 +542,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/fetch-klines",
+                f"{agent.base_proxy_url}/{agent.api_version}/virtuals/fetch-klines",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -588,7 +588,7 @@ class VirtualsManager:
             }
 
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/evm/virtuals/search-virtual-token-by-keyword",
+                f"{agent.base_proxy_url}/{agent.api_version}/virtuals/search-virtual-token-by-keyword",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )

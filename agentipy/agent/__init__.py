@@ -47,6 +47,7 @@ class SolanaAgentKit:
         elfa_ai_api_key: Optional[str] = None,
         flexland_api_key : Optional[str] = None,
         allora_api_key: Optional[str] = None,
+        solutiofi_api_key: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         """
@@ -78,6 +79,7 @@ class SolanaAgentKit:
         self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
         self.flexland_api_key = flexland_api_key or os.getenv("FLEXLAND_API_KEY", "")
         self.allora_api_key = allora_api_key or os.getenv("ALLORA_API_KEY", "")
+        self.solutiofi_api_key = solutiofi_api_key or os.getenv("SOLUTIOFI_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
@@ -2488,3 +2490,479 @@ class SolanaAgentKit:
             return await SendArcadeManager.rock_paper_scissor(self, amount, choice)
         except Exception as e:
             raise AgentKitError(f"Failed to play rock-paper-scissors: {e}")
+        
+    def close_accounts(
+        self,
+        mints: List[str],
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Close accounts for a given list of mints.
+
+        Args:
+            mints (List[str]): List of mint addresses.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.close_accounts(self, mints)
+        except Exception as e:
+            raise AgentKitError(f"Failed to close accounts: {e}")
+        
+    def burn_tokens(
+        self,
+        mints: List[str],
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Burn tokens for a given list of mints.
+
+        Args:
+            mints (List[str]): List of mint addresses.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.burn_tokens(self, mints)
+        except Exception as e:
+            raise AgentKitError(f"Failed to burn tokens: {e}")
+        
+    def merge_tokens(
+        self,
+        input_assets: List[Dict[str, Any]],
+        output_mint: str,
+        priority_fee: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Merge tokens for a given list of mints.
+
+        Args:
+            input_assets (List[Dict[str, Any]]): List of input assets.
+            output_mint (str): Output mint address.
+            priority_fee (str): Priority fee.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.merge_tokens(self, input_assets, output_mint, priority_fee)
+        except Exception as e:
+            raise AgentKitError(f"Failed to merge tokens: {e}")
+        
+    def spread_token(
+        self,
+        input_asset: Dict[str, Any],
+        target_tokens: List[Dict[str, Any]],
+        priority_fee: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Spread token for a given list of mints.
+
+        Args:
+            input_asset (Dict[str, Any]): Input asset.
+            target_tokens (List[Dict[str, Any]]): List of target tokens.
+            priority_fee (str): Priority fee.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_solutiofi import SolutiofiManager
+            return SolutiofiManager.spread_token(self, input_asset, target_tokens, priority_fee)
+        except Exception as e:
+            raise AgentKitError(f"Failed to spread token: {e}")
+        
+    def approve_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Approve a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.approve_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise AgentKitError(f"Failed to approve multisig proposal: {e}")
+        
+    def create_squads_multisig(
+        self,
+        creator: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a Squads multisig wallet.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            creator (str): The creator's public key.
+
+        Returns:
+            dict: Multisig wallet details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.create_squads_multisig(self, creator)
+        except Exception as e:
+            raise AgentKitError(f"Failed to create Squads multisig wallet: {e}")
+        
+    def create_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Proposal details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.create_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise AgentKitError(f"Failed to create multisig proposal: {e}")
+        
+    def deposit_to_multisig_treasury(
+        self,
+        amount: float,
+        vault_index: int,
+        mint: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Deposit funds to a multisig treasury.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            amount (float): The amount to deposit.
+            vault_index (int): The vault index.
+            mint (str): The mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.deposit_to_multisig_treasury(self, amount, vault_index, mint)
+        except Exception as e:
+            raise AgentKitError(f"Failed to deposit to multisig treasury: {e}")
+        
+    def execute_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Execute a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.execute_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise AgentKitError(f"Failed to execute multisig proposal: {e}")
+        
+    def reject_multisig_proposal(
+        self,
+        transaction_index: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Reject a multisig proposal.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            transaction_index (int): The transaction index.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.reject_multisig_proposal(self, transaction_index)
+        except Exception as e:
+            raise AgentKitError(f"Failed to reject multisig proposal: {e}")
+        
+    def transfer_from_multisig_treasury(
+        self,
+        amount: float,
+        to: str,
+        vault_index: int,
+        mint: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Transfer funds from a multisig treasury.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            amount (float): The amount to transfer.
+            to (str): The recipient's public key.
+            vault_index (int): The vault index.
+            mint (str): The mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_squads import SquadsManager
+            return SquadsManager.transfer_from_multisig_treasury(self, amount, to, vault_index, mint)
+        except Exception as e:
+            raise AgentKitError(f"Failed to transfer from multisig treasury: {e}")
+        
+    def simulate_switchboard_feed(
+        self,
+        feed: str,
+        crossbar_url: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Simulate a Switchboard feed.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            feed (str): The feed name.
+            crossbar_url (str): The Crossbar URL.
+
+        Returns:
+            dict: Simulation details.
+        """
+        try:
+            from agentipy.tools.use_switchboard import SwitchboardManager
+            return SwitchboardManager.simulate_switchboard_feed(self, feed, crossbar_url)
+        except Exception as e:
+            raise AgentKitError(f"Failed to simulate Switchboard feed: {e}")
+    
+    def list_nft_for_sale(
+        self,
+        price: float,
+        nft_mint: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        List an NFT for sale.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            price (float): The sale price.
+            nft_mint (str): The NFT mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_tensor import TensorManager
+            return TensorManager.list_nft_for_sale(self, price, nft_mint)
+        except Exception as e:
+            raise AgentKitError(f"Failed to list NFT for sale: {e}")
+        
+    def cancel_listing(
+        self,
+        nft_mint: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Cancel an NFT listing.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            nft_mint (str): The NFT mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_tensor import TensorManager
+            return TensorManager.cancel_listing(self, nft_mint)
+        except Exception as e:
+            raise AgentKitError(f"Failed to cancel listing: {e}")
+        
+    def create_tiplink(
+        self,
+        amount: float,
+        spl_mint_address: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a TipLink.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            amount (float): The tip amount.
+            spl_mint_address (str): The SPL mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_tiplink import TiplinkManager
+            return TiplinkManager.create_tiplink(self, amount, spl_mint_address)
+        except Exception as e:
+            raise AgentKitError(f"Failed to create TipLink: {e}")
+        
+    def deposit_strategy(
+        self,
+        deposit_amount: str,
+        vault: str,
+        strategy: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Deposit funds to a strategy.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            deposit_amount (str): The deposit amount.
+            vault (str): The vault address.
+            strategy (str): The strategy address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_voltr import VoltrManager
+            return VoltrManager.deposit_strategy(self, deposit_amount, vault, strategy)
+        except Exception as e:
+            raise AgentKitError(f"Failed to deposit to strategy: {e}")
+        
+    def get_position_values(self, vault: str) -> Optional[Dict[str, Any]]:
+        """
+        Get position values for a given vault.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            vault (str): The vault address.
+
+        Returns:
+            dict: Position values.
+        """
+        try:
+            from agentipy.tools.use_voltr import VoltrManager
+            return VoltrManager.get_position_values(self, vault)
+        except Exception as e:
+            raise AgentKitError(f"Failed to get position values: {e}")
+        
+    def withdraw_strategy(
+        self,
+        withdraw_amount: str,
+        vault: str,
+        strategy: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Withdraw funds from a strategy.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            withdraw_amount (str): The withdrawal amount.
+            vault (str): The vault address.
+            strategy (str): The strategy address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_voltr import VoltrManager
+            return VoltrManager.withdraw_strategy(self, withdraw_amount, vault, strategy)
+        except Exception as e:
+            raise AgentKitError(f"Failed to withdraw from strategy: {e}")
+        
+    async def get_sentient_listings(self, page_number: Optional[int] = 1, page_size: Optional[int] = 30):
+        """
+        Retrieves Sentient listings.
+
+        Args:
+            page_number (int, optional): The page number for paginated results (default: 1).
+            page_size (int, optional): The number of items per page (default: 30).
+
+        Returns:
+            dict: Listings data or error details.
+        """
+        from agentipy.tools.use_virtuals import VirtualsManager
+        try:
+            return  VirtualsManager.get_sentient_listings(self, page_number, page_size)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch Sentient listings: {e}")
+
+    async def buy_sentient(self, token_address: str, amount: str, builder_id: Optional[int] = None):
+        """
+        Buys Sentient tokens.
+
+        Args:
+            token_address (str): The token address.
+            amount (str): The amount to purchase.
+            builder_id (int, optional): The builder ID for the purchase.
+
+        Returns:
+            dict: Transaction receipt or error details.
+        """
+        from agentipy.tools.use_virtuals import VirtualsManager
+        try:
+            return  VirtualsManager.buy_sentient(self, token_address, amount, builder_id)
+        except Exception as e:
+            raise AgentKitError(f"Failed to buy Sentient tokens: {e}")
+
+    async def sell_sentient(self, token_address: str, amount: str, builder_id: Optional[int] = None):
+        """
+        Sells Sentient tokens.
+
+        Args:
+            token_address (str): The token address.
+            amount (str): The amount to sell.
+            builder_id (int, optional): The builder ID for the sale.
+
+        Returns:
+            dict: Transaction receipt or error details.
+        """
+        from agentipy.tools.use_virtuals import VirtualsManager
+        try:
+            return  VirtualsManager.sell_sentient(self, token_address, amount, builder_id)
+        except Exception as e:
+            raise AgentKitError(f"Failed to sell Sentient tokens: {e}")
+
+    async def buy_prototype(self, token_address: str, amount: str, builder_id: Optional[int] = None, slippage: Optional[float] = None):
+        """
+        Buys Prototype tokens.
+
+        Args:
+            token_address (str): The token address.
+            amount (str): The amount to purchase.
+            builder_id (int, optional): The builder ID for the purchase.
+            slippage (float, optional): Slippage tolerance percentage.
+
+        Returns:
+            dict: Transaction receipt or error details.
+        """
+        from agentipy.tools.use_virtuals import VirtualsManager
+        try:
+            return  VirtualsManager.buy_prototype(self, token_address, amount, builder_id, slippage)
+        except Exception as e:
+            raise AgentKitError(f"Failed to buy Prototype tokens: {e}")
+
+    async def sell_prototype(self, token_address: str, amount: str, builder_id: Optional[int] = None, slippage: Optional[float] = None):
+        """
+        Sells Prototype tokens.
+
+        Args:
+            token_address (str): The token address.
+            amount (str): The amount to sell.
+            builder_id (int, optional): The builder ID for the sale.
+            slippage (float, optional): Slippage tolerance percentage.
+
+        Returns:
+            dict: Transaction receipt or error details.
+        """
+        from agentipy.tools.use_virtuals import VirtualsManager
+        try:
+            return  VirtualsManager.sell_prototype(self, token_address, amount, builder_id, slippage)
+        except Exception as e:
+            raise AgentKitError(f"Failed to sell Prototype tokens: {e}")

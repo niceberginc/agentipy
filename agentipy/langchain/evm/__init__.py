@@ -3,6 +3,7 @@ import json
 from langchain.tools import BaseTool
 
 from agentipy.agent.evm import EvmAgentKit
+from agentipy.helpers import validate_input
 
 
 class VirtualsGetSentientListingsTool(BaseTool):
@@ -26,6 +27,12 @@ class VirtualsGetSentientListingsTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "page_number": int,
+                "page_size": int
+            }
+            validate_input(data, schema)
+
             listings = await self.agent_kit.get_sentient_listings(
                 page_number=data.get("page_number", 1),
                 page_size=data.get("page_size", 30)
@@ -65,6 +72,13 @@ class VirtualsBuySentientTool(BaseTool):
     async def _arun(self, input: str):
         try:
             data = json.loads(input)
+            schema = {
+                "token_address": str,
+                "amount": str,
+                "builder_id": int
+            }
+            validate_input(data, schema)
+            
             transaction_receipt = await self.agent_kit.buy_sentient(
                 token_address=data["token_address"],
                 amount=data["amount"],
