@@ -2793,3 +2793,25 @@ class SolanaAgentKit:
             return TensorManager.cancel_listing(self, nft_mint)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to cancel listing: {e}")
+        
+    def create_tiplink(
+        self,
+        amount: float,
+        spl_mint_address: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a TipLink.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            amount (float): The tip amount.
+            spl_mint_address (str): The SPL mint address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_tiplink import TiplinkManager
+            return TiplinkManager.create_tiplink(self, amount, spl_mint_address)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to create TipLink: {e}")
