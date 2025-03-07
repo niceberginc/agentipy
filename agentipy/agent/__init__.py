@@ -2815,3 +2815,68 @@ class SolanaAgentKit:
             return TiplinkManager.create_tiplink(self, amount, spl_mint_address)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to create TipLink: {e}")
+        
+    def deposit_strategy(
+        self,
+        deposit_amount: str,
+        vault: str,
+        strategy: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Deposit funds to a strategy.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            deposit_amount (str): The deposit amount.
+            vault (str): The vault address.
+            strategy (str): The strategy address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_voltr import VoltrManager
+            return VoltrManager.deposit_strategy(self, deposit_amount, vault, strategy)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to deposit to strategy: {e}")
+        
+    def get_position_values(self, vault: str) -> Optional[Dict[str, Any]]:
+        """
+        Get position values for a given vault.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            vault (str): The vault address.
+
+        Returns:
+            dict: Position values.
+        """
+        try:
+            from agentipy.tools.use_voltr import VoltrManager
+            return VoltrManager.get_position_values(self, vault)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to get position values: {e}")
+        
+    def withdraw_strategy(
+        self,
+        withdraw_amount: str,
+        vault: str,
+        strategy: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Withdraw funds from a strategy.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            withdraw_amount (str): The withdrawal amount.
+            vault (str): The vault address.
+            strategy (str): The strategy address.
+
+        Returns:
+            dict: Transaction details.
+        """
+        try:
+            from agentipy.tools.use_voltr import VoltrManager
+            return VoltrManager.withdraw_strategy(self, withdraw_amount, vault, strategy)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to withdraw from strategy: {e}")
