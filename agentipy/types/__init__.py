@@ -13,7 +13,7 @@ class BaseModelWithArbitraryTypes(BaseModel):
 class TokenCheck(BaseModelWithArbitraryTypes):
     token_program:str
     token_type: str
-    risks: List[Dict]
+    risks: Optional[List[Dict]] = None 
     score: int
     
 class Creator(BaseModelWithArbitraryTypes):
