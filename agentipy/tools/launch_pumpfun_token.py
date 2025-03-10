@@ -206,11 +206,14 @@ class PumpfunTokenManager:
             headers={"Content-Type": "application/json"},
             data=SendVersionedTransaction(tx, config).to_json()
             )
+            if response.status_code != 200:
+                raise RuntimeError(f"Failed to send transaction: {response.text}")
 
             print(f"response: {response.json()}")
 
             txSignature = response.json()['result']
-
+            if not txSignature:
+                raise RuntimeError("Transaction signature not found in response.")
             logger.info(f'Transaction: https://solscan.io/tx/{txSignature}')
             return TokenLaunchResult(
                 signature=txSignature,
