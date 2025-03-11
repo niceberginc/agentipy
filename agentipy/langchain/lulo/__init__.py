@@ -5,7 +5,7 @@ from agentipy.langchain.lulo.withdraw import LuloWithdrawTool
 
 def get_lulo_tools(solana_kit: SolanaAgentKit):
     return [
-        LuloLendTool(solana_kit=solana_kit),
-        LuloWithdrawTool(solana_kit=solana_kit),
-        LuloLendAssetsTool(solana_kit=solana_kit)
+        LuloLendTool(agent_kit=solana_kit),
+        LuloWithdrawTool(agent_kit=solana_kit),
+        LuloLendAssetsTool(agent_kit=solana_kit)
     ]
