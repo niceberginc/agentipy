@@ -1,21 +1,118 @@
-
 from typing import Dict, List, Optional
-
-from construct import Flag, Int64ul, Struct
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from solders.pubkey import Pubkey  # type: ignore
-
 
 class BaseModelWithArbitraryTypes(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = 'ignore'  # Ignore unexpected fields
+        validate_assignment = True
 
 class TokenCheck(BaseModelWithArbitraryTypes):
-    token_program:str
-    token_type: str
-    risks: List[Dict]
-    score: int
-    
+    """
+    Model for token report data from RugCheck API.
+    """
+    mint: Optional[str] = None
+    token_program: Optional[str] = None
+    token_type: Optional[str] = None
+    risks: List[Dict] = []
+    score: Optional[int] = None
+    creatorTokens: Optional[List] = None
+
+    @field_validator('risks', mode='before')
+    @classmethod
+    def handle_null_risks(cls, value):
+        """Convert null risks to an empty list."""
+        return value or []
+
+    def to_user_friendly_string(self) -> str:
+        """
+        Convert the token report to a user-friendly string.
+        """
+        return (
+            f"Token Report for {self.mint}:\n"
+            f"  - Program: {self.token_program}\n"
+            f"  - Type: {self.token_type}\n"
+            f"  - Risks: {len(self.risks)} risks found\n"
+            f"  - Score: {self.score}/100\n"
+            f"  - Creator Tokens: {len(self.creatorTokens) if self.creatorTokens else 'None'}"
+        )
+
+class Locker(BaseModelWithArbitraryTypes):
+    """
+    Model for LP locker data.
+    """
+    programID: str
+    tokenAccount: str
+    owner: str
+    uri: str
+    unlockDate: int
+    usdcLocked: float
+    type: str
+
+    def to_user_friendly_string(self) -> str:
+        """
+        Convert the locker data to a user-friendly string.
+        """
+        return (
+            f"Locker Details:\n"
+            f"  - Program ID: {self.programID}\n"
+            f"  - Token Account: {self.tokenAccount}\n"
+            f"  - Owner: {self.owner}\n"
+            f"  - URI: {self.uri}\n"
+            f"  - Unlock Date: {self.unlockDate}\n"
+            f"  - USDC Locked: ${self.usdcLocked:,.2f}\n"
+            f"  - Type: {self.type}"
+        )
+
+class TokenLockers(BaseModelWithArbitraryTypes):
+    """
+    Model for LP lockers response.
+    """
+    lockers: Optional[Dict[str, Locker]] = None
+    total: Optional[Dict[str, float]] = None
+
+    @field_validator('lockers', 'total', mode='before')
+    @classmethod
+    def handle_null_fields(cls, value):
+        """Convert null fields to empty dictionaries."""
+        return value or {}
+
+    def to_user_friendly_string(self) -> str:
+        """
+        Convert the LP lockers data to a user-friendly string.
+        """
+        if not self.lockers:
+            return "No LP lockers found for this token."
+        
+        lockers_info = "\n".join(
+            f"Locker {i + 1}:\n{locker.to_user_friendly_string()}"
+            for i, (_, locker) in enumerate(self.lockers.items())
+        )
+        total_usdc = self.total.get('totalUSDC', 0) if self.total else 0
+        return (
+            f"LP Lockers:\n{lockers_info}\n"
+            f"Total USDC Locked: ${total_usdc:,.2f}"
+        )
+
+class TrendingToken(BaseModelWithArbitraryTypes):
+    """
+    Model for trending token data.
+    """
+    mint: str
+    vote_count: int
+    up_count: int
+
+    def to_user_friendly_string(self) -> str:
+        """
+        Convert the trending token data to a user-friendly string.
+        """
+        return (
+            f"Trending Token: {self.mint}\n"
+            f"  - Votes: {self.vote_count}\n"
+            f"  - Up Votes: {self.up_count}"
+        )
+
 class Creator(BaseModelWithArbitraryTypes):
     address: str
     percentage: int
@@ -87,20 +184,14 @@ class TransferResult(BaseModelWithArbitraryTypes):
     token: Optional[str] = None
 
 class JupiterTokenData(BaseModelWithArbitraryTypes):
-    address:str
-    symbol:str
-    name:str
+    address: str
+    symbol: str
+    name: str
 
 class GibworkCreateTaskResponse(BaseModelWithArbitraryTypes):
     status: str
     taskId: Optional[str] = None
     signature: Optional[str] = None
-
-class TokenCheck(BaseModelWithArbitraryTypes):
-    token_program:str
-    token_type: str
-    risks: List[Dict]
-    score: int
 
 class BondingCurveState:
     _STRUCT = Struct(
