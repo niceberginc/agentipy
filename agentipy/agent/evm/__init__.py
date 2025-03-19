@@ -284,6 +284,89 @@ class EvmAgentKit:
             return  VirtualsManager.search_virtual_token_by_keyword(self, keyword)
         except Exception as e:
             raise AgentKitError(f"Failed to search virtual token by keyword: {e}")
+        
+    async def get_uniswap_quote(self, 
+                               input_token_address: str,
+                               output_token_address: str,
+                               amount_in_raw: str,
+                               input_token_decimals: int = 18,
+                               output_token_decimals: int = 18,
+                               slippage: float = 0.5,
+                               fee_amount: Optional[int] = 3000):
+        """
+        Retrieves a quote from Uniswap for swapping between two tokens.
+
+        Args:
+            input_token_address (str): The address of the input token.
+            output_token_address (str): The address of the output token.
+            amount_in_raw (str): The raw amount of input token to swap.
+            input_token_decimals (int, optional): The number of decimals for the input token. Defaults to 18.
+            output_token_decimals (int, optional): The number of decimals for the output token. Defaults to 18.
+            slippage (float, optional): The slippage tolerance percentage. Defaults to 0.5.
+            fee_amount (int, optional): The fee amount for the pool. Defaults to 3000 (MEDIUM).
+
+        Returns:
+            dict: Quote data or error details.
+        """
+        if self.network.name != "Base":
+            raise AgentKitError("This function is only available for Base network.")
+    
+        from agentipy.tools.evm.use_uniswap import UniswapManager
+        try:
+            return UniswapManager.get_quote(
+                self, 
+                input_token_address, 
+                output_token_address, 
+                amount_in_raw, 
+                input_token_decimals, 
+                output_token_decimals, 
+                slippage, 
+                fee_amount
+            )
+        except Exception as e:
+            raise AgentKitError(f"Failed to get Uniswap quote: {e}")
+
+    async def trade_on_uniswap(self,
+                              input_token_address: str,
+                              output_token_address: str,
+                              amount_in_raw: str,
+                              input_token_decimals: int = 18,
+                              output_token_decimals: int = 18,
+                              slippage: float = 0.5,
+                              fee_amount: Optional[int] = 3000):
+        """
+        Executes a token swap on Uniswap.
+
+        Args:
+            input_token_address (str): The address of the input token.
+            output_token_address (str): The address of the output token.
+            amount_in_raw (str): The raw amount of input token to swap.
+            input_token_decimals (int, optional): The number of decimals for the input token. Defaults to 18.
+            output_token_decimals (int, optional): The number of decimals for the output token. Defaults to 18.
+            slippage (float, optional): The slippage tolerance percentage. Defaults to 0.5.
+            fee_amount (int, optional): The fee amount for the pool. Defaults to 3000 (MEDIUM).
+
+        Returns:
+            dict: Transaction details or error information.
+        """
+
+        if self.network.name != "Base":
+            raise AgentKitError("This function is only available for Base network.")
+        
+        from agentipy.tools.evm.use_uniswap import UniswapManager
+        try:
+            return UniswapManager.trade(
+                self, 
+                input_token_address, 
+                output_token_address, 
+                amount_in_raw, 
+                input_token_decimals, 
+                output_token_decimals, 
+                slippage, 
+                fee_amount
+            )
+        except Exception as e:
+            raise AgentKitError(f"Failed to execute Uniswap trade: {e}")
 
 
 
