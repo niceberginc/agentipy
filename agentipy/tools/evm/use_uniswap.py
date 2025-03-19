@@ -119,6 +119,7 @@ class UniswapManager:
                 },
                 "amountInRaw": amount_in_raw,
                 "slippage": slippage,
+                "feeAmount": fee_amount
             }
 
             print("payload is: ", payload)
