@@ -9,6 +9,8 @@ from agentipy.constants import API_VERSION, BASE_PROXY_URL
 from agentipy.tools.evm.wallet_opts import Web3EVMClient
 from agentipy.utils import AgentKitError
 from agentipy.utils.evm.general.networks import Network
+from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
+                                      PriceInferenceToken, SignatureFormat)
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +35,11 @@ class EvmAgentKit:
         rpc_url: Optional[str] = None,
         rpc_api_key: Optional[str] = None,
         openai_api_key: Optional[str] = None,
+        coingecko_api_key: Optional[str] = None,
+        coingecko_demo_api_key: Optional[str] = None,
+        stork_api_key: Optional[str] = None,
+        elfa_ai_api_key: Optional[str] = None,
+        allora_api_key: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         self.network = network
@@ -40,6 +47,11 @@ class EvmAgentKit:
         self.rpc_api_key = rpc_api_key or os.getenv("EVM_RPC_API_KEY", "")
         self.web3 = Web3(Web3.HTTPProvider(self.rpc_url))
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY", "")
+        self.coingecko_api_key = coingecko_api_key or os.getenv("COINGECKO_PRO_API_KEY", "")
+        self.coingecko_demo_api_key = coingecko_demo_api_key or os.getenv("COINGECKO_DEMO_API_KEY", "")
+        self.stork_api_key = stork_api_key or os.getenv("STORK_API_KEY", "")
+        self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
+        self.allora_api_key = allora_api_key or os.getenv("ALLORA_API_KEY", "")
         self.chain_id = network.chain_id
         self.token = network.token
         self.explorer = network.explorer
@@ -367,6 +379,306 @@ class EvmAgentKit:
             )
         except Exception as e:
             raise AgentKitError(f"Failed to execute Uniswap trade: {e}")
+        
+    async def get_trending_tokens(self):
+        """
+        Get trending tokens from CoinGecko.
+
+        Returns:
+            dict: Trending tokens data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_trending_tokens(self)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch trending tokens: {e}")
+        
+    async def get_coin_price_vs(self, coin_ids: list[str], vs_currencies: list[str] = ["usd"]):
+        """
+        Get token price data from CoinGecko.
+
+        Args:
+            coin_ids (list[str]): A list of token contract addresses.
+            vs_currencies (list[str], optional): A list of currency codes for price comparison. Default is ["usd"].
+
+        Returns:
+            dict: Token price data from CoinGecko.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_coin_price_vs(self, coin_ids, vs_currencies)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch token price data: {e}")
+
+
+    async def get_trending_pools(self, duration: str = "24h"):
+        """
+        Get trending pools from CoinGecko for the Solana network.
+
+        Args:
+            duration (str): Duration filter for trending pools. Allowed values: "5m", "1h", "6h", "24h". Default is "24h".
+
+        Returns:
+            dict: Trending pools data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_trending_pools(self, duration)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch trending pools: {e}")
+
+
+    async def get_top_gainers(self, duration: str = "24h", top_coins: int | str = "all"):
+        """
+        Get top gainers from CoinGecko.
+
+        Args:
+            duration (str): Duration filter for top gainers. Default is "24h".
+            top_coins (int or str): The number of top coins to return. Default is "all".
+
+        Returns:
+            dict: Top gainers data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_top_gainers(self, duration, top_coins)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch top gainers: {e}")
+
+
+    async def get_token_price_data(self, token_addresses: list[str]):
+        """
+        Get token price data for a list of token addresses from CoinGecko.
+
+        Args:
+            token_addresses (list[str]): A list of token contract addresses.
+
+        Returns:
+            dict: Token price data from CoinGecko.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_token_price_data(self, token_addresses)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch token price data: {e}")
+
+    async def get_token_info(self, token_address: str):
+        """
+        Get token info for a given token address from CoinGecko.
+
+        Args:
+            token_address (str): The token's contract address.
+
+        Returns:
+            dict: Token info data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_token_info(self, token_address)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch token info: {e}")
+
+
+    async def get_latest_pools(self):
+        """
+        Get the latest pools from CoinGecko for the Solana network.
+
+        Returns:
+            dict: Latest pools data.
+        """
+        from agentipy.tools.use_coingecko import CoingeckoManager
+        try:
+            return await CoingeckoManager.get_latest_pools(self)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch latest pools: {e}")
+        
+    async def stork_fetch_price(self, asset_id: str):
+        from agentipy.tools.use_stork import StorkManager
+        try:
+            return await StorkManager.get_price(self, asset_id)
+        except Exception as e:
+            raise AgentKitError(f"Failed to {e}")
+        
+    async def ping_elfa_ai_api(self) -> dict :
+        """
+        Ping the Elfa AI API.
+
+        Returns:
+            dict: API response.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.ping_elfa_ai_api(self)
+        except Exception as e:
+            raise AgentKitError(f"Failed to ping Elfa AI API: {e}")
+        
+    async def get_elfa_ai_api_key_status(self) -> dict :
+        """
+        Get the Elfa AI API key status.
+
+        Returns:
+            dict: API key status.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_elfa_ai_api_key_status(self)
+        except Exception as e:
+            raise AgentKitError(f"Failed to get Elfa AI API key status: {e}")
+        
+    async def get_smart_mentions(self, limit: int = 100, offset: int = 0) -> dict:
+        """
+        Get smart mentions from Elfa AI.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            limit (int): Number of mentions to retrieve.
+            offset (int): Offset for pagination.
+
+        Returns:
+            dict: Mentions data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_smart_mentions(self, limit, offset)
+        except Exception as e:
+            raise AgentKitError(f"Failed to get smart mentions: {e}")
+        
+    async def get_top_mentions_by_ticker(self, ticker: str,
+        time_window: str = "1h",
+        page: int = 1,
+        page_size: int = 10,
+        include_account_details: bool = False
+        ) -> dict:
+        """
+        Get top mentions by ticker.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            ticker (str): The ticker symbol.
+            time_window (str): The time window for mentions.
+            page (int): Page number.
+            page_size (int): Number of results per page.
+            include_account_details (bool): Whether to include account details.
+
+        Returns:
+            dict: Mentions data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_top_mentions_by_ticker(self, ticker, time_window, page, page_size, include_account_details)
+        except Exception as e:
+            raise AgentKitError(f"Failed to get top mentions by ticker: {e}")
+        
+    async def search_mentions_by_keywords(
+        self,keywords: str,
+        from_timestamp: int,
+        to_timestamp: int,
+        limit: int = 20,
+        cursor: str = None) -> dict:
+        """
+        Search mentions by keywords.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            keywords (str): Keywords for search.
+            from_timestamp (int): Start timestamp.
+            to_timestamp (int): End timestamp.
+            limit (int): Number of results to fetch.
+            cursor (str): Optional cursor for pagination.
+
+        Returns:
+            dict: Search results.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.search_mentions_by_keywords(self, keywords, from_timestamp, to_timestamp, limit, cursor)
+        except Exception as e:
+            raise AgentKitError(f"Failed to search mentions by keywords: {e}")
+        
+    async def get_trending_tokens_using_elfa_ai(
+        self,
+        time_window: str = "24h",
+        page: int = 1,
+        page_size: int = 50,
+        min_mentions: int = 5
+    ) -> dict:
+        """
+        Get trending tokens using Elfa AI.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            time_window (str): Time window for trending tokens.
+            page (int): Page number.
+            page_size (int): Number of results per page.
+            min_mentions (int): Minimum number of mentions required.
+
+        Returns:
+            dict: Trending tokens data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_trending_tokens_using_elfa_ai(self, time_window, page, page_size, min_mentions)
+        except Exception as e:
+            raise AgentKitError(f"Failed to get trending tokens using Elfa AI: {e}")
+        
+    async def get_smart_twitter_account_stats(self, username: str) -> dict:
+        """
+        Get smart Twitter account stats.
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+            username (str): The Twitter username.
+
+        Returns:
+            dict: Account statistics data.
+        """
+        from agentipy.tools.use_elfa_ai import ElfaAiManager
+        try:
+            return await ElfaAiManager.get_smart_twitter_account_stats(self, username)
+        except Exception as e:
+            raise AgentKitError(f"Failed to get smart Twitter account stats: {e}")
+        
+    async def get_price_prediction(self, asset: PriceInferenceToken, timeframe: PriceInferenceTimeframe, 
+                                   signature_format: SignatureFormat = SignatureFormat.ETHEREUM_SEPOLIA):
+        """
+        Fetch a future price prediction for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network.
+
+        :param ticker: The crypto asset symbol (e.g., "BTC" or "ETH").
+        :param timeframe: The prediction timeframe ("5m" or "8h").
+        :return: A dictionary containing the predicted price and confidence interval.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_price_prediction(self, asset, timeframe, signature_format)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch price prediction: {e}")
+        
+    async def get_inference_by_topic_id(self, topic_id: int):
+        """
+        Fetch a price inference for BTC or ETH for a given timeframe (5m or 8h) from the Allora Network.
+
+        :param ticker: The crypto asset symbol (e.g., "BTC" or "ETH").
+        :param timeframe: The prediction timeframe ("5m" or "8h").
+        :return: A dictionary containing the predicted price and confidence interval.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_inference_by_topic_id(self, topic_id)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch price inference: {e}")
+    
+    async def get_all_topics(self):
+        """
+        Fetch all topics from the Allora Network.
+
+        :return: A list of topic IDs.
+        """
+        from agentipy.tools.use_allora import AlloraManager
+        try:
+            return await AlloraManager.get_all_topics(self)
+        except Exception as e:
+            raise AgentKitError(f"Failed to fetch all topics: {e}")
+    
 
 
 
