@@ -189,3 +189,40 @@ class CoingeckoManager:
                     return data
         except Exception as e:
             raise Exception(f"Error fetching latest pools from CoinGecko: {e}")
+        
+    @staticmethod
+    async def get_coin_price_vs(agent: SolanaAgentKit, coin_ids: list[str], vs_currencies: list[str] = ["usd"]) -> dict:
+        """
+        Get trending tokens from CoinGecko (Free endpoint).
+
+        Args:
+            agent (SolanaAgentKit): The Solana agent instance.
+
+        Returns:
+            dict: Trending tokens data.
+        """
+        try:
+            joined_addresses = ",".join(coin_ids)
+            joined_currencies = ",".join(vs_currencies)
+       
+            url = (
+                "https://api.coingecko.com/api/v3/simple/price"
+                f"?ids={joined_addresses}"
+                f"&vs_currencies={joined_currencies}"
+                "&include_market_cap=true"
+                "&include_24hr_vol=true"
+                "&include_24hr_change=true"
+                "&include_last_updated_at=true")
+ 
+
+            # Optionally add a demo key if provided (and no pro key is set)
+            if not agent.coingecko_api_key and agent.coingecko_demo_api_key:
+                url += f"?x_cg_demo_api_key={agent.coingecko_demo_api_key}"              
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status != 200:
+                        raise Exception(f"Failed to fetch trending tokens: {response.status}")
+                    data = await response.json()
+                    return data
+        except Exception as e:
+            raise Exception(f"Couldn't get trending tokens: {e}")
