@@ -224,7 +224,24 @@ async def main():
         print(f"Error fetching trending tokens: {e}\n" + "-" * 40)
 
     # -------------------------------------------------------------
-    # Section 2: Fetch and Display Data Metrics for User-Specified Ticker
+    # Section 2: Fetch and Display Data Metrics for User-Specified Token Name and vs Currency
+    # -------------------------------------------------------------
+    btc_price_data_usd = await agentEvm.get_coin_price_vs(["bitcoin"], ["usd"])
+
+    btc_price_data_multi_vs = await agentEvm.get_coin_price_vs(["bitcoin"], ["usd,eur"])
+
+    multiple_price_data = await agent.get_coin_price_vs(["bitcoin","solana","agentipy"], ["usd"])
+
+    btc_info = btc_price_data_usd["bitcoin"]
+    print(f"- Current Price (USD): ${btc_info['usd']:.4f}")
+    print(f"- Market Cap (USD): ${btc_info['usd_market_cap']:.2f}")
+    print(f"- 24h Volume (USD): ${btc_info['usd_24h_vol']:.2f}")
+    print(f"- 24h Change (%): {btc_info['usd_24h_change']:.2f}%")
+    print(f"- Last Updated: {btc_info['last_updated_at']}")
+    print("\nSuccessfully fetched token data metrics!\n" + "-" * 40)
+
+    # -------------------------------------------------------------
+    # Section 3: Fetch and Display Data Metrics for User-Specified Ticker
     # -------------------------------------------------------------
     token_ticker = input("Enter a Token Ticker (e.g., SOL, USDC) to get its metrics: ").strip()
 
