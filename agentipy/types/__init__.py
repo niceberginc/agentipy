@@ -1,6 +1,8 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel, field_validator
 from solders.pubkey import Pubkey  # type: ignore
+from construct import Struct, Int64ul, Flag
+
 
 class BaseModelWithArbitraryTypes(BaseModel):
     class Config:
