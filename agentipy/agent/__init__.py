@@ -281,10 +281,10 @@ class SolanaAgentKit:
         except Exception as e:
             raise AgentKitError(f"Failed to sell using moonshot: {e}")
     
-    async def pyth_fetch_price(self, mint_str: str):
+    async def pyth_fetch_price(self, base_token_ticker: str, quote_token_ticker: str):
         from agentipy.tools.use_pyth import PythManager
         try:
-            return await PythManager.get_price(mint_str)
+            return await PythManager.get_price(self, base_token_ticker, quote_token_ticker)
         except Exception as e:
             raise AgentKitError(f"Failed to {e}")
     
