@@ -3,7 +3,8 @@ import base64
 import requests
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.types import TxOpts
-from solana.transaction import Transaction
+#from solana.transaction import Transaction
+from solders.transaction import Transaction
 from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey as PublicKey  # type: ignore
 
