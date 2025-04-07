@@ -15,6 +15,10 @@ from agentipy.agent import SolanaAgentKit
 # Configure logger for this module
 logger = logging.getLogger(__name__)
 
+class BurnValues:
+    DEFAULT_COMPUTE_UNIT_PRICE = 100_000
+    DEFAULT_COMPUTE_UNIT_LIMIT = 100_000
+
 class BurnManager:
     @staticmethod
     def burn_and_close_account(agent: SolanaAgentKit, token_account: str):
@@ -68,8 +72,8 @@ class BurnManager:
                 owner=owner
             )
         )
-        transaction.add(set_compute_unit_price(100_000))
-        transaction.add(set_compute_unit_limit(100_000))
+        transaction.add(set_compute_unit_price(BurnValues.DEFAULT_COMPUTE_UNIT_PRICE))
+        transaction.add(set_compute_unit_limit(BurnValues.DEFAULT_COMPUTE_UNIT_LIMIT))
         transaction.add(close_account_instruction)
 
         try:
