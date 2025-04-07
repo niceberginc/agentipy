@@ -6,7 +6,8 @@ import spl.token.instructions as spl_token
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Confirmed
 from solana.rpc.types import TxOpts
-from solana.transaction import Transaction
+#from solana.transaction import Transaction
+from solders.transaction import Transaction
 from solders.instruction import AccountMeta, Instruction  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from spl.token.instructions import get_associated_token_address

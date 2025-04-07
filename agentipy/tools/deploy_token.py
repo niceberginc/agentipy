@@ -4,7 +4,8 @@ from typing import Any, Dict
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Confirmed
 from solana.rpc.types import TxOpts
-from solana.transaction import Transaction
+#from solana.transaction import Transaction
+from solders.transaction import Transaction
 from solders.compute_budget import set_compute_unit_price  # type: ignore
 from solders.keypair import Keypair  # type: ignore
 from solders.message import to_bytes_versioned  # type: ignore

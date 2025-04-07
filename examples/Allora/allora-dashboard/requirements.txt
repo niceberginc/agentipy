@@ -1,0 +1,4 @@
+agentipy
+allora-sdk
+flask
+python-dotenv
