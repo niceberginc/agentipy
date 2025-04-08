@@ -18,7 +18,7 @@ class ElfaAiPingApiTool(BaseTool):
     """
     agent_kit: SolanaAgentKit
 
-    async def _arun(self):
+    async def _arun(self, input: str = None): 
         try:
             api_response = await self.agent_kit.ping_elfa_ai_api()
             return {
@@ -49,7 +49,7 @@ class ElfaAiGetApiKeyStatusTool(BaseTool):
     """
     agent_kit: SolanaAgentKit
 
-    async def _arun(self):
+    async def _arun(self, input: str = None): 
         try:
             api_key_status = await self.agent_kit.get_elfa_ai_api_key_status()
             return {

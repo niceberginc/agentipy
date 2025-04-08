@@ -4,10 +4,10 @@ import nacl.signing
 from solana.rpc.api import Client as SolanaClient
 from solana.rpc.commitment import Confirmed
 from solana.rpc.types import TxOpts
-from solders.transaction import Transaction # type: ignore
 from solders.instruction import Instruction  # type: ignore
 from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
+from solders.transaction import Transaction  # type: ignore
 
 
 class SolanaTransaction:

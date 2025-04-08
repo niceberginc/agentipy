@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from allora_sdk.v2.api_client import (AlloraAPIClient, AlloraInference,
@@ -7,6 +8,7 @@ from allora_sdk.v2.api_client import (AlloraAPIClient, AlloraInference,
 
 from agentipy.agent import SolanaAgentKit
 
+logger = logging.getLogger(__name__)
 
 class AlloraManager:
     def __init__(self, agent: SolanaAgentKit, base_api_url: Optional[str] = "https://api.upshot.xyz/v2", chain: ChainSlug = ChainSlug.TESTNET):
@@ -21,6 +23,7 @@ class AlloraManager:
             api_key=agent.allora_api_key,
             base_api_url=base_api_url
         )
+        logger.info(f"AlloraManager initialized with API key: {self.client}")
 
     async def get_price_prediction(
         self, asset: PriceInferenceToken, timeframe: PriceInferenceTimeframe, 
@@ -57,6 +60,7 @@ class AlloraManager:
         :return: A list of available topics.
         """
         try:
+            logger.info(f"AlloraManager initialized with API key: {self.client}")
             topics: list[AlloraTopic] = await self.client.get_all_topics()
             return {"topics": topics}
         except Exception as e:

@@ -1,6 +1,10 @@
+
 from typing import Dict, List, Optional
+
+from construct import Flag, Int64ul, Struct
 from pydantic import BaseModel, field_validator
 from solders.pubkey import Pubkey  # type: ignore
+
 
 class BaseModelWithArbitraryTypes(BaseModel):
     class Config:
@@ -184,9 +188,9 @@ class TransferResult(BaseModelWithArbitraryTypes):
     token: Optional[str] = None
 
 class JupiterTokenData(BaseModelWithArbitraryTypes):
-    address: str
-    symbol: str
-    name: str
+    address:str
+    symbol:str
+    name:str
 
 class GibworkCreateTaskResponse(BaseModelWithArbitraryTypes):
     status: str
@@ -204,4 +208,3 @@ class BondingCurveState:
     )
     def __init__(self, data: bytes) -> None:
         parsed = self._STRUCT.parse(data[8:])
-        self.__dict__.update(parsed)

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allora Crypto Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors">
+    <div x-data="app" class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+                🐍 Agentipy X 📈 Allora Predictions
+            </h1>
+            <button @click="toggleDarkMode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                🌓
+            </button>
+        </header>
+
+        <!-- Prediction Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- BTC Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                    <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" 
+                         class="w-12 h-12 rounded-full">
+                    <h2 class="text-xl font-semibold dark:text-white">Bitcoin Predictions</h2>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button @click="getPrediction('btc', 'FIVE_MIN')" class="prediction-btn">
+                        5 Min Prediction
+                        <template x-if="loading['btc_5m']">
+                            <span class="ml-2 animate-spin">⏳</span>
+                        </template>
+                    </button>
+                    <button @click="getPrediction('btc', 'EIGHT_HOURS')" class="prediction-btn">
+                        8 Hour Prediction
+                        <template x-if="loading['btc_8h']">
+                            <span class="ml-2 animate-spin">⏳</span>
+                        </template>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ETH Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                    <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" 
+                         class="w-12 h-12 rounded-full">
+                    <h2 class="text-xl font-semibold dark:text-white">Ethereum Predictions</h2>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button @click="getPrediction('eth', 'FIVE_MIN')" class="prediction-btn">
+                        5 Min Prediction
+                        <template x-if="loading['eth_5m']">
+                            <span class="ml-2 animate-spin">⏳</span>
+                        </template>
+                    </button>
+                    <button @click="getPrediction('eth', 'EIGHT_HOURS')" class="prediction-btn">
+                        8 Hour Prediction
+                        <template x-if="loading['eth_8h']">
+                            <span class="ml-2 animate-spin">⏳</span>
+                        </template>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold dark:text-white">Results</h3>
+                <button @click="refreshTopics" 
+                        class="text-sm px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    Refresh Topics
+                </button>
+            </div>
+            <div class="space-y-4">
+                <template x-for="message in activityLog">
+                    <div class="p-3 rounded-lg"
+                         :class="message.type === 'error' ? 
+                                'bg-red-100 dark:bg-red-900' : 
+                                'bg-gray-100 dark:bg-gray-700'">
+                        <span class="text-sm" x-text="message.text"></span>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="toast.show" 
+             x-transition
+             class="fixed bottom-4 right-4 p-4 rounded-lg shadow-lg"
+             :class="toast.type === 'error' ? 
+                    'bg-red-500 text-white' : 
+                    'bg-green-500 text-white'">
+            <span x-text="toast.message"></span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                loading: {
+                    'btc_5m': false,
+                    'btc_8h': false,
+                    'eth_5m': false,
+                    'eth_8h': false
+                },
+                activityLog: [],
+                toast: { show: false, message: '', type: 'success' },
+
+                async getPrediction(asset, timeframe) {
+                    const mapping = {
+                        'FIVE_MIN': '5m',
+                        'EIGHT_HOURS': '8h'
+                    };
+                    const key = `${asset}_${mapping[timeframe]}`;
+                    this.loading[key] = true;
+                    
+                    try {
+                        const response = await fetch(`/predict/${asset}/${timeframe}`);
+                        const responseText = await response.text();
+                        
+                        if (!response.ok) {
+                            try {
+                                const errorData = JSON.parse(responseText);
+                                throw new Error(errorData.message);
+                            } catch {
+                                throw new Error(responseText);
+                            }
+                        }
+                        
+                        const data = JSON.parse(responseText);
+                        // If confidence_interval is an array, show the first value only.
+                        let confidence = data.data.confidence_interval;
+                        if (Array.isArray(confidence)) {
+                            confidence = confidence[0];
+                        }
+                        
+                        this.logActivity({
+                            type: 'success',
+                            text: `${data.asset} ${data.timeframe.replace('_', ' ')}: $${data.data.price_prediction} ± $${confidence}`
+                        });
+                        this.showToast('Prediction updated successfully');
+                    } catch (error) {
+                        this.logActivity({ 
+                            type: 'error', 
+                            text: `Failed to get ${asset} prediction: ${error.message}` 
+                        });
+                        this.showToast(error.message, 'error');
+                    } finally {
+                        this.loading[key] = false;
+                    }
+                },
+
+                async refreshTopics() {
+                    try {
+                        const response = await fetch('/topics');
+                        const responseText = await response.text();
+                        
+                        if (!response.ok) {
+                            try {
+                                const errorData = JSON.parse(responseText);
+                                throw new Error(errorData.message);
+                            } catch {
+                                throw new Error(responseText);
+                            }
+                        }
+                        
+                        const data = JSON.parse(responseText);
+                        data.topics.forEach(topic => {
+                            this.logActivity({
+                                type: 'info',
+                                text: `Topic ${topic.id}: ${topic.metadata.name}`
+                            });
+                        });
+                        this.showToast('Topics refreshed successfully');
+                    } catch (error) {
+                        this.showToast(error.message, 'error');
+                    }
+                },
+
+                logActivity(message) {
+                    this.activityLog.unshift(message);
+                    if (this.activityLog.length > 10) this.activityLog.pop();
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast = { show: true, message, type };
+                    setTimeout(() => this.toast.show = false, 3000);
+                },
+
+                toggleDarkMode() {
+                    document.documentElement.classList.toggle('dark');
+                }
+            }));
+        });
+    </script>
+
+    <style>
+        .prediction-btn {
+            @apply p-3 text-center rounded-lg transition-all 
+                   bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 
+                   text-blue-600 dark:text-blue-200 font-medium
+                   flex items-center justify-center;
+        }
+        
+        .dark .prediction-btn {
+            @apply hover:bg-blue-800;
+        }
+    </style>
+</body>
+</html>

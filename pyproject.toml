@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agentipy"
-version = "2.0.5"
+version = "2.0.7"
 description = "A Python toolkit for on chain agents"
 authors = ["Muhammed Talha Korkmaz <kriptovekediler@gmail.com>"]
 license = "MIT"
@@ -11,7 +11,7 @@ keywords = ["solana", "sdk", "blockchain", "tools", "evm", "ai", "agent"]
 
 
 [tool.poetry.dependencies]
-python = "3.13.0"
+python = "3.13.2"
 requests = "2.32.3"
 base58 = "^2.1.1"
 pillow = "^11.0.0"
@@ -37,6 +37,7 @@ cryptography = "^44.0.1"
 pynacl = "^1.5.0"
 backpack-exchange-sdk = "^1.0.24"
 allora-sdk = "^0.2.0"
+mcp = "^1.4.0"
 
 [build-system]
 requires = ["poetry-core"]
