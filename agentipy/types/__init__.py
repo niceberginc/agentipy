@@ -4,6 +4,8 @@ from typing import Any, Callable, Dict, List, Optional
 from construct import Flag, Int64ul
 from pydantic import BaseModel, field_validator
 from solders.pubkey import Pubkey  # type: ignore
+from construct import Struct, Int64ul, Flag
+
 
 
 class BaseModelWithArbitraryTypes(BaseModel):

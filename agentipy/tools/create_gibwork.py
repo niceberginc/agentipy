@@ -3,7 +3,8 @@ import base64
 import requests
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.types import TxOpts
-from solana.transaction import Transaction
+#from solana.transaction import Transaction
+from solders.transaction import Transaction
 from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey as PublicKey  # type: ignore
 
@@ -40,6 +41,7 @@ class GibworkManager:
                 headers={"Content-Type": "application/json"},
                 json=payload,
             )
+            response.raise_for_status()
             response_data = response.json()
 
             if not response_data.get("taskId") or not response_data.get("serializedTransaction"):
