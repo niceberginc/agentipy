@@ -1,20 +1,20 @@
 from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
                                       PriceInferenceToken, SignatureFormat)
+from mcp.types import Tool
 
-from agentipy.mcp.type import ActionType
 from agentipy.tools.use_allora import AlloraManager
 
 ALLORA_ACTIONS = {
-    "GET_ALL_TOPICS": ActionType(
+    "GET_ALL_TOPICS": Tool(
         name="GET_ALL_TOPICS",
         description="Get all topics from Allora's API",
-        schema={},
-        handler=lambda agent, params: AlloraManager.get_all_topics(agent),
+        inputSchema={},
+        handler=lambda agent, params: AlloraManager(agent).get_all_topics(),
     ),
-     "GET_PRICE_PREDICTION": ActionType(
+    "GET_PRICE_PREDICTION": Tool(
         name="GET_PRICE_PREDICTION",
         description="Fetch a future price prediction for BTC or ETH for a given timeframe from the Allora Network.",
-        schema={
+        inputSchema={
             "asset": {
                 "type": "string",
                 "description": "Crypto asset symbol (BTC or ETH).",
@@ -32,19 +32,18 @@ ALLORA_ACTIONS = {
                 "default": "ETHEREUM_SEPOLIA",
             },
         },
-        handler=lambda agent, params: agent.get_price_prediction(
+        handler=lambda agent, params: AlloraManager(agent).get_price_prediction(
             asset=PriceInferenceToken[params["asset"]],
             timeframe=PriceInferenceTimeframe[params["timeframe"]],
             signature_format=SignatureFormat[params.get("signature_format", "ETHEREUM_SEPOLIA")],
         ),
     ),
-    
-    "GET_INFERENCE_BY_TOPIC_ID": ActionType(
+    "GET_INFERENCE_BY_TOPIC_ID": Tool(
         name="GET_INFERENCE_BY_TOPIC_ID",
         description="Fetch inference data for a specific topic ID.",
-        schema={
+        inputSchema={
             "topic_id": {"type": "integer", "description": "Topic ID to fetch inference data for."},
         },
-        handler=lambda agent, params: agent.get_inference_by_topic_id(params["topic_id"]),
+        handler=lambda agent, params: AlloraManager(agent).get_inference_by_topic_id(params["topic_id"]),
     ),
 }

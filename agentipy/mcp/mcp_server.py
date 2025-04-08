@@ -1,67 +1,89 @@
-import asyncio
 import json
 import logging
-from typing import Any, Dict
+import shlex
+from typing import Dict, List, Union
 
-import mcp.server.stdio
-from mcp.server import NotificationOptions, Server
-from mcp.server.models import InitializationOptions
+from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import TextContent, Tool
 
 from agentipy.agent import SolanaAgentKit
 from agentipy.mcp.all_actions import ALL_ACTIONS
-from agentipy.mcp.type import ActionType
 
 logger = logging.getLogger("agentipy-mcp-server")
 
-class AgentipyMCPServer:
-    def __init__(self, agent: SolanaAgentKit, selected_actions: Dict[str, Any] = None, server_name="agentipy-mcp"):
-        self.server = Server(server_name)
-        self.agent = agent
+mcp = FastMCP(
+    "agentipy-mcp",
+    instructions="Solana tools: Get balance, transfer SOL, price prediction, etc.",
+    dependencies=["pydantic", "httpx", "solana"],
+)
 
-        self.selected_actions = selected_actions or ALL_ACTIONS
+def parse_key_value_string(s: str) -> dict:
+    try:
+        return dict(part.split("=", 1) for part in shlex.split(s))
+    except Exception as e:
+        raise ValueError(f"Invalid key=value string: {e}")
 
-        self.server.list_tools()(self.list_tools)
-        self.server.call_tool()(self.call_tool)
+async def list_tools(selected_actions: Dict[str, Tool]) -> List[Tool]:
+    return [
+        Tool(
+            name=action.name,
+            description=action.description,
+            inputSchema=action.inputSchema,
+        )
+        for action in selected_actions.values()
+    ]
 
-    async def list_tools(self) -> list[Tool]:
-        """Returns only selected tools."""
-        return [
-            Tool(
-                name=action.name,
-                description=action.description,
-                inputSchema=action.schema,
-            )
-            for action in self.selected_actions.values()
-        ]
+async def call_tool(agent: SolanaAgentKit, selected_actions: Dict[str, Tool], name: str, arguments: dict):
+    if name not in selected_actions:
+        return [TextContent(type="text", text=f"Unknown action: {name}")]
 
-    async def call_tool(self, name: str, arguments: dict):
-        """Executes the selected tool dynamically."""
-        if name not in self.selected_actions:
-            return [TextContent(type="text", text=f"Unknown action: {name}")]
+    action = selected_actions[name]
+    try:
+        result = await action.handler(agent, arguments)
+        return [TextContent(type="text", text=json.dumps(result, indent=2))]
+    except Exception as e:
+        logger.error(f"Error executing {name}: {str(e)}")
+        return [TextContent(type="text", text=f"Error: {str(e)}")]
 
-        action = self.selected_actions[name]
-        try:
-            result = await action.handler(self.agent, arguments)
-            return [TextContent(type="text", text=json.dumps(result, indent=2))]
-        except Exception as e:
-            logger.error(f"Error executing {name}: {str(e)}")
-            return [TextContent(type="text", text=f"Error: {str(e)}")]
+def normalize_kwargs(raw: Union[str, dict]) -> dict:
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str):
+        raw = raw.strip()
+        if raw.startswith("{"):
+            try:
+                raw = json.loads(raw)
+                if isinstance(raw, str):
+                    raw = json.loads(raw)
+                return raw
+            except Exception as e:
+                raise ValueError(f"Invalid JSON format in 'kwargs': {e}")
+        else:
+            return parse_key_value_string(raw)
+    raise ValueError(f"Unsupported kwargs type: {type(raw)}")
 
-    async def run(self):
-        """Starts the MCP server."""
-        async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
-            await self.server.run(
-                read_stream,
-                write_stream,
-                InitializationOptions(
-                    server_name=self.server.name,
-                    server_version="1.0",
-                    capabilities=self.server.get_capabilities(notification_options=NotificationOptions()),
-                ),
-            )
+def run_server(agent: SolanaAgentKit, selected_actions: Dict[str, Tool], server_name="agentipy-mcp"):
+    logger.info(f'Starting MCP server with {list(selected_actions.keys())} actions')
 
-def start_mcp_server(agent: SolanaAgentKit, selected_actions: Dict[str, Any] = None):
-    """Allows users to start MCP with only their selected actions."""
-    server = AgentipyMCPServer(agent, selected_actions)
-    asyncio.run(server.run())
+    for name, tool in selected_actions.items():
+        def register_tool(tool_name, tool_def):
+            @mcp.tool(name=tool_name, description=tool_def.description)
+            async def _tool(ctx: Context, **kwargs):
+                try:
+                    if "kwargs" in kwargs:
+                        kwargs = normalize_kwargs(kwargs["kwargs"])
+
+                    result = await tool_def.handler(agent, kwargs)
+                    return TextContent(type="text", text=json.dumps(result, indent=2))
+                except Exception as e:
+                    logger.error(f"Error in tool '{tool_name}': {str(e)}")
+                    logger.error(f"Error in tool {tool_name} with kwargs {kwargs}")
+                    await ctx.error(f"Error running tool: {str(e)}")
+                    return TextContent(type="text", text=f"Error: {str(e)}")
+        register_tool(name, tool)
+
+    mcp.run()
+
+def start_mcp_server(agent: SolanaAgentKit, selected_actions: Dict[str, Tool] = None):
+    selected = selected_actions or ALL_ACTIONS
+    run_server(agent, selected)
