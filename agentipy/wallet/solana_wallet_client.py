@@ -9,6 +9,8 @@ from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from solders.transaction import Transaction  # type: ignore
 
+from .base_wallet_client import BaseWalletClient
+
 
 class SolanaTransaction:
     """Transaction parameters for Solana."""
@@ -21,7 +23,7 @@ class SolanaTransaction:
         self.accounts_to_sign = accounts_to_sign
 
 
-class SolanaWalletClient:
+class SolanaWalletClient(BaseWalletClient):
     """Solana wallet implementation."""
 
     def __init__(self, client: SolanaClient, keypair: Keypair):

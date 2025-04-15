@@ -9,10 +9,10 @@ from solders.system_program import TransferParams, transfer
 from solders.transaction import Transaction  # type: ignore
 from spl.token.async_client import AsyncToken
 from spl.token.constants import TOKEN_PROGRAM_ID
-from spl.token.instructions import (get_associated_token_address,
-                                    transfer_checked)
-
+from spl.token.instructions import get_associated_token_address, transfer_checked
+from solders.null_signer import NullSigner
 from agentipy.agent import SolanaAgentKit
+import base64
 
 LAMPORTS_PER_SOL = 10**9
 
@@ -21,14 +21,18 @@ logger = logging.getLogger(__name__)
 
 class TokenTransferManager:
     @staticmethod
-    async def transfer(agent: SolanaAgentKit, to: str, amount: float, mint: str = None) -> str:
+    async def transfer(
+        agent: SolanaAgentKit, to: str, amount: float, mint: str = None
+    ) -> str:
         """
         Transfer SOL or SPL tokens to a recipient.
         """
         try:
-            print(f"Transferring {amount} {'SPL' if mint else 'SOL'} to {to} from {agent.wallet.pubkey()}")
+            print(
+                f"Transferring {amount} {'SPL' if mint else 'SOL'} to {to} from {agent.wallet_address}"
+            )
             to_pubkey = PublicKey.from_string(to)
-            from_pubkey = agent.wallet.pubkey()
+            from_pubkey = PublicKey.from_string(str(agent.wallet_address))
 
             blockhash_resp = await agent.connection.get_latest_blockhash()
             recent_blockhash = blockhash_resp.value.blockhash
@@ -56,13 +60,17 @@ class TokenTransferManager:
 
                     resp = await client.get_account_info(to_ata)
                     if resp.value is None:
-                        from spl.token.instructions import \
-                            create_associated_token_account
-                        ata_ix = create_associated_token_account(from_pubkey, to_pubkey, mint_pubkey)
+                        from spl.token.instructions import (
+                            create_associated_token_account,
+                        )
+
+                        ata_ix = create_associated_token_account(
+                            from_pubkey, to_pubkey, mint_pubkey
+                        )
                         instructions.append(ata_ix)
 
                     mint_info = await token.get_mint_info()
-                    adjusted_amount = int(amount * (10 ** mint_info.decimals))
+                    adjusted_amount = int(amount * (10**mint_info.decimals))
 
                     instructions.append(
                         transfer_checked(
@@ -77,9 +85,20 @@ class TokenTransferManager:
                     )
 
             message = Message(instructions, agent.wallet_address)
-            transaction = Transaction([agent.wallet], message, recent_blockhash=recent_blockhash)
 
-            tx_resp = await agent.connection.send_transaction(transaction, opts=TxOpts(preflight_commitment=Confirmed))
+            transaction = Transaction.new_unsigned(message)
+
+            serializedTx = transaction.message_data()
+            base64_tx = base64.b64encode(serializedTx).decode("utf-8")
+            print("base64_tx: ", base64_tx)
+            res = await agent.wallet_client.send_transaction(base64_tx)
+
+            print("res: ", res)
+
+            print("txdata: ", transaction.message_data())
+            """ tx_resp = await agent.connection.send_transaction(
+                transaction, opts=TxOpts(preflight_commitment=Confirmed)
+            )
 
             tx_id = tx_resp.value
 
@@ -89,8 +108,8 @@ class TokenTransferManager:
                 last_valid_block_height=blockhash_resp.value.last_valid_block_height,
             )
 
-            logging.info(f"Transaction Signature: {tx_id}")
-            return str(tx_id)
+            logging.info(f"Transaction Signature: {tx_id}") """
+            return str("tx_id")
 
         except Exception as e:
             raise RuntimeError(f"Transfer failed: {str(e)}")
