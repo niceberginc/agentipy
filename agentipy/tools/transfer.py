@@ -6,12 +6,14 @@ from solana.rpc.types import TxOpts
 from solders.message import Message  # type: ignore
 from solders.pubkey import Pubkey as PublicKey  # type: ignore
 from solders.system_program import TransferParams, transfer
-from solders.transaction import Transaction  # type: ignore
+from solana.transaction import Transaction  # type: ignore
 from spl.token.async_client import AsyncToken
 from spl.token.constants import TOKEN_PROGRAM_ID
 from spl.token.instructions import get_associated_token_address, transfer_checked
 from solders.null_signer import NullSigner
 from agentipy.agent import SolanaAgentKit
+from agentipy.wallet.privy_wallet_client import PrivyWalletClient
+from agentipy.wallet.solana_wallet_client import SolanaWalletClient, SolanaTransaction
 import base64
 
 LAMPORTS_PER_SOL = 10**9
@@ -84,32 +86,30 @@ class TokenTransferManager:
                         )
                     )
 
-            message = Message(instructions, agent.wallet_address)
+            # Detect Wallet Client Type
+            if isinstance(agent.wallet_client, PrivyWalletClient):
+                transaction = Transaction()
+                for instruction in instructions:
+                    transaction.add(instruction)
+                transaction.recent_blockhash = recent_blockhash
+                serialized_transaction = transaction.serialize(verify_signatures=False)
+                transaction_base64 = base64.b64encode(serialized_transaction).decode(
+                    "utf-8"
+                )
+                res = await agent.wallet_client.send_transaction(transaction_base64)
+                tx_id = res.get("hash", "tx_id")
+            elif isinstance(agent.wallet_client, SolanaWalletClient):
+                solana_tx = SolanaTransaction(instructions=instructions)
+                res = await agent.wallet_client.send_transaction(solana_tx)
+                tx_id = res.get("hash", "tx_id")
+            else:
+                # Fallback for other wallet types
+                raise ValueError(
+                    f"Unsupported wallet client type: {type(agent.wallet_client).__name__}"
+                )
 
-            transaction = Transaction.new_unsigned(message)
-
-            serializedTx = transaction.message_data()
-            base64_tx = base64.b64encode(serializedTx).decode("utf-8")
-            print("base64_tx: ", base64_tx)
-            res = await agent.wallet_client.send_transaction(base64_tx)
-
-            print("res: ", res)
-
-            print("txdata: ", transaction.message_data())
-            """ tx_resp = await agent.connection.send_transaction(
-                transaction, opts=TxOpts(preflight_commitment=Confirmed)
-            )
-
-            tx_id = tx_resp.value
-
-            await agent.connection.confirm_transaction(
-                tx_id,
-                commitment=Confirmed,
-                last_valid_block_height=blockhash_resp.value.last_valid_block_height,
-            )
-
-            logging.info(f"Transaction Signature: {tx_id}") """
-            return str("tx_id")
+            logging.info(f"Transaction Signature: {tx_id}")
+            return str(tx_id)
 
         except Exception as e:
             raise RuntimeError(f"Transfer failed: {str(e)}")

@@ -126,7 +126,7 @@ class PrivyWalletClient(BaseWalletClient):
             "in_base_units": str(balance_lamports),
         }
 
-    def send_transaction(self, transactionData) -> Dict[str, str]:
+    async def send_transaction(self, transactionData):
         """Send a Solana transaction using Privy API."""
         if not self.wallet_id:
             raise ValueError("Wallet not initialized. Call create_wallet first.")

@@ -4,11 +4,14 @@ import aiohttp
 from solana.rpc.commitment import Confirmed
 from solders.message import MessageV0, to_bytes_versioned  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
-
+from solana.rpc.types import TxOpts
 from agentipy.agent import SolanaAgentKit
 from agentipy.helpers import fix_asyncio_for_windows
+from agentipy.wallet.privy_wallet_client import PrivyWalletClient
+from agentipy.wallet.solana_wallet_client import SolanaWalletClient
 
 fix_asyncio_for_windows()
+
 
 class StakeManager:
     @staticmethod
@@ -38,19 +41,29 @@ class StakeManager:
 
                     data = await res.json()
 
-            
-            txn = VersionedTransaction.from_bytes(base64.b64decode(data["transaction"]))
-
-            latest_blockhash = await agent.connection.get_latest_blockhash()
-            
-            signature = agent.wallet.sign_message(to_bytes_versioned(txn.message))
-            signed_tx = VersionedTransaction.populate(txn.message, [signature])
-
-            tx_resp = await agent.connection.send_transaction(
-                signed_tx,
-            )
-
-            tx_id = tx_resp.value 
+            if isinstance(agent.wallet_client, PrivyWalletClient):
+                res = await agent.wallet_client.send_transaction(data["transaction"])
+                tx_id = res.get("hash", "tx_id")
+            elif isinstance(agent.wallet_client, SolanaWalletClient):
+                transaction = VersionedTransaction.from_bytes(
+                    base64.b64decode(data["transaction"])
+                )
+                latest_blockhash = await agent.connection.get_latest_blockhash()
+                signature = agent.wallet.sign_message(
+                    to_bytes_versioned(transaction.message)
+                )
+                signed_transaction = VersionedTransaction.populate(
+                    transaction.message, [signature]
+                )
+                tx_resp = await agent.connection.send_transaction(
+                    signed_transaction,
+                    opts=TxOpts(
+                        preflight_commitment=Confirmed,
+                        skip_preflight=False,
+                        max_retries=3,
+                    ),
+                )
+                tx_id = tx_resp.value
 
             await agent.connection.confirm_transaction(
                 tx_id,
