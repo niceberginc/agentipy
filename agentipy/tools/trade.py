@@ -8,16 +8,19 @@ from solana.rpc.types import TxOpts
 from solders.message import to_bytes_versioned  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
-
+from solders.signature import Signature  # type: ignore
 from agentipy.agent import SolanaAgentKit
-from agentipy.constants import (DEFAULT_OPTIONS, JUP_API, LAMPORTS_PER_SOL,
-                                TOKENS)
+from agentipy.constants import DEFAULT_OPTIONS, JUP_API, LAMPORTS_PER_SOL, TOKENS
+from agentipy.wallet.privy_wallet_client import PrivyWalletClient
+from agentipy.wallet.solana_wallet_client import SolanaWalletClient
+
 # from agentipy.helpers import fix_asyncio_for_windows #Removed because it is not needed anymore.
 
-if platform.system() == "Windows": #Added the aiodns fix.
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy()) #Added the aiodns fix.
+if platform.system() == "Windows":  # Added the aiodns fix.
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # fix_asyncio_for_windows() #Removed because it is not needed anymore.
+
 
 class TradeManager:
     @staticmethod
@@ -58,7 +61,9 @@ class TradeManager:
             async with aiohttp.ClientSession() as session:
                 async with session.get(quote_url) as quote_response:
                     if quote_response.status != 200:
-                        raise Exception(f"Failed to fetch quote: {quote_response.status}")
+                        raise Exception(
+                            f"Failed to fetch quote: {quote_response.status}"
+                        )
                     quote_data = await quote_response.json()
 
                 async with session.post(
@@ -72,25 +77,46 @@ class TradeManager:
                     },
                 ) as swap_response:
                     if swap_response.status != 200:
-                        raise Exception(f"Failed to fetch swap transaction: {swap_response.status}")
+                        raise Exception(
+                            f"Failed to fetch swap transaction: {swap_response.status}"
+                        )
                     swap_data = await swap_response.json()
-
-            swap_transaction_buf = base64.b64decode(swap_data["swapTransaction"])
-            transaction = VersionedTransaction.from_bytes(swap_transaction_buf)
 
             latest_blockhash = await agent.connection.get_latest_blockhash()
 
-            signature = agent.wallet.sign_message(to_bytes_versioned(transaction.message))
-            signed_transaction = VersionedTransaction.populate(transaction.message, [signature])
+            if isinstance(agent.wallet_client, PrivyWalletClient):
+                res = await agent.wallet_client.send_transaction(
+                    swap_data["swapTransaction"]
+                )
+                tx_id = res.get("hash", "tx_id")
+            elif isinstance(agent.wallet_client, SolanaWalletClient):
+                swap_transaction_buf = base64.b64decode(swap_data["swapTransaction"])
+                transaction = VersionedTransaction.from_bytes(swap_transaction_buf)
 
-            tx_resp = await agent.connection.send_transaction(
-                signed_transaction,
-                opts=TxOpts(preflight_commitment=Confirmed, skip_preflight=False, max_retries=3),
-            )
-            tx_id = tx_resp.value
+                signature = agent.wallet.sign_message(
+                    to_bytes_versioned(transaction.message)
+                )
+                signed_transaction = VersionedTransaction.populate(
+                    transaction.message, [signature]
+                )
+                tx_resp = await agent.connection.send_transaction(
+                    signed_transaction,
+                    opts=TxOpts(
+                        preflight_commitment=Confirmed,
+                        skip_preflight=False,
+                        max_retries=3,
+                    ),
+                )
+                tx_id = tx_resp.value
+            else:
+                # Fallback for other wallet types
+                raise ValueError(
+                    f"Unsupported wallet client type: {type(agent.wallet_client).__name__}"
+                )
 
+            signature = Signature.from_string(tx_id)
             await agent.connection.confirm_transaction(
-                tx_id,
+                tx_sig=signature,
                 commitment=Confirmed,
                 last_valid_block_height=latest_blockhash.value.last_valid_block_height,
             )
