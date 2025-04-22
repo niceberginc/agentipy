@@ -30,7 +30,7 @@ async def getBalance():
 
 
 async def transfer():
-    transfer = await TokenTransferManager.transfer(agent, addressToTransfer, 0.0001)
+    transfer = await TokenTransferManager.transfer(agent, addressToTransfer, 0.003)
     print("wallet", transfer)
 
 
@@ -56,7 +56,7 @@ async def stake():
 
 async def main():
     await getBalance()
-    # await transfer()
+    await transfer()
     # await swap()
     # await stake()
 

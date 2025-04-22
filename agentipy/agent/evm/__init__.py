@@ -18,6 +18,7 @@ from allora_sdk.v2.api_client import (
 
 from agentipy.wallet.crossMint_wallet_client import CrossmintWalletClient
 from agentipy.wallet.evm_wallet_client import EVMWalletClient
+from agentipy.wallet.privy_wallet_client import ChainType, PrivyWalletClient
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class WalletType(str, Enum):
 
     PRIVATE_KEY = "private_key"
     CROSSMINT = "crossmint"
+    PRIVY = "privy"
 
 
 class EvmAgentKit:
@@ -58,6 +60,9 @@ class EvmAgentKit:
         stork_api_key: Optional[str] = None,
         elfa_ai_api_key: Optional[str] = None,
         allora_api_key: Optional[str] = None,
+        privy_app_id: Optional[str] = None,
+        privy_app_secret: Optional[str] = None,
+        privy_wallet_id: Optional[str] = None,
         generate_wallet: bool = False,
     ):
         self.network = network
@@ -81,8 +86,36 @@ class EvmAgentKit:
         self.eip1559_support = network.eip1559_support
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
+        self.privy_app_id = privy_app_id
+        self.privy_app_secret = privy_app_secret
+        self.privy_wallet_id = privy_wallet_id
 
-        if wallet_type == WalletType.CROSSMINT or wallet_type == "crossmint":
+        if wallet_type == WalletType.PRIVY or wallet_type == "privy":
+            if not self.privy_app_id or not self.privy_app_secret:
+                raise ValueError(
+                    "PRIVY_APP_ID and PRIVY_APP_SECRET must be provided to use Privy wallet."
+                )
+
+            self.wallet_client = PrivyWalletClient(
+                self.web3,
+                self.privy_app_id,
+                self.privy_app_secret,
+                chain_type=ChainType.EVM,
+                chain_id=self.chain_id,
+            )
+
+            if generate_wallet:
+                wallet_info = self.wallet_client.create_wallet()
+                self.wallet_id = wallet_info["id"]
+                self.wallet_address = Web3.to_checksum_address(wallet_info["address"])
+                print("selfaddr:", self.wallet_address)
+                print("selfid:", self.wallet_id)
+            else:
+                wallet_address = self.wallet_client.use_wallet(privy_wallet_id)
+                self.wallet_address = Web3.to_checksum_address(wallet_address)
+                self.wallet_id = privy_wallet_id
+                print(self.wallet_address)
+        elif wallet_type == WalletType.CROSSMINT or wallet_type == "crossmint":
             # Use Crossmint wallet
             self.crossmint_api_key = crossmint_api_key or os.getenv(
                 "CROSSMINT_API_KEY", ""
