@@ -24,6 +24,7 @@ AgentiPy bridges the gap between AI agents and blockchain applications. It provi
 *   **Extensible Design:** Allows developers to create custom protocols and actions.
 *   **Coingecko Integration**: Enhanced with new tooling to explore trending tokens, prices, and new pools
 *   **Streamlined Development:** Provides essential utility functions such as price fetching, balance checks, and transaction confirmation.
+*   **Model Context Protocol (MCP) Support:** Includes a built-in MCP server module and supports integration with dedicated MCP servers (like the agentipy-mcp for Claude Desktop) for standardized AI interaction.
 
 ## 📦 Installation and Setup
 
@@ -33,7 +34,7 @@ Before you begin, ensure you have the following prerequisites:
 *   **Solana CLI:** For Solana-specific actions (e.g., wallet creation).
 *   **Langchain:** For AI integration (`pip install langchain`).
 *   **Wallet with Private Keys:**  Crucial for signing and sending transactions.  **Securely manage your private keys!**
-*   **API Keys (Optional):** For accessing various blockchain networks or external data sources (e.g., CoinGecko, QuickNode).
+*   **API Keys (Optional):** For accessing various blockchain networks or external data sources (e.g., CoinGecko, Allora, e.t.c.).
 
 Follow these steps to install and set up AgentiPy:
 
@@ -100,6 +101,9 @@ AgentiPy supports a diverse set of protocols, each with specific actions. This t
 | ThreeLand    | Solana     | ThreeLand NFT mint and deploy        | [ThreeLand NFT mint tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_3land.py) |
 | Elfa AI       | Solana     | Get trending tokens, mentions, smart account stats              | [Elfa AI Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_elfa_ai.py) |
 | FluxBeam      | Solana     | Create a new pool                                               | [FluxBeam Tool](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_fluxbeam.py) |
+| Agentipy MCP          | Solana     | Extensible Solana toolset via a Model Context Protocol server       | [MCP tool](https://github.com/niceberginc/agentipy/tree/main/agentipy/mcp)             |
+| Claude Desktop MCP    | Solana     | Claude‐compatible MCP server exposing onchain actions | [Agentipy MCP Server for Claude Desktop](https://github.com/niceberginc/agentipy-mcp) |
+
 
 
 
@@ -536,6 +540,112 @@ except Exception as e:
 ```
 
 
+# 3. Model Context Protocol (MCP) Integration
+
+Agentipy includes a built-in MCP module (`agentipy/mcp`) to expose on-chain actions via the Model Context Protocol. This enables standardized tool invocation by AI agents.
+
+### ALL_ACTIONS
+
+```python
+# agentipy/mcp/all_actions.py
+from agentipy.mcp.allora import ALLORA_ACTIONS
+from agentipy.mcp.core import SOLANA_ACTIONS
+from agentipy.mcp.jupiter import JUPITER_ACTIONS
+
+ALL_ACTIONS = {
+    **SOLANA_ACTIONS,
+    **ALLORA_ACTIONS,
+    **JUPITER_ACTIONS,
+}
+```
+
+### Core Solana Actions
+- `GET_BALANCE`: Fetch wallet SOL/SPL balances.
+- `TRANSFER`: Transfer SOL or SPL tokens.
+- `DEPLOY_TOKEN`: Deploy a new SPL token.
+
+Defined in `agentipy/mcp/core/__init__.py` using `BalanceFetcher`, `TokenTransferManager`, and `TokenDeploymentManager`.
+
+### Allora Actions
+- `GET_ALL_TOPICS`: List Allora inference topics.
+- `GET_PRICE_PREDICTION`: Fetch BTC/ETH price predictions.
+- `GET_INFERENCE_BY_TOPIC_ID`: Retrieve inference by topic ID.
+
+Defined in `agentipy/mcp/allora` and backed by `AlloraManager`.
+
+### Jupiter Actions
+- `STAKE_WITH_JUP`: Stake SOL for JUP rewards.
+- `TRADE_WITH_JUP`: Execute token swaps on Jupiter.
+
+Defined in `agentipy/mcp/jupiter` using `StakeManager` and `TradeManager`.
+
+### MCP Server
+
+```python
+# agentipy/mcp/mcp_server.py
+from mcp.server.fastmcp import FastMCP, Context
+from mcp.types import Tool, TextContent
+from agentipy.agent import SolanaAgentKit
+from agentipy.mcp.all_actions import ALL_ACTIONS
+
+# Initialize server with Solana tools
+mcp = FastMCP(
+    "agentipy-mcp",
+    instructions="Solana tools: Get balance, transfer SOL, price prediction, etc.",
+    dependencies=["pydantic", "httpx", "solana"],
+)
+# Functions to register, normalize kwargs, and run the server...
+```
+
+This server auto-registers all tools in `ALL_ACTIONS` and can be started via:
+
+```python
+from agentipy.agent import SolanaAgentKit
+from agentipy.mcp.mcp_server import start_mcp_server, ALL_ACTIONS
+
+agent = SolanaAgentKit(private_key="<KEY>", rpc_url="<RPC_URL>")
+start_mcp_server(agent)  # Exposes all Solana, Allora, and Jupiter actions
+```
+
+---
+
+## Agentipy MCP Server for Claude Desktop
+
+A Model Context Protocol (MCP) server that provides on-chain tools for Claude AI, allowing it to interact with the Solana blockchain through a standardized interface. This implementation uses Agentipy and enables AI agents to perform blockchain operations seamlessly.
+
+
+###  Claude Desktop Integration
+
+**[Agentipy MCP Server](https://github.com/niceberginc/agentipy-mcp)** extends Claude's capabilities with blockchain tools:
+
+```json
+// Claude Desktop Configuration
+{
+  "mcpServers": {
+    "agentipy": {
+      "command": "./run_mcp.sh",
+      "autoApprove": ["GET_BALANCE", "PRICE_PREDICTION"]
+    }
+  }
+}
+```
+
+**Featured Tools:**
+-  Balance checks
+-  Cross-chain swaps (deBridge)
+-  Pyth price feeds
+-  CoinGecko analytics
+-  AI-driven trading
+
+[Explore our MCP Server full guide for Claude Desktop](https://github.com/niceberginc/agentipy-mcp)
+
+## Security Considerations
+
+- Keep private keys secure
+- Use environment variables for sensitive data
+- Test on devnet/testnet before mainnet
+
+
 ### 🤝  Community Engagement and Contribution
 AgentiPy encourages community contributions, with developers invited to fork the repository at [github.com/niceberginc/agentipy/](https://github.com/niceberginc/agentipy/), submit pull requests, and report issues via GitHub Issues. This collaborative approach fosters continuous improvement and innovation within the ecosystem.
 
@@ -557,3 +667,16 @@ AgentiPy is licensed under the MIT License, ensuring open access and flexibility
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 [Become a contributor!](https://github.com/niceberginc/agentipy/blob/main/CONTRIBUTING.md) Open an issue or submit a pull request to join us!
+
+
+
+
+
+
+
+
+
+
+
+
+
