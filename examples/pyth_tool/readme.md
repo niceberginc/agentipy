@@ -1,128 +1,107 @@
-# Agentipy Pyth Oracle Tool
+## Agentipy Pyth Oracle Tool
 
-A production-ready Pyth Network integration tool for the Agentipy framework, providing real-time price feeds for DeFi applications.
+A production-ready Pyth Network integration tool for the Agentipy framework, providing real-time, on-chain-verified price feeds for decentralized applications.
+
+---
 
 ## Features
 
-- 🏗️ Built as an Agentipy-compatible tool
-- ⚡ Async-first implementation for high performance
-- 🔍 Supports all Pyth Network price feeds
-- 🛡️ Comprehensive error handling
-- 📊 Confidence interval reporting
-- 🔄 Automatic connection management
+- 🏗️ **Agentipy-Compatible**: Seamlessly integrates as a tool within the Agentipy framework.
+- ⚡ **Async-First**: Fully asynchronous implementation for non-blocking performance.
+- 🔍 **All Feeds Supported**: Works with every Pyth Network price feed.
+- 🛡️ **Robust Error Handling**: Graceful fallbacks for network issues and invalid addresses.
+- 📊 **Confidence Reporting**: Returns price with ±confidence interval for data quality checks.
+- 🔄 **Auto Connection Management**: Opens and closes RPC connections automatically.
+
+---
 
 ## Installation
 
-Ensure you have Agentipy installed, then add the Pyth dependency:
+Ensure you have Python 3.8+ and pip installed, then:
 
 ```bash
 pip install agentipy
 ```
 
-## Usage
+> **Optional**: To run the advanced example (`main2.py`) with LangChain integration, also install:
+>
+> ```bash
+> pip install langchain-openai langchain-core langchain-community python-dotenv
+> ```
 
-### Importing the Tool
+---
 
-```python
-from agentipy.tools.use_pyth import PythManager
-```
+## Usage Overview
 
-### Basic Example
+Code samples are provided in the repository as:
 
-```python
-async def get_sol_price():
-    result = await PythManager.get_price("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG")
-    if result["status"] == "TRADING":
-        print(f"SOL Price: ${result['price']:.4f} ± {result['confidence_interval']:.4f}")
-```
+- **main1.py**: Fetch multiple Pyth feeds concurrently and print price with confidence interval.
+- **main2.py**: Combine Pyth feeds with a LangChain/OpenAI agent for automated market analysis.
 
-### Example Output
+Refer to each script for detailed implementation and sample outputs.
 
-```bash
-$ python pyth_example.py
-
-Fetching SOL/USD price...
-SOL/USD:
-  Price: $126.4243
-  Confidence: ±$0.0646
-
-Fetching BTC/USD price...
-BTC/USD:
-  Price: $85257.2530
-  Confidence: ±$32.6970
-```
+---
 
 ## Feed Configuration
-
-The tool works with any Pyth Network feed address. Common addresses:
 
 | Feed      | Pythnet Address                             |
 |-----------|---------------------------------------------|
 | SOL/USD   | H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG |
 | BTC/USD   | GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU |
 | ETH/USD   | JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB |
+| AAVE/USD  | 3wDLxH34Yz8tGjwHszQ2MfzHwRoaQgKA32uq2bRpjJBW |
+| AEVO/USD  | 26emwftTvy4CcXUcPYCHF9PcPHar4kYKfzwM1onYHBCN |
 
-## Advanced Usage
-
-### Concurrent Price Fetching
-
-```python
-async def fetch_multiple_prices():
-    addresses = [
-        "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG",  # SOL
-        "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU"   # BTC
-    ]
-    tasks = [PythManager.get_price(addr) for addr in addresses]
-    return await asyncio.gather(*tasks)
-```
-
-### Error Handling
-
-```python
-try:
-    price_data = await PythManager.get_price(mint_address)
-except ValueError as e:
-    print(f"Invalid mint address: {e}")
-except Exception as e:
-    print(f"Network error: {e}")
-```
-
-## Integration Guide
-
-1. **Initialize in your Agent**:
-```python
-from agentipy import Agent
-from agentipy.tools.use_pyth import PythManager
-
-class MyAgent(Agent):
-    async def get_prices(self):
-        return await PythManager.get_price(...)
-```
-
-2. **Using in workflows**:
-```python
-async def trading_strategy():
-    sol_price = await PythManager.get_price(SOL_ADDRESS)
-    if sol_price["status"] == "TRADING":
-        # Execute strategy logic
-```
-
-## Best Practices
-
-1. Cache prices when possible to reduce RPC calls
-2. Always check the `status` field before using prices
-3. Monitor confidence intervals for data quality
-4. Handle connection errors gracefully
-
-## Troubleshooting
-
-| Error | Solution |
-|-------|----------|
-| `Invalid mint address` | Verify address on [Pyth Explorer](https://pyth.network/price-feeds/) |
-| `NOT_TRADING` status | Check if feed is active on current network |
-| Connection timeout | Ensure PYTHNET_HTTP_ENDPOINT is accessible |
-
+Custom feeds can be provided by any valid Pyth mint address.
 
 ---
 
-For complete documentation, see [Agentipy Tools Reference](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_pyth.py)
+## Advanced Configuration (main2.py)
+
+The `main2.py` script demonstrates:
+1. **Environment Setup** via `.env` (OPENAI_API_KEY)
+2. **Address Validation** using on-chain checks (PythPriceAccount)
+3. **LangChain Agent** with DuckDuckGoSearch for real-time market news
+4. **Automated Analysis** combining on-chain price, confidence interval, and external insights
+
+See the `main2.py` docstring and comments for step-by-step instructions.
+
+---
+
+## Error Handling
+
+Handle common exceptions when calling `PythManager.get_price`:
+
+```python
+try:
+    data = await PythManager.get_price(mint_address)
+except ValueError:
+    # Invalid address
+except ConnectionError:
+    # RPC endpoint unreachable
+# Always verify: data['status'] == 'TRADING'
+```
+
+---
+
+## Best Practices
+
+1. **Cache results** to reduce RPC calls.
+2. **Check status** (`TRADING`) before using price.
+3. **Monitor confidence intervals** for data anomalies.
+4. **Graceful reconnection** on network failures.
+
+---
+
+## Troubleshooting
+
+| Error                     | Solution                                                    |
+|---------------------------|-------------------------------------------------------------|
+| Invalid mint address      | Verify on [Pyth Explorer](https://pyth.network/price-feeds/) |
+| `NOT_TRADING` status      | Ensure feed is active on Pythnet                            |
+| Connection timeout        | Check `PYTHNET_HTTP_ENDPOINT` and network connectivity      |
+
+---
+
+For full API reference, see [Agentipy Tools Source](https://github.com/niceberginc/agentipy/blob/main/agentipy/tools/use_pyth.py).
+
