@@ -1,36 +1,51 @@
-
+import asyncio
+import logging
 from pythclient.pythaccounts import PythPriceAccount, PythPriceStatus
-from pythclient.solana import (PYTHNET_HTTP_ENDPOINT, PYTHNET_WS_ENDPOINT,
-                               SolanaClient, SolanaPublicKey)
+from pythclient.solana import SolanaClient, SolanaPublicKey, PYTHNET_HTTP_ENDPOINT, PYTHNET_WS_ENDPOINT
 
+logger = logging.getLogger(__name__)
 
 class PythManager:
     @staticmethod
-    async def get_price(mint_address: str):
+    async def get_price(mint_address: str) -> dict:
         """
-        Fetch price data for a given token mint address using the Pyth Oracle.
+        Fetch price data for a given Pyth feed mint address using the official pythclient.
 
-        :param mint_address: The mint address of the token.
-        :return: A dictionary containing the price and confidence interval.
+        :param mint_address: The Pyth price account public key.
+        :return: A dict with keys: 'status', 'price', 'confidence_interval' (if trading).
         """
-        account_key = SolanaPublicKey(mint_address)
-        solana_client = SolanaClient(endpoint=PYTHNET_HTTP_ENDPOINT, ws_endpoint=PYTHNET_WS_ENDPOINT)
-        price = PythPriceAccount(account_key, solana_client)
+        client = SolanaClient(endpoint=PYTHNET_HTTP_ENDPOINT, ws_endpoint=PYTHNET_WS_ENDPOINT)
+        try:
+            price_account = PythPriceAccount(SolanaPublicKey(mint_address), client)
+            await price_account.update()
+            status = price_account.aggregate_price_status
+            response = {"status": status.name}
+            if status == PythPriceStatus.TRADING:
+                response.update({
+                    "price": price_account.aggregate_price,
+                    "confidence_interval": price_account.aggregate_price_confidence_interval
+                })
+            return response
+        except Exception as e:
+            logger.error(f"Error fetching Pyth price for {mint_address}: {e}", exc_info=True)
+            return {"status": "ERROR", "message": str(e)}
+        finally:
+            await client.close()
 
-        await price.update()
+async def get_prices(
+    feeds: dict[str, str]
+) -> dict[str, dict]:
+    """
+    Fetch multiple Pyth feeds concurrently using PythManager.
 
-        price_status = price.aggregate_price_status
-        if price_status == PythPriceStatus.TRADING:
-            result = {
-                "price": price.aggregate_price,
-                "confidence_interval": price.aggregate_price_confidence_interval,
-                "status": "TRADING",
-            }
-        else:
-            result = {
-                "status": "NOT_TRADING",
-                "message": f"Price is not valid now. Status is {price_status}",
-            }
-
-        await solana_client.close()
-        return result
+    :param feeds: Mapping from symbol (e.g. "SOL/USD") to mint_address.
+    :return: Mapping from symbol to the result dict from get_price().
+    """
+    results: dict[str, dict] = {}
+    tasks: dict[str, asyncio.Task] = {
+        symbol: asyncio.create_task(PythManager.get_price(addr))
+        for symbol, addr in feeds.items()
+    }
+    for symbol, task in tasks.items():
+        results[symbol] = await task
+    return results
