@@ -11,7 +11,7 @@ keywords = ["solana", "sdk", "blockchain", "tools"]
 
 
 [tool.poetry.dependencies]
-python = "3.13.2"
+python = "^3.12.9"
 requests = "2.32.3"
 base58 = "^2.1.1"
 pillow = "^11.0.0"

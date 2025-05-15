@@ -1,35 +1,30 @@
 """
-Dune Analytics integration for retrieving lending protocol data.
-This module provides functionality to fetch and process lending protocol data from Dune Analytics.
+Dune Analytics Echo API integration for retrieving lending protocol data.
+This module provides functionality to fetch and process lending protocol data using Dune's Echo API.
 """
 
-import os
-import json
-from typing import Dict, List, Any, Optional
 import logging
-from datetime import datetime, timedelta
+import os
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from dune_client.types import QueryParameter
 from dune_client.client import DuneClient
-from dune_client.query import QueryBase
+from dune_client.types import QueryParameter
 
 logger = logging.getLogger(__name__)
 
 class DuneLendingProtocols:
     """
-    A class for interacting with Dune Analytics to retrieve lending protocols data
-    across multiple chains.
+    A class for interacting with Dune Echo API to retrieve lending protocols data
+    across multiple chains with real-time performance.
     """
     
-    # Query IDs for different types of lending protocol data
-    # These would need to be updated with actual query IDs from Dune
-    LENDING_PROTOCOLS_OVERVIEW_QUERY_ID = 3456701  # Example ID - replace with actual
-    LENDING_PROTOCOLS_TVL_QUERY_ID = 3456702  # Example ID - replace with actual
-    LENDING_PROTOCOLS_RATES_QUERY_ID = 3456703  # Example ID - replace with actual
+    # Echo API endpoints for lending protocols
+    LENDING_PROTOCOLS_QUERY = 3509967  # Example ID - replace with actual Echo API query ID
     
     def __init__(self, api_key: Optional[str] = None):
         """
-        Initialize the Dune Lending Protocols client.
+        Initialize the Dune Lending Protocols client using Echo API.
         
         Args:
             api_key (str, optional): Dune API key. If not provided, will try to load from env.
@@ -39,118 +34,89 @@ class DuneLendingProtocols:
             raise ValueError("Dune API key is required. Provide it directly or set DUNE_API_KEY env variable.")
         
         self.client = DuneClient(self.api_key)
-        
+    
     def get_lending_protocols(self, chain: Optional[str] = None) -> List[Dict[str, Any]]:
         """
-        Get a list of lending protocols available on Dune.
+        Get a list of lending protocols using Echo API for real-time data.
         
         Args:
-            chain (str, optional): Filter by specific blockchain (e.g., "ethereum", "solana").
-                                   If None, returns data for all chains.
+            chain (str, optional): Filter by specific blockchain (e.g., "ethereum", "arbitrum").
+                                 If None, returns data for all supported chains.
         
         Returns:
-            List[Dict[str, Any]]: List of lending protocols with their details
+            List[Dict[str, Any]]: List of lending protocols with their details including:
+                - protocol_name: Name of the lending protocol
+                - chain: Blockchain where the protocol is deployed
+                - total_supplied: Total value supplied to the protocol
+                - total_borrowed: Total value borrowed from the protocol
+                - supported_assets: List of supported assets
+                - contract_addresses: Protocol's contract addresses
         """
         params = []
         if chain:
             params.append(QueryParameter.text_type(name="Chain", value=chain))
             
-        query = QueryBase(
-            name="Lending Protocols Overview",
-            query_id=self.LENDING_PROTOCOLS_OVERVIEW_QUERY_ID,
-            params=params
-        )
-        
         try:
-            results = self.client.run_query(query)
-            return results.get('result', {}).get('rows', [])
-        except Exception as e:
-            logger.error(f"Error fetching lending protocols: {e}")
-            return []
-    
-    def get_lending_protocol_tvl(self, protocol_name: Optional[str] = None) -> List[Dict[str, Any]]:
-        """
-        Get Total Value Locked (TVL) data for lending protocols.
-        
-        Args:
-            protocol_name (str, optional): Filter by specific protocol name.
-                                          If None, returns data for all protocols.
-        
-        Returns:
-            List[Dict[str, Any]]: TVL data for lending protocols
-        """
-        params = []
-        if protocol_name:
-            params.append(QueryParameter.text_type(name="ProtocolName", value=protocol_name))
+            # Using Echo API endpoint for faster response
+            results = self.client.get_latest_result(
+                query_id=self.LENDING_PROTOCOLS_QUERY,
+                max_age_hours=1  # Echo API data is real-time, so we can use a short cache
+            )
             
-        query = QueryBase(
-            name="Lending Protocols TVL",
-            query_id=self.LENDING_PROTOCOLS_TVL_QUERY_ID,
-            params=params
-        )
-        
-        try:
-            results = self.client.run_query(query)
+            if chain:
+                # Filter results by chain if specified
+                return [
+                    protocol for protocol in results.get('result', {}).get('rows', [])
+                    if protocol.get('chain', '').lower() == chain.lower()
+                ]
             return results.get('result', {}).get('rows', [])
-        except Exception as e:
-            logger.error(f"Error fetching lending protocols TVL: {e}")
-            return []
-    
-    def get_lending_rates(self, protocol_name: Optional[str] = None, asset: Optional[str] = None) -> List[Dict[str, Any]]:
-        """
-        Get current lending and borrowing rates for protocols.
-        
-        Args:
-            protocol_name (str, optional): Filter by specific protocol name.
-            asset (str, optional): Filter by specific asset (e.g., "USDC", "ETH").
-        
-        Returns:
-            List[Dict[str, Any]]: Current rates data for lending protocols
-        """
-        params = []
-        if protocol_name:
-            params.append(QueryParameter.text_type(name="ProtocolName", value=protocol_name))
-        if asset:
-            params.append(QueryParameter.text_type(name="Asset", value=asset))
             
-        query = QueryBase(
-            name="Lending Protocols Rates",
-            query_id=self.LENDING_PROTOCOLS_RATES_QUERY_ID,
-            params=params
-        )
-        
-        try:
-            results = self.client.run_query(query)
-            return results.get('result', {}).get('rows', [])
         except Exception as e:
-            logger.error(f"Error fetching lending rates: {e}")
+            logger.error(f"Error fetching lending protocols from Echo API: {e}")
             return []
-    
-    def get_latest_result_cached(self, query_id: int, max_age_hours: int = 24) -> Dict[str, Any]:
+
+    def get_protocol_balances(self, protocol_name: str, wallet_address: str) -> Dict[str, Any]:
         """
-        Get the latest result from a query without using execution credits if it's recent enough.
+        Get user balances and positions in a specific lending protocol using Echo API.
         
         Args:
-            query_id (int): The query ID to get results for.
-            max_age_hours (int): Maximum age of the results in hours.
-        
+            protocol_name (str): Name of the lending protocol
+            wallet_address (str): User's wallet address
+            
         Returns:
-            Dict[str, Any]: The query results
+            Dict[str, Any]: User's positions in the protocol including:
+                - supplied_assets: List of supplied assets and amounts
+                - borrowed_assets: List of borrowed assets and amounts
+                - health_factor: Account health factor if applicable
+                - collateral_value: Total collateral value
         """
         try:
-            return self.client.get_latest_result(query_id, max_age_hours=max_age_hours)
+            # Echo API call for real-time balance data
+            params = [
+                QueryParameter.text_type(name="protocol", value=protocol_name),
+                QueryParameter.text_type(name="address", value=wallet_address)
+            ]
+            
+            query = self.client.run_query_with_filters(
+                query_id=self.LENDING_PROTOCOLS_QUERY,
+                filters=f"protocol={protocol_name}&address={wallet_address}"
+            )
+            
+            if not query or 'result' not in query:
+                return {}
+                
+            return query['result']
+            
         except Exception as e:
-            logger.error(f"Error fetching latest results for query {query_id}: {e}")
+            logger.error(f"Error fetching protocol balances from Echo API: {e}")
             return {}
 
-    @classmethod
-    def create_custom_query(cls, client: DuneClient, sql: str, name: str, params: List[QueryParameter] = None) -> int:
+    def create_custom_query(self, sql: str, name: str, params: List[QueryParameter] = None) -> int:
         """
         Create a custom query on Dune and return its ID.
         Useful for creating new queries for specific lending protocol data needs.
         
         Args:
-            client (DuneClient): The Dune client instance.
             sql (str): The SQL query text.
             name (str): Name for the query.
             params (List[QueryParameter], optional): List of query parameters.
@@ -159,7 +125,7 @@ class DuneLendingProtocols:
             int: The ID of the created query
         """
         try:
-            query = client.create_query(
+            query = self.client.create_query(
                 name=name,
                 query_sql=sql,
                 params=params or [],

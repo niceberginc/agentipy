@@ -4,20 +4,18 @@ This script demonstrates how to fetch and analyze lending protocol data from Dun
 """
 
 import os
+from typing import Any, Dict, List
+
 import pandas as pd
 from dotenv import load_dotenv
-from typing import Dict, List, Any
-
-from dune_client.types import QueryParameter
 from dune_client.client import DuneClient
 from dune_client.query import QueryBase
+from dune_client.types import QueryParameter
 
 from agentipy.dune_integration import DuneLendingProtocols
 from agentipy.dune_queries.lending_protocols import (
-    BEST_LENDING_OPPORTUNITIES_SQL,
-    TOP_LENDING_PROTOCOLS_SQL,
-    LENDING_PROTOCOLS_OVERVIEW_SQL
-)
+    BEST_LENDING_OPPORTUNITIES_SQL, LENDING_PROTOCOLS_OVERVIEW_SQL,
+    TOP_LENDING_PROTOCOLS_SQL)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,6 +43,8 @@ def example_create_custom_query():
     """
     # Initialize the Dune client
     api_key = os.environ.get("DUNE_API_KEY")
+    if not api_key:
+        raise ValueError("DUNE_API_KEY is not set in the environment variables")
     client = DuneClient(api_key)
     
     # Create a custom query for finding the best lending opportunities
