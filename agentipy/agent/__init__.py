@@ -69,7 +69,7 @@ class SolanaAgentKit:
             jito_block_engine_url (str, optional): Jito block engine URL for Solana.
             jito_uuid (str, optional): Jito UUID for authentication.
             generate_wallet (bool): If True, generates a new wallet and returns the details.
-            dune_api_key (str, optional): Dune API key for additional services.
+         
         """
         self.rpc_url = rpc_url or os.getenv("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com")
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY", "")
