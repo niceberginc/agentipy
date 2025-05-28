@@ -255,12 +255,12 @@ Common issues and solutions:
 
 API Reference
 ------------
-For detailed API documentation, visit our API Reference at https://docs.agentipy.com/api
+For detailed API documentation, visit our API Reference at https://agentipy.fun/
 
 Contributing
 -----------
-We welcome contributions! Please see our Contributing Guide at https://github.com/agentipy/agentipy/blob/main/CONTRIBUTING.md
+We welcome contributions! Please see our Contributing Guide at https://github.com/niceberginc/agentipy/blob/main/CONTRIBUTING.md
 
 License
 -------
-AgentiPy is licensed under the MIT License. See LICENSE at https://github.com/agentipy/agentipy/blob/main/LICENSE
+AgentiPy is licensed under the MIT License. See LICENSE at https://github.com/niceberginc/agentipy/blob/main/LICENSE.md
