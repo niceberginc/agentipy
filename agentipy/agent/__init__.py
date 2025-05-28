@@ -54,7 +54,7 @@ class SolanaAgentKit:
         allora_api_key: Optional[str] = None,
         solutiofi_api_key: Optional[str] = None,
         generate_wallet: bool = False,
-        dune_api_key: Optional[str] = None,
+   
     ):
         """
         Initialize the SolanaAgentKit.
@@ -89,7 +89,7 @@ class SolanaAgentKit:
         self.solutiofi_api_key = solutiofi_api_key or os.getenv("SOLUTIOFI_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
-        self.dune_api_key = dune_api_key or os.getenv("DUNE_API_KEY", "")
+
 
         if generate_wallet:
             self.wallet = Keypair()

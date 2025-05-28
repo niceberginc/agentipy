@@ -1,0 +1,266 @@
+AgentiPy Documentation
+====================
+
+Overview
+--------
+AgentiPy is a powerful toolkit for building and deploying Solana blockchain applications with AI capabilities. It provides a comprehensive set of tools for interacting with various Solana protocols, managing wallets, and integrating with AI models.
+
+Quick Start
+----------
+
+Prerequisites
+------------
+Before you begin, ensure you have the following prerequisites:
+
+- Python 3.8+: Required for running the toolkit
+- Solana CLI: For Solana-specific actions (e.g., wallet creation)
+- Langchain: For AI integration (pip install langchain)
+- Wallet with Private Keys: Crucial for signing and sending transactions
+- API Keys (Optional): For accessing various blockchain networks or external data sources
+
+Installation
+-----------
+1. Create a Virtual Environment:
+   python -m venv venv
+
+2. Activate the Virtual Environment:
+   # Linux/macOS:
+   source venv/bin/activate
+
+   # Windows:
+   venv\Scripts\activate
+
+3. Install AgentiPy:
+   pip install agentipy
+
+4. Verify Installation:
+   import agentipy
+   print(agentipy.__version__)  # Example output: 2.0.2
+
+Core Concepts
+------------
+
+SolanaAgentKit
+-------------
+The SolanaAgentKit is the main entry point for interacting with the Solana blockchain:
+
+from agentipy.agent import SolanaAgentKit
+
+agent = SolanaAgentKit(
+    private_key="YOUR_PRIVATE_KEY",
+    rpc_url="https://api.mainnet-beta.solana.com"
+)
+
+Supported Protocols
+-----------------
+AgentiPy supports a wide range of Solana protocols:
+
+Protocol    Description         Key Features
+---------   -----------         -------------
+Jupiter     DEX Aggregator      Token swaps, direct routing, stake SOL
+Raydium     DEX                Buy/sell tokens, provide liquidity
+Metaplex    NFT Platform       NFT minting, collection deployment
+Helius      Data Provider      Fetch balances, NFT lists, events
+Drift       Perpetual DEX      Manage accounts, perp trades
+Orca        DEX                Manage liquidity pools, positions
+Pyth Network Price Oracle      Fetch token prices
+And many more...
+
+Tutorials
+--------
+
+1. Basic Token Transfer
+----------------------
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.transfer import TokenTransferManager
+import asyncio
+
+async def main():
+    agent = SolanaAgentKit(
+        private_key="YOUR_PRIVATE_KEY",
+        rpc_url="https://api.mainnet-beta.solana.com"
+    )
+
+    try:
+        transfer_signature = await TokenTransferManager.transfer(
+            agent=agent,
+            to="RECIPIENT_ADDRESS",
+            amount=0.0001  # Amount in SOL
+        )
+        print(f"Transfer successful! Signature: {transfer_signature}")
+    except Exception as e:
+        print(f"Transfer failed: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+2. Checking Balances
+-------------------
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.get_balance import BalanceFetcher
+import asyncio
+
+async def main():
+    agent = SolanaAgentKit(
+        private_key="YOUR_PRIVATE_KEY",
+        rpc_url="https://api.mainnet-beta.solana.com"
+    )
+
+    try:
+        balance = await BalanceFetcher.get_balance(agent)
+        print(f"Wallet Balance: {balance:.4f} SOL")
+    except Exception as e:
+        print(f"Failed to get balance: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+3. Market Data with CoinGecko
+----------------------------
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.use_coingecko import CoingeckoManager
+import asyncio
+
+async def main():
+    agent = SolanaAgentKit(
+        private_key="",  # Not needed for market data
+        rpc_url="https://api.mainnet-beta.solana.com"
+    )
+
+    try:
+        trending = await CoingeckoManager.get_trending_tokens(agent)
+        for token in trending['coins']:
+            print(f"- {token['item']['symbol']} ({token['item']['name']})")
+    except Exception as e:
+        print(f"Failed to get trending tokens: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+Advanced Features
+---------------
+
+1. Langchain Integration
+-----------------------
+AgentiPy can be integrated with Langchain for natural language processing:
+
+from langchain.llms import OpenAI
+from agentipy.agent import SolanaAgentKit
+from agentipy.tools.trade import TradeManager
+
+# Initialize components
+llm = OpenAI(openai_api_key="YOUR_OPENAI_API_KEY")
+agent = SolanaAgentKit(
+    private_key="YOUR_PRIVATE_KEY",
+    rpc_url="https://api.mainnet-beta.solana.com"
+)
+
+# Process natural language commands
+prompt = "Buy 1 SOL of USDC"
+action = llm(prompt)
+
+# Execute trade
+try:
+    TradeManager.trade(
+        agent=agent,
+        output_mint="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        input_amount=0.1
+    )
+except Exception as e:
+    print(f"Trade failed: {e}")
+
+2. Model Context Protocol (MCP)
+-----------------------------
+AgentiPy includes built-in MCP support for standardized tool invocation:
+
+from agentipy.mcp.all_actions import ALL_ACTIONS
+from agentipy.mcp.mcp_server import start_mcp_server
+
+# Start MCP server
+agent = SolanaAgentKit(private_key="<KEY>", rpc_url="<RPC_URL>")
+start_mcp_server(agent)
+
+Available MCP Actions:
+
+Core Solana Actions:
+- GET_BALANCE: Fetch wallet balances
+- TRANSFER: Transfer tokens
+- DEPLOY_TOKEN: Deploy new tokens
+
+Allora Actions:
+- GET_ALL_TOPICS: List inference topics
+- GET_PRICE_PREDICTION: Get price predictions
+- GET_INFERENCE_BY_TOPIC_ID: Get specific inferences
+
+Jupiter Actions:
+- STAKE_WITH_JUP: Stake for rewards
+- TRADE_WITH_JUP: Execute swaps
+
+3. Claude Desktop Integration
+---------------------------
+Configure Claude Desktop to use AgentiPy MCP:
+
+{
+  "mcpServers": {
+    "agentipy": {
+      "command": "./run_mcp.sh",
+      "autoApprove": ["GET_BALANCE", "PRICE_PREDICTION"]
+    }
+  }
+}
+
+Best Practices
+-------------
+
+1. Security
+----------
+- Never hardcode private keys
+- Use environment variables or secure key management
+- Test with small amounts first
+
+2. Error Handling
+---------------
+- Always wrap operations in try-except blocks
+- Implement proper error logging
+- Handle rate limits appropriately
+
+3. Performance
+------------
+- Use async/await for concurrent operations
+- Implement proper caching where appropriate
+- Monitor RPC endpoint usage
+
+Troubleshooting
+--------------
+
+Common issues and solutions:
+
+1. RPC Connection Issues
+----------------------
+- Check network connectivity
+- Verify RPC endpoint URL
+- Consider using multiple RPC providers
+
+2. Transaction Failures
+---------------------
+- Verify sufficient balance
+- Check transaction parameters
+- Monitor network congestion
+
+3. API Rate Limits
+----------------
+- Implement proper rate limiting
+- Use multiple API keys if needed
+- Cache frequently accessed data
+
+API Reference
+------------
+For detailed API documentation, visit our API Reference at https://docs.agentipy.com/api
+
+Contributing
+-----------
+We welcome contributions! Please see our Contributing Guide at https://github.com/agentipy/agentipy/blob/main/CONTRIBUTING.md
+
+License
+-------
+AgentiPy is licensed under the MIT License. See LICENSE at https://github.com/agentipy/agentipy/blob/main/LICENSE
