@@ -8,7 +8,7 @@ def test_create_tiplink():
     agent = SolanaAgentKit(
         private_key="",
         rpc_url="https://api.devnet.solana.com",
-        openai_api_key="sk-proj-----",
+        openai_api_key="",
         solutiofi_api_key=""
     )
 
