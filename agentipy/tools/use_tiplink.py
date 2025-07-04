@@ -1,6 +1,5 @@
 import logging
 from typing import Any, Dict, Optional
-
 import requests
 
 from agentipy.agent import SolanaAgentKit
@@ -40,15 +39,24 @@ class TiplinkManager:
                 "rpc_url": agent.rpc_url,
                 "open_api_key": agent.openai_api_key,
                 "amount": amount,
-                "splMintAddress": spl_mint_address if spl_mint_address else None,
+                "splMintAddress": spl_mint_address or "",  
             }
 
+            endpoint = f"{agent.base_proxy_url}/{agent.api_version}/tiplink/create-tiplink"
+            print("[DEBUG] Sending POST to:", endpoint)
+            print("[DEBUG] Payload:", payload)
+
             response = requests.post(
-                f"{agent.base_proxy_url}/{agent.api_version}/tiplink/create-tiplink",
+                endpoint,
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
-            response.raise_for_status()
+
+            try:
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as http_error:
+                print("[ERROR] Raw response:", response.text)
+                raise http_error
 
             data = response.json()
             return data if data.get("success") else {"success": False, "error": data.get("error", "Unknown error")}
