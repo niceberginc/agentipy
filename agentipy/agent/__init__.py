@@ -105,6 +105,7 @@ class SolanaAgentKit:
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
 
+
         self.connection = AsyncClient(self.rpc_url)
         self.connection_client = Client(self.rpc_url)
 

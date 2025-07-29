@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 
 import aiohttp
 
-from ..types import TokenCheck, TokenLockers, TrendingToken  # Updated imports
+from agentipy.types import RiskItem, TokenCheck, TokenLockers, TrendingToken
 
 BASE_URL = "https://api.rugcheck.xyz/v1"
 
@@ -32,7 +32,7 @@ class RugCheckManager:
                     async with session.post(url, json=data, params=params) as response:
                         response.raise_for_status()
                         return await response.json()
-                elif method == "GET_BYTES":  # Added support for fetching bytes (CSV)
+                elif method == "GET_BYTES":  
                     async with session.get(url, params=params) as response:
                         response.raise_for_status()
                         return await response.read()
@@ -62,10 +62,14 @@ class RugCheckManager:
         url = f"{BASE_URL}/tokens/{mint}/report/summary"
         try:
             data = await self._make_request("GET", url)
+
+            data["risks"] = [RiskItem(**r) for r in data.get("risks", [])]
+
             return TokenCheck(**data)
         except Exception as e:
             logger.error(f"Error fetching token report: {str(e)}")
             raise
+
 
     async def fetch_token_detailed_report(self, mint: str) -> TokenCheck:
         """
@@ -336,3 +340,5 @@ class RugCheckManager:
         except Exception as e:
             logger.error(f"Error fetching votes for token {mint}: {str(e)}")
             raise
+
+            

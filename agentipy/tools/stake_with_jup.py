@@ -16,7 +16,7 @@ fix_asyncio_for_windows()
 
 class StakeManager:
     @staticmethod
-    async def stake_with_jup(agent: SolanaAgentKit, amount: float) -> str:
+    async def stake_with_jup(agent: SolanaAgentKit, amount: float) -> dict:
         """
         Stake SOL with Jup validator.
 
@@ -25,13 +25,12 @@ class StakeManager:
             amount (float): The amount of SOL to stake.
 
         Returns:
-            str: The transaction signature.
+            dict: Transaction metadata including signature, slot, and explorer URL.
 
         Raises:
             Exception: If the staking process fails.
         """
         try:
-
             url = f"https://worker.jup.ag/blinks/swap/So11111111111111111111111111111111111111112/jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v/{amount}"
             payload = {"account": str(agent.wallet_address)}
 
@@ -39,7 +38,6 @@ class StakeManager:
                 async with session.post(url, json=payload) as res:
                     if res.status != 200:
                         raise Exception(f"Failed to fetch transaction: {res.status}")
-
                     data = await res.json()
 
             latest_blockhash = await agent.connection.get_latest_blockhash()
@@ -85,7 +83,16 @@ class StakeManager:
                 last_valid_block_height=latest_blockhash.value.last_valid_block_height,
             )
 
-            return str(signature)
+            slot = confirmation_resp.context.slot
+            explorer_url = f"https://solscan.io/tx/{tx_id}"
+
+            return {
+                "signature": str(signature),
+                "tx_id": tx_id,
+                "slot": slot,
+                "explorer": explorer_url,
+                "confirmed": confirmation_resp.value
+            }
 
         except Exception as e:
             raise Exception(f"jupSOL staking failed: {str(e)}")

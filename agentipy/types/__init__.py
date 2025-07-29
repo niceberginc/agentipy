@@ -12,35 +12,28 @@ class BaseModelWithArbitraryTypes(BaseModel):
         extra = 'ignore'  # Ignore unexpected fields
         validate_assignment = True
 
+class RiskItem(BaseModelWithArbitraryTypes):
+    """
+    Represents a single risk item in the RugCheck token report.
+    """
+    name: str
+    value: Optional[str] = None
+    description: str
+    score: int
+    level: str
+
 class TokenCheck(BaseModelWithArbitraryTypes):
     """
     Model for token report data from RugCheck API.
     """
-    mint: Optional[str] = None
-    token_program: Optional[str] = None
-    token_type: Optional[str] = None
-    risks: List[Dict] = []
+    tokenProgram: Optional[str] = None
+    tokenType: Optional[str] = None
+    risks: List[RiskItem] = []
     score: Optional[int] = None
-    creatorTokens: Optional[List] = None
+    score_normalised: Optional[int] = None
+    lpLockedPct: Optional[float] = None
 
-    @field_validator('risks', mode='before')
-    @classmethod
-    def handle_null_risks(cls, value):
-        """Convert null risks to an empty list."""
-        return value or []
-
-    def to_user_friendly_string(self) -> str:
-        """
-        Convert the token report to a user-friendly string.
-        """
-        return (
-            f"Token Report for {self.mint}:\n"
-            f"  - Program: {self.token_program}\n"
-            f"  - Type: {self.token_type}\n"
-            f"  - Risks: {len(self.risks)} risks found\n"
-            f"  - Score: {self.score}/100\n"
-            f"  - Creator Tokens: {len(self.creatorTokens) if self.creatorTokens else 'None'}"
-        )
+    
 
 class Locker(BaseModelWithArbitraryTypes):
     """
