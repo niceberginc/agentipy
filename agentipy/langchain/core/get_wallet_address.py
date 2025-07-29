@@ -10,7 +10,7 @@ class SolanaGetWalletAddressTool(BaseTool):
     
     async def _arun(self):
         try:
-            result = await self.solana_kit.wallet_address
+            result = self.solana_kit.wallet_address
             return {
                 "status": "success",
                 "message": "Wallet address fetched successfully",

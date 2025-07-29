@@ -1,25 +1,25 @@
-import base64
 import asyncio
-import aiohttp
+import base64
+import logging
 import platform
 
+import aiohttp
 from solana.rpc.commitment import Confirmed
 from solana.rpc.types import TxOpts
 from solders.message import to_bytes_versioned  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
-from solders.signature import Signature  # type: ignore
+
 from agentipy.agent import SolanaAgentKit
-from agentipy.constants import DEFAULT_OPTIONS, JUP_API, LAMPORTS_PER_SOL, TOKENS
+from agentipy.constants import (DEFAULT_OPTIONS, JUP_API, LAMPORTS_PER_SOL,
+                                TOKENS)
 from agentipy.wallet.privy_wallet_client import PrivyWalletClient
 from agentipy.wallet.solana_wallet_client import SolanaWalletClient
 
-# from agentipy.helpers import fix_asyncio_for_windows #Removed because it is not needed anymore.
-
-if platform.system() == "Windows":  # Added the aiodns fix.
+if platform.system() == "Windows":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-# fix_asyncio_for_windows() #Removed because it is not needed anymore.
+logger = logging.getLogger(__name__)
 
 
 class TradeManager:
@@ -89,6 +89,8 @@ class TradeManager:
                     swap_data["swapTransaction"]
                 )
                 tx_id = res.get("hash", "tx_id")
+                signature = tx_id  # Store signature for confirmation
+
             elif isinstance(agent.wallet_client, SolanaWalletClient):
                 swap_transaction_buf = base64.b64decode(swap_data["swapTransaction"])
                 transaction = VersionedTransaction.from_bytes(swap_transaction_buf)
@@ -99,7 +101,8 @@ class TradeManager:
                 signed_transaction = VersionedTransaction.populate(
                     transaction.message, [signature]
                 )
-                tx_resp = await agent.connection.send_transaction(
+
+                tx_id = await agent.connection.send_transaction(
                     signed_transaction,
                     opts=TxOpts(
                         preflight_commitment=Confirmed,
@@ -107,14 +110,18 @@ class TradeManager:
                         max_retries=3,
                     ),
                 )
-                tx_id = tx_resp.value
+                logger.info(f"Transaction Signature: {tx_id}")
+                signature = tx_id  # Store signature for confirmation
+
             else:
-                # Fallback for other wallet types
                 raise ValueError(
                     f"Unsupported wallet client type: {type(agent.wallet_client).__name__}"
                 )
 
-            signature = Signature.from_string(tx_id)
+            if isinstance(signature, str):
+                from solders.signature import Signature  # type: ignore
+                signature = Signature.from_string(signature)
+
             await agent.connection.confirm_transaction(
                 tx_sig=signature,
                 commitment=Confirmed,

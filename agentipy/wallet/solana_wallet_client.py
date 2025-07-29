@@ -4,10 +4,10 @@ import nacl.signing
 from solana.rpc.api import Client as SolanaClient
 from solana.rpc.commitment import Confirmed
 from solana.rpc.types import TxOpts
+from solana.transaction import Transaction  # type: ignore
 from solders.instruction import Instruction  # type: ignore
 from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
-from solana.transaction import Transaction  # type: ignore
 
 from .base_wallet_client import BaseWalletClient
 
@@ -71,7 +71,7 @@ class SolanaWalletClient(BaseWalletClient):
                     skip_preflight=False, max_retries=10, preflight_commitment=Confirmed
                 ),
             )
-            await self.client.confirm_transaction_async(
+            await self.client.confirm_transtion_async(
                 result.value, commitment=Confirmed
             )
         else:

@@ -34,7 +34,7 @@ class LuloLendTool(BaseTool):
             }
             validate_input(data, schema)
             transaction_signature = await self.agent_kit.lulo_lend(
-                mint_address=Pubkey.from_string(data["mint_address"]),
+                mint_address=data["mint_address"],
                 amount=data["amount"]
             )
             return {

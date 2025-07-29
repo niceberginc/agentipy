@@ -1,3 +1,4 @@
+import inspect
 import json
 import logging
 import shlex
@@ -39,7 +40,11 @@ async def call_tool(agent: SolanaAgentKit, selected_actions: Dict[str, Tool], na
 
     action = selected_actions[name]
     try:
-        result = await action.handler(agent, arguments)
+        result = action.handler(agent, arguments)
+
+        if inspect.isawaitable(result):
+            result = await result
+
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
     except Exception as e:
         logger.error(f"Error executing {name}: {str(e)}")
@@ -73,7 +78,11 @@ def run_server(agent: SolanaAgentKit, selected_actions: Dict[str, Tool], server_
                     if "kwargs" in kwargs:
                         kwargs = normalize_kwargs(kwargs["kwargs"])
 
-                    result = await tool_def.handler(agent, kwargs)
+                    result = tool_def.handler(agent, kwargs)
+                    
+                    if inspect.isawaitable(result):
+                        result = await result
+
                     return TextContent(type="text", text=json.dumps(result, indent=2))
                 except Exception as e:
                     logger.error(f"Error in tool '{tool_name}': {str(e)}")

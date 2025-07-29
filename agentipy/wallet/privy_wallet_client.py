@@ -1,19 +1,19 @@
 import base64
 import json
-from typing import Dict, Optional, Any, List, Union
-import requests
+from typing import Any, Dict, List, Optional, Union
 
-from solders.pubkey import Pubkey  # type: ignore
-from solders.instruction import Instruction
-from solders.keypair import Keypair
-from solana.rpc.api import Client as SolanaClient
-from web3 import Web3
+import requests
 from eth_utils.address import to_checksum_address
+from solana.rpc.api import Client as SolanaClient
+from solders.instruction import Instruction  # type: ignore
+from solders.keypair import Keypair  # type: ignore
+from solders.pubkey import Pubkey  # type: ignore
+from web3 import Web3
 from web3.types import Wei
 
 from .base_wallet_client import BaseWalletClient
+from .evm_wallet_client import EVMTransaction, WalletClientInterface
 from .solana_wallet_client import SolanaTransaction
-from .evm_wallet_client import WalletClientInterface, EVMTransaction
 
 
 class ChainType:

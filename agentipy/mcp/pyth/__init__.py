@@ -5,7 +5,7 @@ from agentipy.tools.use_pyth import PythManager
 PYTH_ACTIONS = {
     "PYTH_GET_PRICE": Tool(
         name="PYTH_GET_PRICE",
-        description="Get the price of a coin from Pyth",
+        description="Get the price of a coin from Pyth. input_schema Example: { base_token_ticker: string, quote_token_ticker: string }",
         inputSchema={
             "base_token_ticker": {
                 "type": "string",

@@ -2,9 +2,10 @@ import base64
 
 import aiohttp
 from solana.rpc.commitment import Confirmed
+from solana.rpc.types import TxOpts
 from solders.message import MessageV0, to_bytes_versioned  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
-from solana.rpc.types import TxOpts
+
 from agentipy.agent import SolanaAgentKit
 from agentipy.helpers import fix_asyncio_for_windows
 from agentipy.wallet.privy_wallet_client import PrivyWalletClient
@@ -41,14 +42,17 @@ class StakeManager:
 
                     data = await res.json()
 
+            latest_blockhash = await agent.connection.get_latest_blockhash()
+
             if isinstance(agent.wallet_client, PrivyWalletClient):
                 res = await agent.wallet_client.send_transaction(data["transaction"])
                 tx_id = res.get("hash", "tx_id")
+                signature = tx_id
+
             elif isinstance(agent.wallet_client, SolanaWalletClient):
                 transaction = VersionedTransaction.from_bytes(
                     base64.b64decode(data["transaction"])
                 )
-                latest_blockhash = await agent.connection.get_latest_blockhash()
                 signature = agent.wallet.sign_message(
                     to_bytes_versioned(transaction.message)
                 )
@@ -64,9 +68,19 @@ class StakeManager:
                     ),
                 )
                 tx_id = tx_resp.value
+                signature = tx_id
+
+            else:
+                raise ValueError(
+                    f"Unsupported wallet client type: {type(agent.wallet_client).__name__}"
+                )
+
+            if isinstance(signature, str):
+                from solders.signature import Signature  # type: ignore
+                signature = Signature.from_string(signature)
 
             await agent.connection.confirm_transaction(
-                tx_id,
+                tx_sig=signature,
                 commitment=Confirmed,
                 last_valid_block_height=latest_blockhash.value.last_valid_block_height,
             )

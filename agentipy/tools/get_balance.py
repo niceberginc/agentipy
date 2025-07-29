@@ -11,7 +11,7 @@ from agentipy.constants import LAMPORTS_PER_SOL
 class BalanceFetcher:
     @staticmethod
     async def get_balance(
-        agent: SolanaAgentKit, token_address: Optional[Pubkey] = None
+        agent: SolanaAgentKit, token_address: Optional[str] = None
     ) -> Optional[float]:
         """
         Get the balance of SOL or an SPL token for the agent's wallet.
@@ -28,14 +28,13 @@ class BalanceFetcher:
         """
         try:
             if not token_address:
-                print("here")
                 response = await agent.connection.get_balance(
                     agent.wallet_address, commitment=Confirmed
                 )
                 return response.value / LAMPORTS_PER_SOL
 
             token_account_pubkey = get_associated_token_address(
-                owner=agent.wallet_address, mint=token_address
+                owner=agent.wallet_address, mint=Pubkey.from_string(token_address)
             )
 
             response = await agent.connection.get_token_account_balance(

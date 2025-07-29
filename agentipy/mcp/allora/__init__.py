@@ -7,13 +7,17 @@ from agentipy.tools.use_allora import AlloraManager
 ALLORA_ACTIONS = {
     "GET_ALL_TOPICS": Tool(
         name="GET_ALL_TOPICS",
-        description="Get all topics from Allora's API",
+        description="Get all topics from Allora's API. input_schema Example: {}",
         inputSchema={},
         handler=lambda agent, params: AlloraManager(agent).get_all_topics(),
     ),
+
     "GET_PRICE_PREDICTION": Tool(
         name="GET_PRICE_PREDICTION",
-        description="Fetch a future price prediction for BTC or ETH for a given timeframe from the Allora Network.",
+        description=(
+            "Fetch a future price prediction for BTC or ETH for a given timeframe from the Allora Network. "
+            "input_schema Example: { asset: string, timeframe: string, signature_format: string = 'ETHEREUM_SEPOLIA' }"
+        ),
         inputSchema={
             "asset": {
                 "type": "string",
@@ -38,11 +42,15 @@ ALLORA_ACTIONS = {
             signature_format=SignatureFormat[params.get("signature_format", "ETHEREUM_SEPOLIA")],
         ),
     ),
+
     "GET_INFERENCE_BY_TOPIC_ID": Tool(
         name="GET_INFERENCE_BY_TOPIC_ID",
-        description="Fetch inference data for a specific topic ID.",
+        description="Fetch inference data for a specific topic ID. input_schema Example: { topic_id: number }",
         inputSchema={
-            "topic_id": {"type": "integer", "description": "Topic ID to fetch inference data for."},
+            "topic_id": {
+                "type": "integer",
+                "description": "Topic ID to fetch inference data for."
+            },
         },
         handler=lambda agent, params: AlloraManager(agent).get_inference_by_topic_id(params["topic_id"]),
     ),

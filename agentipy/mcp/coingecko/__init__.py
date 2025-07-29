@@ -5,7 +5,7 @@ from agentipy.tools.use_coingecko import CoingeckoManager
 COINGECKO_ACTIONS = {
     "COINGECKO_GET_COIN_PRICE_VS": Tool(
         name="COINGECKO_GET_COIN_PRICE_VS",
-        description="Get the price of a coin in a specific currency from Coingecko",
+        description="Get the price of a coin in a specific currency from Coingecko. input_schema Example: { coin_ids: string, vs_currencies: string }",
         inputSchema={
             "coin_ids": {
                 "type": "string",
@@ -18,13 +18,14 @@ COINGECKO_ACTIONS = {
         },
         handler=lambda agent, params: CoingeckoManager.get_coin_price_vs(
             agent,
-            coin_ids= [params["coin_ids"]],
+            coin_ids=[params["coin_ids"]],
             vs_currencies=[params["vs_currencies"]],
         ),
     ),
+
     "COINGECKO_GET_TOKEN_INFO": Tool(
         name="COINGECKO_GET_TOKEN_INFO",
-        description="Get token information from Coingecko",
+        description="Get token information from Coingecko. input_schema Example: { token_address: string }",
         inputSchema={
             "token_address": {
                 "type": "string",
@@ -36,9 +37,10 @@ COINGECKO_ACTIONS = {
             token_address=params["token_address"],
         ),
     ),
+
     "COINGECKO_GET_TOP_GAINERS": Tool(
         name="COINGECKO_GET_TOP_GAINERS",
-        description="Get the top gainers from Coingecko",
+        description="Get the top gainers from Coingecko. input_schema Example: { duration: string, top_coins: number }",
         inputSchema={
             "duration": {
                 "type": "string",
@@ -55,9 +57,10 @@ COINGECKO_ACTIONS = {
             top_coins=params["top_coins"],
         ),
     ),
+
     "COINGECTO_GET_TRENDING_POOLS": Tool(
         name="COINGECTO_GET_TRENDING_POOLS",
-        description="Get the trending pools from Coingecko",
+        description="Get the trending pools from Coingecko. input_schema Example: { duration: string }",
         inputSchema={
             "duration": {
                 "type": "string",
@@ -69,17 +72,17 @@ COINGECKO_ACTIONS = {
             duration=params["duration"],
         ),
     ),
+
     "COINGECKO_GET_TRENDING_TOKENS": Tool(
         name="COINGECKO_GET_TRENDING_TOKENS",
-        description="Get the trending tokens from Coingecko",
+        description="Get the trending tokens from Coingecko. input_schema Example: {}",
         inputSchema={},
-        handler=lambda agent, params: CoingeckoManager.get_trending_tokens(
-            agent,
-        ),
+        handler=lambda agent, params: CoingeckoManager.get_trending_tokens(agent),
     ),
+
     "COINGECKO_GET_TOKEN_PRICE_DATA": Tool(
         name="COINGECKO_GET_TOKEN_PRICE_DATA",
-        description="Get token price data from Coingecko",
+        description="Get token price data from Coingecko. input_schema Example: { token_addresses: array<string> }",
         inputSchema={
             "token_addresses": {
                 "type": "array",
@@ -91,12 +94,11 @@ COINGECKO_ACTIONS = {
             token_addresses=params["token_addresses"],
         ),
     ),
+
     "COINGECKO_GET_LATEST_POOLS": Tool(
         name="COINGECKO_GET_LATEST_POOLS",
-        description="Get the latest pools from Coingecko",
+        description="Get the latest pools from Coingecko. input_schema Example: {}",
         inputSchema={},
-        handler=lambda agent, params: CoingeckoManager.get_latest_pools(
-            agent,
-        ),
+        handler=lambda agent, params: CoingeckoManager.get_latest_pools(agent),
     ),
 }

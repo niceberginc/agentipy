@@ -2,11 +2,11 @@ import logging
 
 from solana.rpc.api import Client
 from solana.rpc.types import TxOpts
-#from solana.transaction import Transaction
-from solders.transaction import Transaction
 from solders.compute_budget import set_compute_unit_limit  # type: ignore
 from solders.compute_budget import set_compute_unit_price  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
+#from solana.transaction import Transaction
+from solders.transaction import Transaction  # type: ignore
 from spl.token.constants import TOKEN_PROGRAM_ID
 from spl.token.instructions import (BurnParams, CloseAccountParams, burn,
                                     close_account)

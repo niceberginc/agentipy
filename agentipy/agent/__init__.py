@@ -3,11 +3,8 @@ import os
 from typing import Any, Dict, List, Optional
 
 import base58
-from allora_sdk.v2.api_client import (
-    PriceInferenceTimeframe,
-    PriceInferenceToken,
-    SignatureFormat,
-)
+from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
+                                      PriceInferenceToken, SignatureFormat)
 from solana.rpc.api import Client
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
@@ -19,8 +16,8 @@ from agentipy.types import BondingCurveState, PumpfunTokenOptions
 from agentipy.utils import AgentKitError
 from agentipy.utils.meteora_dlmm.types import ActivationType
 from agentipy.wallet.base_wallet_client import BaseWalletClient
-from agentipy.wallet.solana_wallet_client import SolanaWalletClient
 from agentipy.wallet.privy_wallet_client import PrivyWalletClient
+from agentipy.wallet.solana_wallet_client import SolanaWalletClient
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +125,7 @@ class SolanaAgentKit:
                 wallet_info = self.wallet_client.create_wallet()
                 self.wallet_id = wallet_info["id"]
                 self.wallet_address = Pubkey.from_string(wallet_info["address"])
+                logger.info(f"Created agent for wallet: {privy_wallet_id}")
             else:
                 wallet_address = self.wallet_client.use_wallet(privy_wallet_id)
 
@@ -158,6 +156,14 @@ class SolanaAgentKit:
 
             self.wallet_client = SolanaWalletClient(self.connection_client, self.wallet)
 
+    async def get_wallet_address(self) -> str:
+        """
+        Get the wallet's address.
+
+        Returns:
+            str: The wallet's address in string format.
+        """
+        return str(self.wallet_address)
     async def request_faucet_funds(self):
         from agentipy.tools.request_faucet_funds import FaucetManager
 
@@ -174,7 +180,7 @@ class SolanaAgentKit:
         except Exception as e:
             raise AgentKitError(f"Failed to deploy token: {e}")
 
-    async def get_balance(self, token_address: Optional[Pubkey] = None):
+    async def get_balance(self, token_address: Optional[str] = None):
         from agentipy.tools.get_balance import BalanceFetcher
 
         try:
@@ -222,13 +228,13 @@ class SolanaAgentKit:
         except Exception as e:
             raise AgentKitError(f"Failed to lend asset: {e}")
 
-    async def lulo_lend(self, mint_address: Pubkey, amount: float) -> str:
+    async def lulo_lend(self, mint_address: str, amount: float) -> str:
         """
         Lend tokens for yields using Lulo.
 
         Args:
             agent (SolanaAgentKit): SolanaAgentKit instance.
-            mint_address (Pubkey): SPL Mint address.
+            mint_address (str): SPL Mint address.
             amount (float): Amount to lend.
 
         Returns:
@@ -241,13 +247,13 @@ class SolanaAgentKit:
         except Exception as e:
             raise AgentKitError(f"Failed to lend asset: {e}")
 
-    async def lulo_withdraw(self, mint_address: Pubkey, amount: float) -> str:
+    async def lulo_withdraw(self, mint_address: str, amount: float) -> str:
         """
         Withdraw tokens for yields using Lulo.
 
         Args:
             agent (SolanaAgentKit): SolanaAgentKit instance.
-            mint_address (Pubkey): SPL Mint address.
+            mint_address (str): SPL Mint address.
             amount (float): Amount to withdraw.
 
         Returns:
@@ -280,7 +286,7 @@ class SolanaAgentKit:
         from agentipy.tools.get_token_data import TokenDataManager
 
         try:
-            return TokenDataManager.get_token_data_by_address(Pubkey.from_string(mint))
+            return TokenDataManager.get_token_data_by_address(mint)
         except Exception as e:
             raise AgentKitError(f"Failed to get token data: {e}")
 

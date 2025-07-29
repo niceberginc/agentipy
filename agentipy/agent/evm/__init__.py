@@ -1,8 +1,10 @@
-from enum import Enum
 import logging
 import os
+from enum import Enum
 from typing import Optional, Union
 
+from allora_sdk.v2.api_client import (PriceInferenceTimeframe,
+                                      PriceInferenceToken, SignatureFormat)
 from eth_account import Account
 from web3 import Web3
 
@@ -10,12 +12,6 @@ from agentipy.constants import API_VERSION, BASE_PROXY_URL
 from agentipy.tools.evm.wallet_opts import Web3EVMClient
 from agentipy.utils import AgentKitError
 from agentipy.utils.evm.general.networks import Network
-from allora_sdk.v2.api_client import (
-    PriceInferenceTimeframe,
-    PriceInferenceToken,
-    SignatureFormat,
-)
-
 from agentipy.wallet.crossMint_wallet_client import CrossmintWalletClient
 from agentipy.wallet.evm_wallet_client import EVMWalletClient
 from agentipy.wallet.privy_wallet_client import ChainType, PrivyWalletClient
@@ -166,6 +162,15 @@ class EvmAgentKit:
         logger.info(f"New Wallet Generated: {wallet_address}")
         return private_key, wallet_address
 
+    async def get_wallet_address(self) -> str:
+        """
+        Get the wallet's address.
+
+        Returns:
+            str: The wallet's address in string format.
+        """
+        return str(self.wallet_address)
+    
     async def get_sentient_listings(
         self, page_number: Optional[int] = 1, page_size: Optional[int] = 30
     ):

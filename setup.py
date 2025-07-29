@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="agentipy",
-    version="2.1.1",
+    version="2.1.2.post5",
     author="Utilify",
     author_email="hello@getutilify.com",
     description="A Python toolkit for on chain agents",
@@ -22,7 +22,7 @@ setup(
         "aiohttp>=3.11.10",
         "pillow>=11.0.0",
         "openai>=1.58.1",
-        "solana>=0.35.0",
+        "solana==0.35.1",
         "solders>=0.21.0,<0.24.0",
         "pydantic>=2.10.4",
         "langchain>=0.3.12",
@@ -34,7 +34,9 @@ setup(
         "backpack-exchange-sdk>=1.0.24",
         "web3>=7.8.0",
         "allora-sdk>=0.2.0",
-        "mcp>=1.4.0"
+        "mcp>=1.4.0",
+        "eth_utils>=5.3.0",
+        "web3>=7.10.0"
     ],
     extras_require={
         "dev": [

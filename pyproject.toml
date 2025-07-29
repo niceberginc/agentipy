@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agentipy"
-version = "2.1.1"
+version = "2.1.2.post5"
 description = "A Python toolkit for on chain agents"
 authors = ["Muhammed Talha Korkmaz <kriptovekediler@gmail.com>"]
 license = "MIT"
@@ -29,7 +29,7 @@ numpy = "^1.26.2,<3"
 python-dotenv = "^1.0.1"
 aiohttp = "^3.11.11"
 solders = "^0.21.0,<0.24.0"
-solana = "^0.35.0"
+solana = "^0.35.1"
 anchorpy = "^0.20.1"
 pythclient = "^0.2.0"
 pydantic-ai = ">=0.0.19"
@@ -38,6 +38,8 @@ pynacl = "^1.5.0"
 backpack-exchange-sdk = "^1.0.24"
 allora-sdk = "^0.2.0"
 mcp = "^1.4.0"
+eth_utils = "^5.3.0"
+web3 = "^7.10.0"
 
 [build-system]
 requires = ["poetry-core"]

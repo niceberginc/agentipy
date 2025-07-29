@@ -1,8 +1,10 @@
 import json
+
 from langchain.tools import BaseTool
+from solders.pubkey import Pubkey  # type: ignore
+
 from agentipy.agent import SolanaAgentKit
 from agentipy.helpers import validate_input
-from solders.pubkey import Pubkey # type: ignore
 
 
 class LuloWithdrawTool(BaseTool):
@@ -32,7 +34,7 @@ class LuloWithdrawTool(BaseTool):
             }
             validate_input(data, schema)
             transaction_signature = await self.agent_kit.lulo_withdraw(
-                mint_address=Pubkey.from_string(data["mint_address"]),
+                mint_address=data["mint_address"],
                 amount=data["amount"]
             )
             return {

@@ -1,24 +1,27 @@
+import base64
 import logging
+from typing import Union
 
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Confirmed
 from solana.rpc.types import TxOpts
+from solana.transaction import Transaction  # type: ignore
 from solders.message import Message  # type: ignore
+from solders.null_signer import NullSigner  # type: ignore
 from solders.pubkey import Pubkey as PublicKey  # type: ignore
 from solders.system_program import TransferParams, transfer
-from solana.transaction import Transaction  # type: ignore
 from spl.token.async_client import AsyncToken
 from spl.token.constants import TOKEN_PROGRAM_ID
-from spl.token.instructions import get_associated_token_address, transfer_checked
-from typing import Union
-from solders.null_signer import NullSigner
+from spl.token.instructions import (get_associated_token_address,
+                                    transfer_checked)
+from web3 import Web3
+
 from agentipy.agent import SolanaAgentKit
 from agentipy.agent.evm import EvmAgentKit
-from agentipy.wallet.privy_wallet_client import PrivyWalletClient
-from agentipy.wallet.solana_wallet_client import SolanaWalletClient, SolanaTransaction
 from agentipy.wallet.evm_wallet_client import EVMTransaction
-from web3 import Web3
-import base64
+from agentipy.wallet.privy_wallet_client import PrivyWalletClient
+from agentipy.wallet.solana_wallet_client import (SolanaTransaction,
+                                                  SolanaWalletClient)
 
 LAMPORTS_PER_SOL = 10**9
 
@@ -129,9 +132,8 @@ class TokenTransferManager:
 
                         resp = await client.get_account_info(to_ata)
                         if resp.value is None:
-                            from spl.token.instructions import (
-                                create_associated_token_account,
-                            )
+                            from spl.token.instructions import \
+                                create_associated_token_account
 
                             ata_ix = create_associated_token_account(
                                 from_pubkey, to_pubkey, mint_pubkey
@@ -171,11 +173,11 @@ class TokenTransferManager:
                 elif isinstance(agent.wallet_client, SolanaWalletClient):
                     solana_tx = SolanaTransaction(
                         instructions=instructions,
-                        recent_blockhash=recent_blockhash,
-                        fee_payer=from_pubkey,
                     )  # Pass blockhash and fee payer
+                    
                     res = await agent.wallet_client.send_transaction(solana_tx)
-                    tx_id = res.get("signature")  # Solana client returns 'signature'
+                    logger.info(f"Transaction response: {res}")
+                    tx_id = res.get("hash") 
                 else:
                     # Fallback for other wallet types
                     raise ValueError(
