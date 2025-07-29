@@ -39,6 +39,7 @@ backpack-exchange-sdk = "^1.0.24"
 allora-sdk = "^0.2.0"
 mcp = "^1.4.0"
 
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

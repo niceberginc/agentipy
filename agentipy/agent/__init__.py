@@ -54,6 +54,7 @@ class SolanaAgentKit:
         allora_api_key: Optional[str] = None,
         solutiofi_api_key: Optional[str] = None,
         generate_wallet: bool = False,
+   
     ):
         """
         Initialize the SolanaAgentKit.
@@ -68,6 +69,7 @@ class SolanaAgentKit:
             jito_block_engine_url (str, optional): Jito block engine URL for Solana.
             jito_uuid (str, optional): Jito UUID for authentication.
             generate_wallet (bool): If True, generates a new wallet and returns the details.
+         
         """
         self.rpc_url = rpc_url or os.getenv("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com")
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY", "")
@@ -87,6 +89,7 @@ class SolanaAgentKit:
         self.solutiofi_api_key = solutiofi_api_key or os.getenv("SOLUTIOFI_API_KEY", "")
         self.base_proxy_url = BASE_PROXY_URL
         self.api_version = API_VERSION
+
 
         if generate_wallet:
             self.wallet = Keypair()
