@@ -10,7 +10,7 @@ AgentiPy is a Python toolkit designed to empower AI agents to interact seamlessl
 [<img src="https://img.shields.io/pypi/v/agentipy.svg" alt="PyPI Version">](https://pypi.org/project/agentipy/)
 [<img src="https://img.shields.io/github/issues/niceberginc/agentipy" alt="Open Issues">](https://github.com/niceberginc/agentipy/issues)
 [<img src="https://img.shields.io/badge/python-3.8%2B-blue" alt="Python Version">](https://pypi.org/project/agentipy/)
-[<img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">](https://github.com/niceberginc/agentipy/blob/main/LICENSE)
+[<img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">](https://github.com/niceberginc/agentipy/blob/main/LICENSE.md)
 ## 🚀 Introduction
 
 AgentiPy bridges the gap between AI agents and blockchain applications. It provides a streamlined development experience for building decentralized applications (dApps) that leverage the power of AI on Solana and Base. From automated trading to complex DeFi interactions, AgentiPy equips developers with the tools needed to build intelligent on-chain solutions.
