@@ -1,7 +1,9 @@
 import logging
+from typing import Dict, List, Optional
+
 import aiohttp
-from typing import List, Dict, Optional
-from ..types import TokenCheck, TokenLockers, TrendingToken  # Updated imports
+
+from agentipy.types import TokenCheck, RiskItem, TokenLockers, TrendingToken 
 
 BASE_URL = "https://api.rugcheck.xyz/v1"
 
@@ -30,7 +32,7 @@ class RugCheckManager:
                     async with session.post(url, json=data, params=params) as response:
                         response.raise_for_status()
                         return await response.json()
-                elif method == "GET_BYTES":  # Added support for fetching bytes (CSV)
+                elif method == "GET_BYTES":  
                     async with session.get(url, params=params) as response:
                         response.raise_for_status()
                         return await response.read()
@@ -50,7 +52,7 @@ class RugCheckManager:
 
         Args:
             mint (str): The mint address of the token.
-
+        
         Returns:
             TokenCheck: The token report data.
 
@@ -60,10 +62,14 @@ class RugCheckManager:
         url = f"{BASE_URL}/tokens/{mint}/report/summary"
         try:
             data = await self._make_request("GET", url)
+
+            data["risks"] = [RiskItem(**r) for r in data.get("risks", [])]
+
             return TokenCheck(**data)
         except Exception as e:
             logger.error(f"Error fetching token report: {str(e)}")
             raise
+
 
     async def fetch_token_detailed_report(self, mint: str) -> TokenCheck:
         """
@@ -71,10 +77,10 @@ class RugCheckManager:
 
         Args:
             mint (str): The mint address of the token.
-
+        
         Returns:
             TokenCheck: The detailed token report.
-
+        
         Raises:
             Exception: If the API call fails.
         """
@@ -94,7 +100,7 @@ class RugCheckManager:
             page (int): The page number for pagination (default is 1).
             limit (int): The number of records per page (default is 50).
             verified (bool, optional): Filter for verified domains.
-
+        
         Returns:
             List[Dict]: A list of all registered domains.
 
@@ -122,10 +128,10 @@ class RugCheckManager:
 
         Args:
             verified (bool, optional): Filter for verified domains.
-
+        
         Returns:
             bytes: CSV file content.
-
+        
         Raises:
             Exception: If the API call fails.
         """
@@ -146,7 +152,7 @@ class RugCheckManager:
 
         Args:
             domain_id (str): The ID of the domain.
-
+        
         Returns:
             Dict: The domain details.
 
@@ -167,7 +173,7 @@ class RugCheckManager:
 
         Args:
             domain_id (str): The ID of the domain.
-
+        
         Returns:
             Dict: The domain records.
 
@@ -278,7 +284,7 @@ class RugCheckManager:
 
         Args:
             token_id (str): The ID of the token.
-
+        
         Returns:
             TokenLockers: The LP locker data.
 
@@ -299,7 +305,7 @@ class RugCheckManager:
 
         Args:
             token_id (str): The ID of the token.
-
+        
         Returns:
             TokenLockers: The Flux LP locker data.
 
@@ -320,7 +326,7 @@ class RugCheckManager:
 
         Args:
             mint (str): The mint address of the token.
-
+        
         Returns:
             Dict: The token votes.
 
@@ -334,3 +340,5 @@ class RugCheckManager:
         except Exception as e:
             logger.error(f"Error fetching votes for token {mint}: {str(e)}")
             raise
+
+            

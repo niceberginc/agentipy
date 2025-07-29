@@ -23,18 +23,18 @@ async def fetch_performance_samples(
         ValueError: If performance samples are unavailable or invalid.
     """
     try:
-        performance_samples = await agent.connection.get_recent_performance_samples(sample_count)
+        performance_response = await agent.connection.get_recent_performance_samples(sample_count)
+        performance_samples = performance_response.value  
 
         if not performance_samples:
             raise ValueError("No performance samples available.")
 
         return [
             NetworkPerformanceMetrics(
-                transactions_per_second=sample["num_transactions"]
-                / sample["sample_period_secs"],
-                total_transactions=sample["num_transactions"],
-                sampling_period_seconds=sample["sample_period_secs"],
-                current_slot=sample["slot"],
+                transactions_per_second=sample.num_transactions / sample.sample_period_secs,
+                total_transactions=sample.num_transactions,
+                sampling_period_seconds=sample.sample_period_secs,
+                current_slot=sample.slot,
             )
             for sample in performance_samples
         ]
