@@ -4,8 +4,8 @@ AgentiPy is a Python toolkit designed to empower AI agents to interact seamlessl
 
 
 
-[<img src="https://img.shields.io/github/stars/niceberginc/agentipy?style=social" alt="GitHub Stars">](https://github.com/niceberginc/agentipy)
-[<img src="https://img.shields.io/github/forks/niceberginc/agentipy?style=social" alt="GitHub Forks">](https://github.com/niceberginc/agentipy)
+[<img src="https://img.shields.io/github/stars/niceberginc/agentipy?style=social" alt="GitHub Stars">](https://github.com/niceberginc/agentipy/stargazers)
+[<img src="https://img.shields.io/github/forks/niceberginc/agentipy?style=social" alt="GitHub Forks">](https://github.com/niceberginc/agentipy/network/members)
 [<img src="https://static.pepy.tech/personalized-badge/agentipy?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads" alt="Total Downloads">](https://pypi.org/project/agentipy/)
 [<img src="https://img.shields.io/pypi/v/agentipy.svg" alt="PyPI Version">](https://pypi.org/project/agentipy/)
 [<img src="https://img.shields.io/github/issues/niceberginc/agentipy" alt="Open Issues">](https://github.com/niceberginc/agentipy/issues)
