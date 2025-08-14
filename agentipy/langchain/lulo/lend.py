@@ -86,4 +86,7 @@ class LuloLendAssetsTool(BaseTool):
                 "transaction_signature": None,
                 "message": f"Error lending assets using Lulo: {str(e)}"
             }
+
+    def _run(self):
+        raise NotImplementedError("This tool only supports async execution via _arun. Please use the async interface.")
         
