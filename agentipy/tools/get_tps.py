@@ -108,7 +108,8 @@ class SolanaPerformanceTracker:
             response = await agent.connection.get_recent_performance_samples(1)
 
             performance_samples = response.value
-            logger.info("Performance Samples:", performance_samples)
+            # logger.info("Performance Samples:", performance_samples)
+            logger.info(f"Performance Samples: {performance_samples}")
 
             if not performance_samples:
                 raise ValueError("No performance samples available.")
