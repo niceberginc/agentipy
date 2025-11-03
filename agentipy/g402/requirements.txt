@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+solana
+solders
+requests
+agentipy
+httpx
+
