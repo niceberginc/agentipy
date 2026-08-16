@@ -3,7 +3,7 @@ import struct
 
 from solana.rpc.api import Client
 from solana.rpc.types import TokenAccountOpts, TxOpts
-from solana.transaction import AccountMeta
+from solders.instruction import AccountMeta  # type: ignore
 from solders.compute_budget import set_compute_unit_limit  # type: ignore
 from solders.compute_budget import set_compute_unit_price  # type: ignore
 from solders.instruction import Instruction  # type: ignore

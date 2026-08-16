@@ -4,7 +4,7 @@ import time
 
 import requests
 from solana.rpc.api import Client
-from solana.transaction import Signature
+from solders.signature import Signature
 
 from agentipy.agent import SolanaAgentKit
 
