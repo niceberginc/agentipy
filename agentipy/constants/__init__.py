@@ -49,3 +49,6 @@ ELFA_AI_BASE_URL = "https://api.elfa.ai"
 FLUXBEAM_BASE_URI = "https://api.fluxbeam.xyz/v1"
 # FlexLend BASE URL
 FLEXLEND_BASE_URL = "https://api.flexlend.fi/generate/account"
+
+# Solana Rent & Rug Shield Base URL
+RENTSHIELD_BASE_URL = "https://rentandrugshield.com"

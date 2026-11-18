@@ -9,6 +9,7 @@ from agentipy.langchain.debridge import get_debridge_tools
 from agentipy.langchain.domain import get_domain_tools
 from agentipy.langchain.drift import get_drift_tools
 from agentipy.langchain.elfaai import get_elfaai_tools
+from agentipy.langchain.rentshield import get_rentshield_tools
 from agentipy.langchain.faucet import get_faucet_tools
 from agentipy.langchain.flash import get_flash_tools
 from agentipy.langchain.fluxbeam import get_fluxbeam_tools
@@ -68,6 +69,7 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         *get_backpack_tools(solana_kit=solana_kit),
         *get_jito_tools(solana_kit=solana_kit) ,
         *get_elfaai_tools(solana_kit=solana_kit),
+        *get_rentshield_tools(solana_kit=solana_kit),
         *get_metaplex_tools(solana_kit=solana_kit),
         *get_debridge_tools(solana_kit=solana_kit),
         *get_drift_tools(solana_kit=solana_kit),
