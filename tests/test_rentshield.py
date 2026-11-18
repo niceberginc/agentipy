@@ -11,7 +11,9 @@ except ImportError:
     _MOD_PATH = Path(__file__).resolve().parents[1] / "agentipy" / "tools" / "use_rentshield.py"
     _SPEC = importlib.util.spec_from_file_location("use_rentshield", _MOD_PATH)
     assert _SPEC is not None and _SPEC.loader is not None
+    import sys
     _MOD = importlib.util.module_from_spec(_SPEC)
+    sys.modules['use_rentshield'] = _MOD
     _SPEC.loader.exec_module(_MOD)
     RentShieldManager = _MOD.RentShieldManager
     is_valid_solana_pubkey = _MOD.is_valid_solana_pubkey
