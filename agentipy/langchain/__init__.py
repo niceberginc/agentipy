@@ -26,6 +26,7 @@ from agentipy.langchain.orca import get_orca_tools
 from agentipy.langchain.perpetual import get_perp_tools
 from agentipy.langchain.pumpfun import get_pumpfun_tools
 from agentipy.langchain.raydium import get_raydium_tools
+from agentipy.langchain.rentshield import get_rentshield_tools
 from agentipy.langchain.rugcheck import get_rugcheck_tools
 from agentipy.langchain.sendarcade import get_rock_paper_scissors_tools
 from agentipy.langchain.sns import get_sns_tools
@@ -68,6 +69,7 @@ def create_solana_tools(solana_kit: SolanaAgentKit):
         *get_backpack_tools(solana_kit=solana_kit),
         *get_jito_tools(solana_kit=solana_kit) ,
         *get_elfaai_tools(solana_kit=solana_kit),
+        *get_rentshield_tools(solana_kit=solana_kit),
         *get_metaplex_tools(solana_kit=solana_kit),
         *get_debridge_tools(solana_kit=solana_kit),
         *get_drift_tools(solana_kit=solana_kit),

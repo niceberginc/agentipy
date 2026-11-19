@@ -50,6 +50,7 @@ class SolanaAgentKit:
         coingecko_api_key: Optional[str] = None,
         coingecko_demo_api_key: Optional[str] = None,
         elfa_ai_api_key: Optional[str] = None,
+        rentshield_api_key: Optional[str] = None,
         flexland_api_key : Optional[str] = None,
         allora_api_key: Optional[str] = None,
         solutiofi_api_key: Optional[str] = None,
@@ -84,6 +85,7 @@ class SolanaAgentKit:
         self.coingecko_api_key = coingecko_api_key or os.getenv("COINGECKO_PRO_API_KEY", "")
         self.coingecko_demo_api_key = coingecko_demo_api_key or os.getenv("COINGECKO_DEMO_API_KEY", "")
         self.elfa_ai_api_key = elfa_ai_api_key or os.getenv("ELFA_AI_API_KEY", "")
+        self.rentshield_api_key = rentshield_api_key or os.getenv("RENTSHIELD_API_KEY", "")
         self.flexland_api_key = flexland_api_key or os.getenv("FLEXLAND_API_KEY", "")
         self.allora_api_key = allora_api_key or os.getenv("ALLORA_API_KEY", "")
         self.solutiofi_api_key = solutiofi_api_key or os.getenv("SOLUTIOFI_API_KEY", "")
@@ -2883,3 +2885,27 @@ class SolanaAgentKit:
             return VoltrManager.withdraw_strategy(self, withdraw_amount, vault, strategy)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to withdraw from strategy: {e}")
+
+    async def check_token_rug_shield(self, mint: str) -> dict:
+        """Run a read-only 11-layer pre-buy rug audit on a Solana mint."""
+        from agentipy.tools.use_rentshield import RentShieldManager
+
+        try:
+            return await RentShieldManager.check_token_rug_shield(self, mint)
+        except Exception as e:
+            raise SolanaAgentKitError(f"Failed to check token rug shield: {e}")
+
+    async def scan_wallet_unclaimed_rent(
+        self, wallet: Optional[str] = None
+    ) -> dict:
+        """Preview reclaimable SOL rent across empty SPL & Token-2022 ATAs."""
+        from agentipy.tools.use_rentshield import RentShieldManager
+
+        try:
+            return await RentShieldManager.scan_wallet_unclaimed_rent(
+                self, wallet
+            )
+        except Exception as e:
+            raise SolanaAgentKitError(
+                f"Failed to scan wallet unclaimed rent: {e}"
+            )
