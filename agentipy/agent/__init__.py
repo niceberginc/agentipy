@@ -2887,17 +2887,25 @@ class SolanaAgentKit:
             raise SolanaAgentKitError(f"Failed to withdraw from strategy: {e}")
 
     async def check_token_rug_shield(self, mint: str) -> dict:
-        """Run a read-only 11-layer pre-buy rug and scam audit on a Solana token mint."""
+        """Run a read-only 11-layer pre-buy rug audit on a Solana mint."""
         from agentipy.tools.use_rentshield import RentShieldManager
+
         try:
             return await RentShieldManager.check_token_rug_shield(self, mint)
         except Exception as e:
             raise SolanaAgentKitError(f"Failed to check token rug shield: {e}")
 
-    async def scan_wallet_unclaimed_rent(self, wallet: Optional[str] = None) -> dict:
-        """Preview reclaimable SOL rent across empty SPL and Token-2022 ATAs (0% first-claim fee)."""
+    async def scan_wallet_unclaimed_rent(
+        self, wallet: Optional[str] = None
+    ) -> dict:
+        """Preview reclaimable SOL rent across empty SPL & Token-2022 ATAs."""
         from agentipy.tools.use_rentshield import RentShieldManager
+
         try:
-            return await RentShieldManager.scan_wallet_unclaimed_rent(self, wallet)
+            return await RentShieldManager.scan_wallet_unclaimed_rent(
+                self, wallet
+            )
         except Exception as e:
-            raise SolanaAgentKitError(f"Failed to scan wallet unclaimed rent: {e}")
+            raise SolanaAgentKitError(
+                f"Failed to scan wallet unclaimed rent: {e}"
+            )

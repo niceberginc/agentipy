@@ -1,11 +1,13 @@
+from typing import List
+
+from langchain.tools import BaseTool
+
 from agentipy.agent import SolanaAgentKit
-from agentipy.langchain.rentshield.shield import (
-    RentShieldCheckTokenTool,
-    RentShieldScanWalletTool,
-)
+
+from .shield import RentShieldCheckTokenTool, RentShieldScanWalletTool
 
 
-def get_rentshield_tools(solana_kit: SolanaAgentKit):
+def get_rentshield_tools(solana_kit: SolanaAgentKit) -> List[BaseTool]:
     return [
         RentShieldCheckTokenTool(agent_kit=solana_kit),
         RentShieldScanWalletTool(agent_kit=solana_kit),

@@ -9,7 +9,6 @@ from agentipy.langchain.debridge import get_debridge_tools
 from agentipy.langchain.domain import get_domain_tools
 from agentipy.langchain.drift import get_drift_tools
 from agentipy.langchain.elfaai import get_elfaai_tools
-from agentipy.langchain.rentshield import get_rentshield_tools
 from agentipy.langchain.faucet import get_faucet_tools
 from agentipy.langchain.flash import get_flash_tools
 from agentipy.langchain.fluxbeam import get_fluxbeam_tools
@@ -27,6 +26,7 @@ from agentipy.langchain.orca import get_orca_tools
 from agentipy.langchain.perpetual import get_perp_tools
 from agentipy.langchain.pumpfun import get_pumpfun_tools
 from agentipy.langchain.raydium import get_raydium_tools
+from agentipy.langchain.rentshield import get_rentshield_tools
 from agentipy.langchain.rugcheck import get_rugcheck_tools
 from agentipy.langchain.sendarcade import get_rock_paper_scissors_tools
 from agentipy.langchain.sns import get_sns_tools

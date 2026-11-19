@@ -1,27 +1,33 @@
 import importlib.util
+import json
+import sys
+import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Tuple
-import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
+_rs: Any
 try:
-    from agentipy.tools.use_rentshield import RentShieldManager, is_valid_solana_pubkey
+    from agentipy.tools import use_rentshield as _rs
 except ImportError:
-    _MOD_PATH = Path(__file__).resolve().parents[1] / "agentipy" / "tools" / "use_rentshield.py"
-    _SPEC = importlib.util.spec_from_file_location("use_rentshield", _MOD_PATH)
-    assert _SPEC is not None and _SPEC.loader is not None
-    import sys
-    _MOD = importlib.util.module_from_spec(_SPEC)
-    sys.modules['use_rentshield'] = _MOD
-    _SPEC.loader.exec_module(_MOD)
-    RentShieldManager = _MOD.RentShieldManager
-    is_valid_solana_pubkey = _MOD.is_valid_solana_pubkey
+    _root = Path(__file__).resolve().parents[1]
+    _mod_path = _root / "agentipy" / "tools" / "use_rentshield.py"
+    _spec = importlib.util.spec_from_file_location("use_rentshield", _mod_path)
+    assert _spec is not None and _spec.loader is not None
+    _mod = importlib.util.module_from_spec(_spec)
+    sys.modules["use_rentshield"] = _mod
+    _spec.loader.exec_module(_mod)
+    _rs = _mod
+
+RentShieldManager = _rs.RentShieldManager
+is_valid_solana_pubkey = _rs.is_valid_solana_pubkey
 
 USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 SAMPLE_WALLET = "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV"
 FAKE_SECRET_KEY = (
-    "5MaiiCavjCmn9Hs1o3eznqDEhRwxo7pXiAYez7keQUviUkauRiTMD8DrESdrNjN8zd9mTmVhRvBJeg5vhyvgrAhG"
+    "5MaiiCavjCmn9Hs1o3eznqDEhRwxo7pXiAYez7keQUviUkau"
+    "RiTMD8DrESdrNjN8zd9mTmVhRvBJeg5vhyvgrAhG"
 )
 
 
@@ -73,24 +79,33 @@ class TestRentShieldManager(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(is_valid_solana_pubkey(USDC_MINT))
         self.assertTrue(is_valid_solana_pubkey(SAMPLE_WALLET))
         self.assertFalse(is_valid_solana_pubkey(FAKE_SECRET_KEY))
-        self.assertFalse(is_valid_solana_pubkey("seed phrase words never allowed"))
+        self.assertFalse(is_valid_solana_pubkey("seed phrase not allowed"))
 
     async def test_private_key_rejected_offline(self) -> None:
-        dummy_agent = SimpleNamespace(wallet_address=SAMPLE_WALLET, rentshield_api_key="")
+        dummy_agent = SimpleNamespace(
+            wallet_address=SAMPLE_WALLET, rentshield_api_key=""
+        )
         with patch.object(RentShieldManager, "_request") as mock_req:
             with self.assertRaises(ValueError):
-                await RentShieldManager.check_token_rug_shield(dummy_agent, FAKE_SECRET_KEY)
+                await RentShieldManager.check_token_rug_shield(
+                    dummy_agent, FAKE_SECRET_KEY
+                )
             with self.assertRaises(ValueError):
-                await RentShieldManager.scan_wallet_unclaimed_rent(dummy_agent, FAKE_SECRET_KEY)
+                await RentShieldManager.scan_wallet_unclaimed_rent(
+                    dummy_agent, FAKE_SECRET_KEY
+                )
             mock_req.assert_not_called()
 
     async def test_check_token_and_scan_wallet_with_fallback(self) -> None:
         RentShieldManager.reset_cache()
-        dummy_agent = SimpleNamespace(wallet_address=SAMPLE_WALLET, rentshield_api_key="")
+        dummy_agent = SimpleNamespace(
+            wallet_address=SAMPLE_WALLET, rentshield_api_key=""
+        )
         recorded: List[Tuple[str, str, Any]] = []
+        edge_url = "https://edge.rentandrugshield.example"
         steps = [
             _MockResponse(404, {}),
-            _MockResponse(200, {"ok": True, "api_base": "https://edge.rentandrugshield.example"}),
+            _MockResponse(200, {"ok": True, "api_base": edge_url}),
             _MockResponse(
                 200,
                 {
@@ -116,22 +131,50 @@ class TestRentShieldManager(unittest.IsolatedAsyncioTestCase):
                 },
             ),
         ]
-        target_mod = RentShieldManager.__module__
-        import sys
-        mod_obj = sys.modules[target_mod]
+        mod_obj = sys.modules[RentShieldManager.__module__]
         with patch.object(
             mod_obj.aiohttp,
             "ClientSession",
             side_effect=lambda **_: _MockSession(steps, recorded),
         ):
-            audit = await RentShieldManager.check_token_rug_shield(dummy_agent, USDC_MINT)
-            rent = await RentShieldManager.scan_wallet_unclaimed_rent(dummy_agent)
+            audit = await RentShieldManager.check_token_rug_shield(
+                dummy_agent, USDC_MINT
+            )
+            rent = await RentShieldManager.scan_wallet_unclaimed_rent(
+                dummy_agent,
+            )
 
         self.assertEqual(audit["score"], 98)
         self.assertTrue(audit["safe_to_buy"])
         self.assertTrue(rent["is_first_free_claim"])
         self.assertEqual(rent["effective_fee_bps"], 0)
-        self.assertEqual(recorded[-1][2], {"wallet": SAMPLE_WALLET, "user_initiated": False})
+        expected_body = {"wallet": SAMPLE_WALLET, "user_initiated": False}
+        self.assertEqual(recorded[-1][2], expected_body)
+
+    async def test_langchain_tools_wrappers(self) -> None:
+        try:
+            from agentipy.agent import SolanaAgentKit
+            from agentipy.langchain.rentshield import get_rentshield_tools
+        except ImportError:
+            self.skipTest("langchain/agentipy runtime deps not installed")
+        kit = SolanaAgentKit.__new__(SolanaAgentKit)
+        kit.wallet_address = SAMPLE_WALLET
+        kit.rentshield_api_key = ""
+        kit.check_token_rug_shield = AsyncMock(  # type: ignore[method-assign]
+            return_value={"mint": USDC_MINT, "safe_to_buy": True, "score": 99}
+        )
+        kit.scan_wallet_unclaimed_rent = (  # type: ignore[method-assign]
+            AsyncMock(return_value={"wallet": SAMPLE_WALLET, "empty_count": 1})
+        )
+        tools = get_rentshield_tools(kit)
+        self.assertEqual(len(tools), 2)
+        payload = json.dumps({"mint": USDC_MINT})
+        out1 = json.loads(await tools[0]._arun(payload))
+        self.assertEqual(out1["status"], "success")
+        self.assertEqual(out1["report"]["score"], 99)
+        out2 = json.loads(await tools[1]._arun(""))
+        self.assertEqual(out2["status"], "success")
+        self.assertEqual(out2["result"]["empty_count"], 1)
 
 
 if __name__ == "__main__":
